@@ -20,6 +20,9 @@ model User {
   passwordHash        String
   role                Role
 
+  passwordResetToken     String?
+  passwordResetExpiresAt DateTime?
+  
   isEmailVerified     Boolean   @default(false)
   isPhoneVerified     Boolean   @default(false)
 
