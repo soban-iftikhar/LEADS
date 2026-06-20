@@ -6,10 +6,11 @@ import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 import { generateOtp, hashOtp } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
+import { sendOtpSms } from "@/lib/sms";
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Rate limiting — prevent registration spam/abuse
+    // Rate limiting
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
     const { allowed } = await rateLimit(`register:${ip}`, 5, 3600); // 5 per hour
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Parse and validate input
+    // Parse and validate input
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
@@ -34,18 +35,16 @@ export async function POST(request: NextRequest) {
 
     const { fullName, email, phone, role, password } = parsed.data;
 
-    // 3. Check email uniqueness (case-insensitive, already lowercased by Zod)
+    // Check email uniqueness (case-insensitive, already lowercased by Zod)
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      // Generic message — do not reveal whether it's the email specifically
-      // that's taken, to avoid user enumeration attacks (security NFR).
       return errorResponse("An account with this email already exists", 409);
     }
 
-    // 4. Check phone uniqueness only if provided
+    // Check phone uniqueness only if provided
     if (phone) {
       const existingPhone = await prisma.user.findUnique({
         where: { phone },
@@ -59,17 +58,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Hash password — never store plain text
+    // Hash password 
     const passwordHash = await hashPassword(password);
 
-    // 6. Generate email OTP (hashed before storage — never store raw OTP)
+    // Generate email OTP (hashed before storage
     const emailOtp = generateOtp();
     const emailOtpHash = await hashOtp(emailOtp);
     const emailOtpExpiresAt = new Date(
       Date.now() + Number(process.env.OTP_EXPIRY_MINUTES ?? 10) * 60 * 1000,
     );
 
-    // 7. Create user record
+    let phoneOtp: string | null = null;
+    let phoneOtpHash: string | null = null;
+    let phoneOtpExpiresAt: Date | null = null;
+
+    if (phone) {
+      phoneOtp = generateOtp();
+      phoneOtpHash = await hashOtp(phoneOtp);
+      phoneOtpExpiresAt = new Date(
+        Date.now() + Number(process.env.OTP_EXPIRY_MINUTES ?? 10) * 60 * 1000,
+      );
+    }
+
+    // Create user record
     const user = await prisma.user.create({
       data: {
         fullName,
@@ -79,6 +90,12 @@ export async function POST(request: NextRequest) {
         passwordHash,
         emailOtpHash,
         emailOtpExpiresAt,
+        ...(phoneOtpHash && phoneOtpExpiresAt
+          ? {
+              phoneOtpHash,
+              phoneOtpExpiresAt,
+            }
+          : {}),
         isEmailVerified: false,
         isPhoneVerified: false,
       },
@@ -101,6 +118,11 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error("Failed to send OTP email:", emailError);
     }
+
+    if (phoneOtp && phone) {
+      await sendOtpSms(phone, phoneOtp);
+    }
+
     return successResponse(
       {
         user,
@@ -112,4 +134,6 @@ export async function POST(request: NextRequest) {
     console.error("Register error:", error);
     return errorResponse("Something went wrong. Please try again.", 500);
   }
+
+  
 }

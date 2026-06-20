@@ -4,6 +4,7 @@ import { z } from "zod";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { generateOtp, hashOtp } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
+import { sendOtpSms } from "@/lib/sms";
 import { rateLimit } from "@/lib/rate-limit";
 
 const resendOtpSchema = z.object({
@@ -95,10 +96,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // TODO: Send via SMS gateway
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[DEV ONLY] Phone OTP for ${user.phone}: ${otp}`);
-      }
+      await sendOtpSms(user.phone, otp);
     }
 
     return successResponse({
