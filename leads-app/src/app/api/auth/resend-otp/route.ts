@@ -4,7 +4,7 @@ import { z } from "zod";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { generateOtp, hashOtp } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
-import { sendOtpSms } from "@/lib/sms";
+import { sendWhatsAppOTP, formatPakistaniPhone } from "@/lib/whatsapp";
 import { rateLimit } from "@/lib/rate-limit";
 
 const resendOtpSchema = z.object({
@@ -96,7 +96,15 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await sendOtpSms(user.phone, otp);
+      const formattedPhone = formatPakistaniPhone(user.phone);
+      const sent = await sendWhatsAppOTP(formattedPhone, otp);
+
+      if (!sent) {
+        return errorResponse(
+          "Failed to send WhatsApp OTP. Please try again.",
+          500,
+        );
+      }
     }
 
     return successResponse({
