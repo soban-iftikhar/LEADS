@@ -13,20 +13,28 @@ enum Role {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  fullName        String
-  email           String    @unique
-  phone           String    @unique
-  passwordHash    String
-  role            Role
-  isEmailVerified Boolean   @default(false)
-  isPhoneVerified Boolean   @default(false)
-  emailOtp        String?
-  phoneOtp        String?
-  otpExpiresAt    DateTime?
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  fullName            String
+  email               String    @unique
+  phone               String?   @unique
+  passwordHash        String
+  role                Role
+
+  isEmailVerified     Boolean   @default(false)
+  isPhoneVerified     Boolean   @default(false)
+
+  emailOtpHash        String?
+  emailOtpExpiresAt   DateTime?
+
+  phoneOtpHash        String?
+  phoneOtpExpiresAt   DateTime?
+
+  otpAttempts         Int       @default(0)
+
+  isActive            Boolean   @default(true)
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@map("users")
 }
