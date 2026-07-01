@@ -5,6 +5,7 @@ import { hashPassword } from "@/lib/auth/hash";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { sendOtpEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (!allowed) {
       return errorResponse(
         "Too many registration attempts. Please try again later.",
-        429
+        429,
       );
     }
 
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(
         "Validation failed",
         422,
-        parsed.error.flatten().fieldErrors
+        parsed.error.flatten().fieldErrors,
       );
     }
 
@@ -41,10 +42,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       // Generic message — do not reveal whether it's the email specifically
       // that's taken, to avoid user enumeration attacks (security NFR).
-      return errorResponse(
-        "An account with this email already exists",
-        409
-      );
+      return errorResponse("An account with this email already exists", 409);
     }
 
     // 4. Check phone uniqueness only if provided
@@ -56,7 +54,7 @@ export async function POST(request: NextRequest) {
       if (existingPhone) {
         return errorResponse(
           "An account with this phone number already exists",
-          409
+          409,
         );
       }
     }
@@ -68,7 +66,7 @@ export async function POST(request: NextRequest) {
     const emailOtp = generateOtp();
     const emailOtpHash = await hashOtp(emailOtp);
     const emailOtpExpiresAt = new Date(
-      Date.now() + Number(process.env.OTP_EXPIRY_MINUTES ?? 10) * 60 * 1000
+      Date.now() + Number(process.env.OTP_EXPIRY_MINUTES ?? 10) * 60 * 1000,
     );
 
     // 7. Create user record
@@ -97,18 +95,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 8. TODO (tomorrow): send emailOtp via SendGrid
-    // For now, log it in development only so you can test the flow manually.
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[DEV ONLY] Email OTP for ${email}: ${emailOtp}`);
+    // send emailOtp via SendGrid
+    try {
+      await sendOtpEmail(email, fullName, emailOtp);
+    } catch (emailError) {
+      console.error("Failed to send OTP email:", emailError);
     }
-
     return successResponse(
       {
         user,
         message: "Registration successful. Please verify your email.",
       },
-      201
+      201,
     );
   } catch (error) {
     console.error("Register error:", error);
