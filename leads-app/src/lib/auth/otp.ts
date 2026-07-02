@@ -9,9 +9,6 @@ export function generateOtp(length = 6): string {
   return otp;
 }
 
-// OTPs are short-lived and low-entropy by nature, so a fast hash
-// (sha256) is appropriate here — bcrypt would be unnecessarily slow
-// for something that expires in 10 minutes.
 export async function hashOtp(otp: string): Promise<string> {
   return crypto.createHash("sha256").update(otp).digest("hex");
 }
