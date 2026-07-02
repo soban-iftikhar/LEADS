@@ -16,9 +16,8 @@ const resendOtpSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Strict rate limit — 3 resends per hour per IP
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    const { allowed } = await rateLimit(`resend-otp:${ip}`, 3, 3600);
+    const { allowed } = await rateLimit(`resend-otp:${ip}`, 100, 3600);
 
     if (!allowed) {
       return errorResponse(
@@ -31,7 +30,11 @@ export async function POST(request: NextRequest) {
     const parsed = resendOtpSchema.safeParse(body);
 
     if (!parsed.success) {
-      return errorResponse("Validation failed", 422, parsed.error.flatten().fieldErrors);
+      return errorResponse(
+        "Validation failed",
+        422,
+        parsed.error.flatten().fieldErrors
+      );
     }
 
     const { email, type } = parsed.data;
@@ -39,13 +42,11 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      // Same response whether user exists or not
       return successResponse({
         message: "If your account exists, a new code has been sent.",
       });
     }
 
-    // Check if already verified for the requested channel
     if (type === "email" && user.isEmailVerified) {
       return successResponse({ message: "Your email is already verified." });
     }
@@ -54,7 +55,6 @@ export async function POST(request: NextRequest) {
       return successResponse({ message: "Your phone is already verified." });
     }
 
-    // Generate fresh OTP
     const otp = generateOtp();
     const otpHash = await hashOtp(otp);
     const otpExpiresAt = new Date(
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         data: {
           emailOtpHash: otpHash,
           emailOtpExpiresAt: otpExpiresAt,
-          otpAttempts: 0, // Reset attempts on resend
+          otpAttempts: 0,
         },
       });
 
@@ -75,7 +75,10 @@ export async function POST(request: NextRequest) {
         await sendOtpEmail(email, user.fullName, otp);
       } catch (emailError) {
         console.error("Failed to resend OTP email:", emailError);
-        return errorResponse("Failed to send verification code. Please try again.", 500);
+        return errorResponse(
+          "Failed to send verification code. Please try again.",
+          500
+        );
       }
     }
 
@@ -96,13 +99,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Format phone once here — sendWhatsAppOTP expects already formatted number
       const formattedPhone = formatPakistaniPhone(user.phone);
       const sent = await sendWhatsAppOTP(formattedPhone, otp);
 
       if (!sent) {
         return errorResponse(
           "Failed to send WhatsApp OTP. Please try again.",
-          500,
+          500
         );
       }
     }
