@@ -6,7 +6,7 @@ import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 import { generateOtp, hashOtp } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
-import { sendOtpSms } from "@/lib/sms";
+import { sendWhatsAppOTP, formatPakistaniPhone } from "@/lib/whatsapp";
 
 export async function POST(request: NextRequest) {
   try {
@@ -120,7 +120,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (phoneOtp && phone) {
-      await sendOtpSms(phone, phoneOtp);
+      const formattedPhone = formatPakistaniPhone(phone);
+      const sent = await sendWhatsAppOTP(formattedPhone, phoneOtp);
+
+      if (!sent) {
+        return errorResponse(
+          "Failed to send WhatsApp OTP. Please try again.",
+          500,
+        );
+      }
     }
 
     return successResponse(
