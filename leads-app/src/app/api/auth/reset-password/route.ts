@@ -4,6 +4,7 @@ import { z } from "zod";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { hashPassword } from "@/lib/auth/hash";
 import { rateLimit } from "@/lib/rate-limit";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    const { allowed } = await rateLimit(`reset-password:${ip}`, 5, 3600);
+    const { allowed } = await rateLimit(`reset-password:${ip}`, 10, 1800);
 
     if (!allowed) {
       return errorResponse(
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return errorResponse("Invalid or expired reset link.", 400);
     }
+    
 
     // Check reset token exists
     if (!user.passwordResetToken || !user.passwordResetExpiresAt) {
@@ -79,8 +81,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash the incoming raw token and compare to stored hash
-    // Timing-safe comparison prevents timing attacks.
+
     const incomingTokenHash = crypto
       .createHash("sha256")
       .update(token)
@@ -95,6 +96,15 @@ export async function POST(request: NextRequest) {
 
     if (!isTokenValid) {
       return errorResponse("Invalid or expired reset link.", 400);
+    }
+
+    const isSamePassword = await bcrypt.compare(password, user.passwordHash);
+
+    if (isSamePassword) {
+      return errorResponse(
+        "New password cannot be the same as your current password",
+        400
+      );
     }
 
     // Hash new password
