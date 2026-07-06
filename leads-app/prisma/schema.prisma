@@ -12,6 +12,24 @@ enum Role {
   ADMIN
 }
 
+enum Purpose {
+  SALE
+  RENT
+}
+
+enum SizeUnit {
+  MARLA
+  KANAL
+  SQFT
+}
+
+enum ListingStatus {
+  PENDING_AI_REVIEW
+  ACTIVE
+  PAUSED
+  DELETED
+}
+
 model User {
   id                  String    @id @default(cuid())
   fullName            String
@@ -39,5 +57,32 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  listings  Listing[]
   @@map("users")
+}
+
+model Listing {
+  id              String     @id @default(cuid())
+  title           String
+  category        String
+  purpose         Purpose
+  city            String
+  locality        String
+  size            Float
+  sizeUnit        SizeUnit
+  price           Float
+  bedrooms        Int?
+  bathrooms       Int?
+  description     String
+  images          String[]
+  status          ListingStatus @default(PENDING_AI_REVIEW)
+  originalDesc    String?
+  aiEnhancedDesc  String?
+  sellerId        String
+  seller          User       @relation(fields: [sellerId], references: [id])
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("listings")
+  @@index([city, category, purpose])
 }
