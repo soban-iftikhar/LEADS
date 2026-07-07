@@ -3,7 +3,8 @@ import sharp from "sharp";
 import cloudinary from "@/lib/cloudinary";
 
 // --- Validation rules ---
-const MAX_FILE_SIZE_MB = 5;
+
+const MAX_FILE_SIZE_MB = 4;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 400;
