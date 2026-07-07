@@ -6,30 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  BUYER
-  SELLER
-  ADMIN
-}
-
-enum Purpose {
-  SALE
-  RENT
-}
-
-enum SizeUnit {
-  MARLA
-  KANAL
-  SQFT
-}
-
-enum ListingStatus {
-  PENDING_AI_REVIEW
-  ACTIVE
-  PAUSED
-  DELETED
-}
-
+//_________________________________USER SCHEMA__________________________________________
 model User {
   id                  String    @id @default(cuid())
   fullName            String
@@ -59,6 +36,33 @@ model User {
 
   listings  Listing[]
   @@map("users")
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+
+
+//_________________________________LISTING SCHEMA__________________________________________
+enum Purpose {
+  SALE
+  RENT
+}
+
+enum SizeUnit {
+  MARLA
+  KANAL
+  SQFT
+}
+
+enum ListingStatus {
+  PENDING_AI_REVIEW
+  ACTIVE
+  PAUSED
+  DELETED
 }
 
 model Listing {
