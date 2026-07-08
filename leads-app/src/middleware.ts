@@ -28,7 +28,6 @@ export function middleware(request: NextRequest) {
   }
 
   const payload = verifyToken(token);
-
   if (!payload) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -44,4 +43,5 @@ export const config = {
     "/api/listings/:path*",
     "/api/leads/:path*",
   ],
+  runtime: "nodejs", 
 };
