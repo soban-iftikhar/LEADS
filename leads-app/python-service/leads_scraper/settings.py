@@ -7,10 +7,14 @@ NEWSPIDER_MODULE = "leads_scraper.spiders"
 ROBOTSTXT_OBEY = False
 
 # Anti-detection settings
-DOWNLOAD_DELAY = 2
-RANDOMIZE_DOWNLOAD_DELAY = True  # Random delay between 1-3 seconds
-CONCURRENT_REQUESTS = 4
-CONCURRENT_REQUESTS_PER_DOMAIN = 2
+DOWNLOAD_DELAY = 4
+RANDOMIZE_DOWNLOAD_DELAY = True
+CONCURRENT_REQUESTS = 1
+CONCURRENT_REQUESTS_PER_DOMAIN = 1
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_START_DELAY = 3
+AUTOTHROTTLE_MAX_DELAY = 15
+AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
 # Rotating user agents
 USER_AGENT = (
@@ -38,8 +42,8 @@ ITEM_PIPELINES = {
 }
 
 # MongoDB settings
-MONGO_URI = "mongodb://localhost:27017"
-MONGO_DATABASE = "leads_scraped"
+MONGO_URI = "mongodb://localhost:27017/"
+MONGO_DATABASE = "leads_raw"
 
 # Retry settings
 RETRY_ENABLED = True
@@ -54,3 +58,9 @@ AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 2
 AUTOTHROTTLE_MAX_DELAY = 10
 AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
+
+DOWNLOADER_MIDDLEWARES = {
+    "leads_scraper.middlewares.RotatingUserAgentMiddleware": 400,
+    "leads_scraper.middlewares.PlatformCookieMiddleware": 410,
+    "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
+}
