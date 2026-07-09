@@ -63,3 +63,10 @@ coverage/
 # Uploads
 uploads/
 .env.local
+
+
+
+
+
+# Test Data File
+python-service/test_output.json

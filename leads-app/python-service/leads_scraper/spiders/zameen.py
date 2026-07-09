@@ -125,6 +125,14 @@ class ZameenSpider(scrapy.Spider):
                     "category": category,
                     "purpose": purpose,
                 },
+                meta={
+                    "playwright": True,
+                    "playwright_include_page": False,
+                    "playwright_page_goto_kwargs": {
+                        "wait_until": "domcontentloaded",
+                        "timeout": 30000,
+                    },
+                },
                 headers={
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                     "Accept-Language": "en-US,en;q=0.5",
@@ -214,16 +222,9 @@ class ZameenSpider(scrapy.Spider):
             )
             return
 
-        captcha_indicators = [
-            "cf-challenge",
-            "cf_captcha",
-            "recaptcha",
-            "security check",
-            "please verify you are human",
-        ]
-        page_text = response.text.lower()
-        if any(indicator in page_text for indicator in captcha_indicators):
-            self.logger.warning(f"CAPTCHA detected: {response.url}")
+        if not response.css("span[aria-label='Price']::text").get() and \
+           not response.css("[aria-label='Title']::text").get():
+            self.logger.warning(f"Empty page or blocked: {response.url}")
             return
 
         item = PropertyItem()

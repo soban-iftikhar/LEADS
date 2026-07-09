@@ -130,12 +130,14 @@ class MongoPipeline:
         self.collection = self.db["properties"]
 
         try:
+            # Explicitly force authentication check against the client target
             self.client.admin.command("ping")
             spider.logger.info("MongoDB connected successfully")
         except Exception as e:
-            spider.logger.error(f"MongoDB connection failed: {e}")
-            return
+            spider.logger.error(f"MongoDB authentication connection failed: {e}")
+            raise e
 
+        # Wrap index creation safely so it doesn't interrupt item extraction
         try:
             self.collection.create_index(
                 [("platform", 1), ("listing_id", 1)],
@@ -145,9 +147,9 @@ class MongoPipeline:
             self.collection.create_index([("category", 1)])
             self.collection.create_index([("price_numeric", 1)])
             self.collection.create_index([("scraped_at", -1)])
-            spider.logger.info("MongoDB indexes created")
+            spider.logger.info("MongoDB indexes verified/created")
         except Exception as e:
-            spider.logger.warning(f"Index creation failed: {e}")
+            spider.logger.warning(f"Index check skipped or unauthorized: {e}")
 
     def close_spider(self, spider):
         self.client.close()
@@ -155,6 +157,11 @@ class MongoPipeline:
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
         doc = dict(adapter)
+        
+        # Convert datetime to string or standard UTC object for BSON optimization
+        if isinstance(doc.get("scraped_at"), datetime):
+            pass # Pymongo native handlers accept clean datetime instances
+            
         try:
             self.collection.update_one(
                 {
@@ -165,5 +172,7 @@ class MongoPipeline:
                 upsert=True,
             )
         except Exception as e:
-            spider.logger.error(f"MongoDB save error: {e}")
+            spider.logger.error(f"MongoDB write authorization failure: {e}")
+            raise DropItem(f"Failed to write item to DB: {e}")
+            
         return item
