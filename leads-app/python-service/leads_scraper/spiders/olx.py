@@ -1,7 +1,7 @@
 import re
+import json
 import scrapy
 from itertools import product
-from scrapy_playwright.page import PageMethod
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
@@ -31,7 +31,7 @@ class OLXSpider(BaseSpider):
     def __init__(self, full_scrape=False, *args, **kwargs):
         # Aligns perfectly with Zameen's initialization pipeline
         super().__init__(full_scrape=full_scrape, *args, **kwargs)
-        
+
         # Initialized to None; dynamically bound via from_crawler to prevent AttributeError
         self.access_token = None
         self.id_token = None
@@ -44,7 +44,7 @@ class OLXSpider(BaseSpider):
         spider.access_token = crawler.settings.get("OLX_ACCESS_TOKEN")
         spider.id_token = crawler.settings.get("OLX_ID_TOKEN")
         spider.refresh_token = crawler.settings.get("OLX_REFRESH_TOKEN")
-        
+
         spider.logger.info("OLX Spider successfully synchronized with isolated environment context.")
         return spider
 
@@ -61,11 +61,10 @@ class OLXSpider(BaseSpider):
                 "/apartments-flats_c1725/": "Apartments and Flats"
             }
 
-        # Structured list comprehension loop exactly like Zameen
         for city, (cat_path, cat_name) in product(cities, categories.items()):
             separator = "&" if "?" in cat_path else "?"
             url = f"{self.BASE_URL}{cat_path}{separator}location={city}"
-            
+
             yield scrapy.Request(
                 url=url,
                 callback=self.parse_listing_page,
@@ -76,8 +75,8 @@ class OLXSpider(BaseSpider):
                 },
                 errback=self.handle_error,
             )
-                
-    # ── Level 1: Listing Page 
+
+    # ── Listing Page 
 
     def parse_listing_page(self, response, city, category, page):
         self.logger.info(f"[OLX] {city}/{category} page {page} — {response.url}")
@@ -137,7 +136,7 @@ class OLXSpider(BaseSpider):
             "added_date_card": card.css("span[aria-label='Creation date']::text").get("").strip(),
         }
 
-    # ── Level 2: Detail Page 
+    # ── Detail Page 
 
     def parse_detail(self, response, city, category, card_data):
         if response.status in (403, 429):
@@ -157,7 +156,10 @@ class OLXSpider(BaseSpider):
         desc_parts  = response.css("[itemprop='description'] *::text, section[aria-label='Description'] *::text").getall()
         description = " ".join(p.strip() for p in desc_parts if p.strip())
 
-        seller_name = response.css("h2[aria-label='Seller name']::text, span[aria-label='Seller name']::text").get("").strip()
+
+        seller_name = response.xpath(
+            "//span[normalize-space(text())='Posted by']/following-sibling::div[1]//span/text()"
+        ).get("").strip()
 
         item = self.build_item(
             listing_id        = listing_id,
@@ -183,68 +185,40 @@ class OLXSpider(BaseSpider):
             is_project        = False,
         )
 
-        # Dynamic browser automation cookie validation layer
         if self.access_token:
+            contact_url = f"https://www.olx.com.pk/api/listing/{listing_id}/contactInfo/"
             yield scrapy.Request(
-                url=response.url,
-                callback=self.extract_phone_playwright,
+                url=contact_url,
+                callback=self.parse_contact_info,
                 cb_kwargs={"item": item},
-                meta={
-                    "playwright":              True,
-                    "playwright_include_page": True,
-                    "playwright_page_goto_kwargs": {
-                        "wait_until": "domcontentloaded",
-                        "timeout":    30000,
-                    },
-                    "playwright_page_methods": [
-                        PageMethod(
-                            "context.add_cookies",
-                            [
-                                {
-                                    "name":   "kc_access_token",
-                                    "value":  self.access_token,
-                                    "domain": ".olx.com.pk",
-                                    "path":   "/",
-                                },
-                                {
-                                    "name":   "kc_id_token",
-                                    "value":  self.id_token,
-                                    "domain": ".olx.com.pk",
-                                    "path":   "/",
-                                },
-                            ]
-                        ),
-                    ],
+                headers={
+                    "Accept": "application/json",
+                    "Referer": response.url,
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                cookies={
+                    "kc_access_token": self.access_token,
+                    "kc_id_token": self.id_token,
                 },
                 errback=self.handle_error,
             )
         else:
             yield item
 
-    # ── Level 3: Playwright Phone Extraction 
+    # ── Contact Info API 
 
-    async def extract_phone_playwright(self, response, item):
-        page = response.meta["playwright_page"]
+    def parse_contact_info(self, response, item):
         try:
-            call_btn = page.locator("div[aria-label='Call'] button[type='submit']")
-            await call_btn.wait_for(timeout=8000)
-            await call_btn.click()
-            await page.wait_for_timeout(2000)
-
-            phone_text = await page.locator(
-                "a[href^='tel:'], span[aria-label='Phone number'], div[aria-label='Phone number']"
-            ).first.text_content(timeout=5000)
-
-            if phone_text:
-                item["phone"] = phone_text.strip().replace(" ", "")
-                self.logger.info(f"[OLX] Core Phone Converted: {item['phone']} ➔ {item['url']}")
-            else:
-                self.logger.warning(f"[OLX] Interaction panel opened but data string skipped: {item['url']}")
-
+            data = json.loads(response.text)
+            item["seller_name"] = data.get("name", "") or item.get("seller_name", "")
+            mobile_numbers = data.get("mobileNumbers") or []
+            item["mobile"] = mobile_numbers[0] if mobile_numbers else data.get("mobile", "")
+            item["phone"] = item["mobile"]
         except Exception as e:
-            self.logger.warning(f"[OLX] Dynamic automation loop exception thrown: {e}")
-        finally:
-            await page.close()
+            self.logger.warning(f"[OLX] contactInfo parse error: {e}")
+            item["seller_name"] = item.get("seller_name", "")
+            item["mobile"] = ""
+            item["phone"] = ""
 
         yield item
 
