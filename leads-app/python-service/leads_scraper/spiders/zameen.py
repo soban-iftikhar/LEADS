@@ -2,11 +2,12 @@ import re
 import json
 import scrapy
 from itertools import product
-from leads_scraper.items import PropertyItem
+from leads_scraper.spiders.base_spider import BaseSpider
 
 
-class ZameenSpider(scrapy.Spider):
+class ZameenSpider(BaseSpider):
     name = "zameen"
+    platform_name = "zameen"
     allowed_domains = ["zameen.com"]
 
     CITIES = {
@@ -30,16 +31,14 @@ class ZameenSpider(scrapy.Spider):
     }
 
     def __init__(self, full_scrape=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.full_scrape = str(full_scrape).lower() == "true"
-        self.max_pages = 999 if self.full_scrape else 3
+        super().__init__(full_scrape=full_scrape, *args, **kwargs)
         self.logger.info(
             f"Zameen spider — "
             f"{'FULL SCRAPE' if self.full_scrape else 'DAILY REFRESH'} — "
             f"Max pages: {self.max_pages}"
         )
 
-    # ── Start requests ────────────────────────────────────────────────────────
+    # ── Start requests 
 
     async def start(self):
         if self.full_scrape:
@@ -82,7 +81,7 @@ class ZameenSpider(scrapy.Spider):
                 errback=self.handle_error,
             )
 
-    # ── Level 1: Search results page ─────────────────────────────────────────
+    # ── Level 1: Search results page 
 
     def parse(self, response, city, category, purpose, page):
         self.logger.info(
@@ -148,7 +147,7 @@ class ZameenSpider(scrapy.Spider):
                 errback=self.handle_error,
             )
 
-        # ── Pagination ────────────────────────────────────────────────────────
+        # ── Pagination 
         if page < self.max_pages:
             next_url = self._get_next_page(response, page)
             if next_url:
@@ -164,7 +163,7 @@ class ZameenSpider(scrapy.Spider):
                     errback=self.handle_error,
                 )
 
-    # ── Card data extraction ──────────────────────────────────────────────────
+    # ── Card data extraction 
 
     def _extract_card_data(self, listing) -> dict:
         return {
@@ -188,7 +187,7 @@ class ZameenSpider(scrapy.Spider):
             ).get("").strip(),
         }
 
-    # ── Pagination helper ─────────────────────────────────────────────────────
+    # ── Pagination helper 
 
     def _get_next_page(self, response, current_page: int):
         next_link = response.css("a[title='Next']::attr(href)").get()
@@ -213,7 +212,7 @@ class ZameenSpider(scrapy.Spider):
 
         return None
 
-    # ── Level 2: Property detail page ────────────────────────────────────────
+    # ── Level 2: Property detail page 
 
     def parse_property(self, response, card_data, city, category, purpose):
         if response.status in (403, 429):
@@ -227,12 +226,10 @@ class ZameenSpider(scrapy.Spider):
             self.logger.warning(f"Empty page or blocked: {response.url}")
             return
 
-        item = PropertyItem()
+        item = self.build_item(is_project=False)
 
-        item["platform"] = "zameen"
         item["listing_id"] = self._extract_listing_id(response.url)
         item["url"] = response.url
-        item["is_project"] = False
 
         item["title"] = (
             response.css("[aria-label='Title']::text").get("")
@@ -355,7 +352,7 @@ class ZameenSpider(scrapy.Spider):
             item["mobile"] = ""
             yield item
 
-    # ── Level 3: Phone API ────────────────────────────────────────────────────
+    # ── Level 3: Phone API 
 
     def parse_phone(self, response, item):
         try:
@@ -378,14 +375,7 @@ class ZameenSpider(scrapy.Spider):
 
         yield item
 
-    # ── Error handler ─────────────────────────────────────────────────────────
-
-    def handle_error(self, failure):
-        self.logger.error(
-            f"Request failed: {failure.request.url} — {failure.value}"
-        )
-
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # ── Helpers 
 
     def _extract_listing_id(self, url: str) -> str:
         match = re.search(r"-(\d+-\d+)-\d+\.html$", url)
