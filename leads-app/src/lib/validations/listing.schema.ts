@@ -14,5 +14,8 @@ export const createListingSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   images: z.array(z.string().url()).min(1, "At least one image is required"),
 });
-
 export type CreateListingInput = z.infer<typeof createListingSchema>;
+
+export const updateListingSchema = createListingSchema.partial();
+
+export type UpdateListingInput = z.infer<typeof updateListingSchema>;
