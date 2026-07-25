@@ -1,3 +1,10 @@
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+
 BOT_NAME = "leads_scraper"
 
 SPIDER_MODULES    = ["leads_scraper.spiders"]
@@ -65,3 +72,8 @@ DOWNLOAD_HANDLERS = {
 PLAYWRIGHT_BROWSER_TYPE   = "chromium"
 PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
 TWISTED_REACTOR            = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+# ── OLX API Tokens
+OLX_ACCESS_TOKEN = os.getenv("OLX_ACCESS_TOKEN")
+OLX_ID_TOKEN = os.getenv("OLX_ID_TOKEN")
+OLX_REFRESH_TOKEN = os.getenv("OLX_REFRESH_TOKEN")
