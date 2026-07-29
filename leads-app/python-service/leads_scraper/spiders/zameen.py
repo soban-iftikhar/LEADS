@@ -5,247 +5,297 @@ from itertools import product
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
-class OLXSpider(BaseSpider):
-    name            = "olx"
-    platform_name   = "olx"
-    allowed_domains = ["olx.com.pk"]
+class ZameenSpider(BaseSpider):
+    name = "zameen"
+    platform_name = "zameen"
+    allowed_domains = ["zameen.com"]
 
-    BASE_URL = "https://www.olx.com.pk"
-
-    CITIES = [
-        "islamabad", "lahore", "karachi",
-        "rawalpindi", "peshawar", "faisalabad",
-    ]
-
-    CATEGORIES = {
-        "/houses_c1721/":                                                            "Houses",
-        "/apartments-flats_c1725/":                                                  "Apartments",
-        "/portions-floors_c41/":                                                     "Portions",
-        "/shops-offices-commercial-space_c1733/?filter=type_eq_shop-sale":           "Shop",
-        "/residential-plots-land-plots_c40/?filter=type_eq_residential-plots-sale":  "Residential Plot",
-        "/commercial-plots-land-plots_c40/?filter=type_eq_commercial-plots-sale":    "Commercial Plot",
-        "/shops-offices-commercial-space_c1733/?filter=type_eq_building-sale":       "Building",
-        "/shops-offices-commercial-space_c1733/?filter=type_eq_office-sale":         "Office",
+    CITY_IDS = {
+        "Islamabad": 3,
+        "Lahore": 2,
+        "Karachi": 1,
+        "Rawalpindi": 41,
+        "Peshawar": 6,
     }
 
-    def __init__(self, full_scrape=False, *args, **kwargs):
-        super().__init__(full_scrape=full_scrape, *args, **kwargs)
-        self.access_token = None
-        self.id_token = None
-        self.refresh_token = None
+    # canonical -> Zameen's own (coarse) category path. Zameen only
+    # exposes 4 buckets, so several canonical categories collapse into
+    # "Commercial" here — that's a real platform limitation, not a bug.
+    CATEGORY_MAP = {
+        "house": "Homes",
+        "flat": "Flats",
+        "residential_plot": "Plots",
+        "commercial_plot": "Plots",
+        "shop": "Commercial",
+        "office": "Commercial",
+        "warehouse": "Commercial",
+        "factory": "Commercial",
+        "building": "Commercial",
+        "commercial_other": "Commercial",
+    }
 
-    @classmethod
-    def from_crawler(cls, crawler, *args, **kwargs):
-        spider = super().from_crawler(crawler, *args, **kwargs)
-        spider.access_token = crawler.settings.get("OLX_ACCESS_TOKEN")
-        spider.id_token = crawler.settings.get("OLX_ID_TOKEN")
-        spider.refresh_token = crawler.settings.get("OLX_REFRESH_TOKEN")
-        spider.logger.info("OLX Spider synchronized with environment context.")
-        return spider
+    PURPOSE_IDS = {"sale": 1, "rent": 2}
 
-    # ── Start 
+    HEADERS = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+    }
 
-    async def start(self):
+    # ── Request resolution (targeted vs general) ────────────────────────
+
+    def _resolve_cities(self):
+        if self.city:
+            city_id = self.CITY_IDS.get(self.city)
+            if not city_id:
+                self.logger.error(f"[zameen] Unsupported city: {self.city}")
+                return {}
+            return {self.city: city_id}
         if self.full_scrape:
-            cities = self.CITIES
-            categories = self.CATEGORIES
-        else:
-            cities = ["islamabad", "lahore", "karachi"]
-            categories = {
-                "/houses_c1721/": "Houses",
-                "/apartments-flats_c1725/": "Apartments and Flats"
-            }
+            return dict(self.CITY_IDS)
+        return {"Islamabad": 3, "Lahore": 2, "Karachi": 1}
 
-        for city, (cat_path, cat_name) in product(cities, categories.items()):
-            separator = "&" if "?" in cat_path else "?"
-            url = f"{self.BASE_URL}{cat_path}{separator}location={city}"
+    def _resolve_categories(self):
+        if self.category:
+            plat_cat = self.platform_category(self.category)
+            if not plat_cat:
+                self.logger.warning(f"[zameen] Category '{self.category}' not supported on Zameen")
+                return {}
+            return {self.category: plat_cat}
+        if self.full_scrape:
+            # de-duplicate — several canonical keys map to "Commercial"
+            seen, out = set(), {}
+            for canon, plat in self.CATEGORY_MAP.items():
+                if plat not in seen:
+                    seen.add(plat)
+                    out[canon] = plat
+            return out
+        return {"house": "Homes", "residential_plot": "Plots"}
 
+    def _resolve_purposes(self):
+        if self.purpose:
+            pid = self.PURPOSE_IDS.get(self.purpose)
+            if not pid:
+                self.logger.error(f"[zameen] Unsupported purpose: {self.purpose}")
+                return {}
+            return {self.purpose: pid}
+        if self.full_scrape:
+            return dict(self.PURPOSE_IDS)
+        return {"sale": 1}
+
+    def start_requests(self):
+        cities = self._resolve_cities()
+        categories = self._resolve_categories()
+        purposes = self._resolve_purposes()
+        if not cities or not categories or not purposes:
+            return
+
+        for (city_name, city_id), (canon_cat, plat_cat), (purpose_name, purpose_id) in product(
+            cities.items(), categories.items(), purposes.items()
+        ):
+            url = (
+                f"https://www.zameen.com/{plat_cat}/"
+                f"{city_name}-{city_id}-1.html?purpose={purpose_id}"
+            )
             yield scrapy.Request(
                 url=url,
-                callback=self.parse_listing_page,
-                cb_kwargs={"city": city.title(), "category": cat_name, "page": 1},
+                callback=self.parse,
+                cb_kwargs={
+                    "page": 1,
+                    "city_name": city_name,
+                    "canonical_category": canon_cat,
+                    "purpose_name": purpose_name,
+                },
+                headers=self.HEADERS,
                 errback=self.handle_error,
             )
 
-    # ── Listing Page 
+    # ── Level 1: Search results page ────────────────────────────────────
 
-    def parse_listing_page(self, response, city, category, page):
-        self.logger.info(f"[OLX] {city}/{category} page {page} — {response.url}")
+    def parse(self, response, page, city_name, canonical_category, purpose_name):
+        self.logger.info(f"[zameen] [{city_name}/{canonical_category}/{purpose_name}] page {page} — {response.url}")
 
-        cards = response.css("li[aria-label='Listing']")
-        if not cards:
-            self.logger.warning(f"[OLX] 0 listing cards discovered: {response.url}")
+        listings = response.css("li[aria-label='Listing']")
+        if not listings:
+            self.logger.warning(f"[zameen] 0 listings: {response.url}")
             return
 
-        for card in cards:
-            href = card.css("a[title]::attr(href)").get("")
-            if not href:
+        for listing in listings:
+            if not self.should_dispatch():
+                return
+            link = listing.css("a[aria-label='Listing link']::attr(href)").get()
+            if not link:
+                link = listing.css("a::attr(href)").get()
+            if not link:
                 continue
-            url = href if href.startswith("http") else self.BASE_URL + href
-            card_data = self._extract_card_data(card)
+            detail_url = link if link.startswith("http") else f"https://www.zameen.com{link}"
 
+            self.dispatched += 1
             yield scrapy.Request(
-                url=url,
-                callback=self.parse_detail,
-                cb_kwargs={"city": city, "category": category, "card_data": card_data},
+                url=detail_url,
+                callback=self.parse_property,
+                cb_kwargs={
+                    "city_name": city_name,
+                    "canonical_category": canonical_category,
+                    "purpose_name": purpose_name,
+                },
+                meta={
+                    "playwright": True,
+                    "playwright_page_goto_kwargs": {
+                        "wait_until": "domcontentloaded",
+                        "timeout": 30000,
+                    },
+                },
+                headers={**self.HEADERS, "Referer": response.url},
                 errback=self.handle_error,
             )
 
-        if page < self.max_pages:
-            next_url = self._build_next_page_url(response.url, page + 1)
-            yield scrapy.Request(
-                url=next_url,
-                callback=self.parse_listing_page,
-                cb_kwargs={"city": city, "category": category, "page": page + 1},
-                errback=self.handle_error,
-            )
+        if self.should_dispatch() and page < self.max_pages:
+            next_url = self._get_next_page(response, page)
+            if next_url:
+                yield scrapy.Request(
+                    url=next_url,
+                    callback=self.parse,
+                    cb_kwargs={
+                        "page": page + 1,
+                        "city_name": city_name,
+                        "canonical_category": canonical_category,
+                        "purpose_name": purpose_name,
+                    },
+                    headers=self.HEADERS,
+                    errback=self.handle_error,
+                )
 
-    def _extract_card_data(self, card) -> dict:
-        return {
-            "title_card":     card.css("a[title]::attr(title)").get("").strip(),
-            "price_card":     self._extract_price_text(card),
-            "location_card":  self._extract_locality_text(card),
-            "size_card":      card.css("span[aria-label='Area'] span::text").get("").strip(),
-            "beds_card":      card.css("span[aria-label='Beds'] span::text").get("").strip(),
-            "baths_card":     card.css("span[aria-label='Bathrooms'] span::text").get("").strip(),
-            "added_date_card":card.css("span[aria-label='Creation date']::text").get("").strip(),
-        }
+    def _get_next_page(self, response, current_page):
+        next_link = response.css("a[title='Next']::attr(href)").get()
+        if next_link:
+            return next_link if next_link.startswith("http") else f"https://www.zameen.com{next_link}"
+        base_url = response.url.split("?")[0]
+        match = re.search(r"-(\d+)(\.html)$", base_url)
+        if match:
+            next_page = current_page + 1
+            next_url = base_url.replace(f"-{match.group(1)}{match.group(2)}", f"-{next_page}{match.group(2)}")
+            if "?" in response.url:
+                next_url += "?" + response.url.split("?")[1]
+            return next_url
+        return None
 
-    # ── Detail Page 
+    # ── Level 2: Property detail page ───────────────────────────────────
 
-    def parse_detail(self, response, city, category, card_data):
+    def parse_property(self, response, city_name, canonical_category, purpose_name):
+        # This response is already fetched — only bail on the real goal
+        # (max_records), never on should_dispatch().
+        if self.max_records is not None and self.records_collected >= self.max_records:
+            return
         if response.status in (403, 429):
-            self.logger.warning(f"[OLX] Access blocked [{response.status}]: {response.url}")
+            self.logger.warning(f"[zameen] Blocked [{response.status}]: {response.url}")
             return
 
-        listing_id = self._extract_id(response.url)
+        if not response.css("span[aria-label='Price']::text").get() and \
+           not response.css("[aria-label='Title']::text").get():
+            self.logger.warning(f"[zameen] Empty page or blocked: {response.url}")
+            return
 
-        title    = response.css("h1::text").get("").strip() or card_data["title_card"]
-        price    = self._extract_price_text(response) or card_data["price_card"]
-        locality = self._extract_locality_text(response) or card_data["location_card"]
-
-        bedrooms = response.xpath(
-            "//span[normalize-space(text())='Bedrooms']/following-sibling::span/text()"
-        ).get("") or card_data["beds_card"]
-        bathrooms = response.xpath(
-            "//span[normalize-space(text())='Bathrooms']/following-sibling::span/text()"
-        ).get("") or card_data["baths_card"]
-        size = response.xpath(
-            "//span[normalize-space(text())='Area']/following-sibling::span/text()"
-        ).get("") or card_data["size_card"]
-        bedrooms, bathrooms, size = bedrooms.strip(), bathrooms.strip(), size.strip()
-
-        added_date = (
+        item = self.build_item(is_project=False)
+        item["listing_id"] = self._extract_listing_id(response.url)
+        item["url"] = response.url
+        item["title"] = (response.css("[aria-label='Title']::text").get("") or "").strip()
+        item["location"] = (
+            response.css("[aria-label='Property header']::text").get("")
+            or response.css("[aria-label='Breadcrumb'] span:last-child::text").get("")
+        ).strip()
+        item["city"] = city_name
+        item["locality"] = (response.css("span[aria-label='Location']::text").get("") or "").strip()
+        item["price"] = (response.css("span[aria-label='Price']::text").get("") or "").strip()
+        item["size"] = (response.css("[aria-label='Area'] *::text").get("") or "").strip()
+        item["purpose"] = purpose_name
+        item["category"] = canonical_category
+        item["bedrooms"] = (response.css("[aria-label='Beds']::text").get("0") or "0").strip()
+        item["bathrooms"] = (response.css("[aria-label='Baths']::text").get("0") or "0").strip()
+        item["added_date"] = (
             response.css("span[aria-label='Creation date']::text").get("")
-            or card_data["added_date_card"]
+            or response.css("[aria-label='Listing creation date']::text").get("")
         ).strip()
 
-        desc_parts = response.css("div[aria-label='Description'] *::text").getall()
-        description = " ".join(
-            p.strip() for p in desc_parts if p.strip() and p.strip() != "Description"
+        desc_parts = response.css("[aria-label='Property description'] *::text").getall()
+        item["description"] = " ".join(p.strip() for p in desc_parts if p.strip())
+
+        item["amenities"] = [
+            a.strip()
+            for a in response.css(
+                "[aria-label='Amenities'] span::text, [aria-label='Features'] span::text"
+            ).getall()
+            if a.strip()
+        ]
+
+        item["seller_name"] = (
+            response.css("[aria-label='Agent name']::text").get("")
+            or response.css("[aria-label='Seller name']::text").get("")
+        ).strip()
+        item["agency_name"] = (
+            response.css("[aria-label='Agency info'] div::text").get("")
+            or response.css("[aria-label='Agency name']::text").get("")
+        ).strip()
+
+        agency_link = response.css(
+            "[aria-label='Agency profile']::attr(href), a[title*='Agency']::attr(href)"
+        ).get("")
+        item["agency_profile_url"] = (
+            f"https://www.zameen.com{agency_link}" if agency_link and not agency_link.startswith("http") else agency_link
         )
 
-        seller_name = response.xpath(
-            "//span[normalize-space(text())='Posted by']/following-sibling::div[1]//span/text()"
-        ).get("").strip()
-
-        item = self.build_item(
-            listing_id        = listing_id,
-            url               = response.url,
-            title             = title,
-            price             = price,
-            city              = city,
-            locality          = locality,
-            location          = locality,
-            category          = category,
-            purpose           = "buy",
-            description       = description,
-            seller_name       = seller_name,
-            agency_name       = "",
-            agency_profile_url= "",
-            phone             = "",
-            mobile            = "",
-            bedrooms          = bedrooms,
-            bathrooms         = bathrooms,
-            size              = size,
-            added_date        = added_date,
-            amenities         = [],
-            is_project        = False,
-        )
-
-        if self.access_token:
-            contact_url = f"https://www.olx.com.pk/api/listing/{listing_id}/contactInfo/"
+        external_id = self._extract_external_id(response.url)
+        if external_id:
+            phone_api_url = (
+                f"https://www.zameen.com/api/showNumbers?"
+                f"listingExternalID={external_id}&isProject=false"
+            )
             yield scrapy.Request(
-                url=contact_url,
-                callback=self.parse_contact_info,
+                url=phone_api_url,
+                callback=self.parse_phone,
                 cb_kwargs={"item": item},
                 headers={
                     "Accept": "application/json",
+                    "Content-Type": "application/json",
                     "Referer": response.url,
                     "X-Requested-With": "XMLHttpRequest",
-                },
-                cookies={
-                    "kc_access_token": self.access_token,
-                    "kc_id_token": self.id_token,
                 },
                 errback=self.handle_error,
             )
         else:
-            yield item
-
-    # ── Pagination 
-
-    def _build_next_page_url(self, current_url: str, next_page: int) -> str:
-        if re.search(r"[?&]page=\d+", current_url):
-            return re.sub(r"([?&]page=)\d+", rf"\g<1>{next_page}", current_url)
-        separator = "&" if "?" in current_url else "?"
-        return f"{current_url}{separator}page={next_page}"
-
-    # ── Contact Info API 
-
-    def parse_contact_info(self, response, item):
-        if response.status == 401:
-            self.logger.error(f"[OLX] Token expired/rejected (401): {response.url}")
-            item["seller_name"] = item.get("seller_name", "")
-            item["mobile"] = ""
             item["phone"] = ""
+            item["mobile"] = ""
             yield item
-            return
 
+    def parse_phone(self, response, item):
         try:
             data = json.loads(response.text)
-            item["seller_name"] = data.get("name", "") or item.get("seller_name", "")
-            mobile_numbers = data.get("mobileNumbers") or []
-            item["mobile"] = mobile_numbers[0] if mobile_numbers else data.get("mobile", "")
-            item["phone"] = item["mobile"]
+            if data.get("success"):
+                contact = data.get("contact_details", {})
+                phones = contact.get("phone", [])
+                item["phone"] = phones[0] if phones else ""
+                item["mobile"] = contact.get("mobile", "")
+                api_agency = contact.get("agency_name", "")
+                if api_agency and not item.get("agency_name"):
+                    item["agency_name"] = api_agency
+            else:
+                item["phone"] = ""
+                item["mobile"] = ""
         except Exception as e:
-            self.logger.warning(f"[OLX] contactInfo parse error: {e}")
-            item["seller_name"] = item.get("seller_name", "")
-            item["mobile"] = ""
+            self.logger.warning(f"[zameen] Phone API error: {e} — status {response.status} — body: '{response.text[:150]}'")
             item["phone"] = ""
+            item["mobile"] = ""
 
         yield item
 
-    # ── Helpers 
+    # ── Helpers ──────────────────────────────────────────────────────────
 
-    def _extract_price_text(self, selector) -> str:
-        for text in selector.css("span::text, div::text").getall():
-            t = text.strip()
-            lower = t.lower()
-            if lower.startswith("rs") or "crore" in lower or "lakh" in lower or "pkr" in lower:
-                return t
-        return ""
-
-    def _extract_locality_text(self, selector) -> str:
-        for text in selector.css("span::text, div::text").getall():
-            t = text.strip()
-            if "," in t and len(t) > 5:
-                return t
-        return ""
-
-    def _extract_id(self, url: str) -> str:
-        match = re.search(r"iid-(\d+)", url)
-        if match:
-            return match.group(1)
-        match = re.search(r"-(\d+)/?$", url.rstrip("/"))
+    def _extract_listing_id(self, url: str) -> str:
+        match = re.search(r"-(\d+-\d+)-\d+\.html$", url)
         return match.group(1) if match else url.split("/")[-1]
+
+    def _extract_external_id(self, url: str) -> str:
+        match = re.search(r"-(\d{7,})-\d+-\d+\.html$", url)
+        return match.group(1) if match else ""
