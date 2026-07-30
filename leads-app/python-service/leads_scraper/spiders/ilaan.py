@@ -13,16 +13,16 @@ class IlaanSpider(BaseSpider):
     REVEAL_URL = "https://npi.ilaan.com/api/properties-new/{property_id}/reveal-contact?channel=call"
 
     CATEGORY_MAP = {
-        "house": "House",                # confirmed via captured request
-        "flat": "Flat",                  # inferred from "flats-for-sale" — unverified
-        "residential_plot": "Plot",      # inferred from "plot-for-sale" — unverified
-        "commercial_plot": "Plot",       # Ilaan doesn't appear to split plot types either
-        "farmhouse": "Farmhouse",        # inferred from "farmhouse-for-sale" — unverified
+        "house": "House",                
+        "flat": "Flat",                  
+        "residential_plot": "Plot",      
+        "commercial_plot": "Plot",       
+        "farmhouse": "Farmhouse",        
     }
 
     STATUS_MAP = {
-        "sale": "ForSale",   # confirmed
-        "rent": "ForRent",   # inferred, not captured directly
+        "sale": "ForSale",  
+        "rent": "ForRent",   
     }
 
     PAGE_SIZE = 20
