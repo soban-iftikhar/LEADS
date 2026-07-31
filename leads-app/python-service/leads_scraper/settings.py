@@ -1,8 +1,7 @@
 import os
 from dotenv import load_dotenv
-
-
-load_dotenv()
+load_dotenv(".env.local")
+load_dotenv() 
 
 
 BOT_NAME = "leads_scraper"
