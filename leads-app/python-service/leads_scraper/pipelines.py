@@ -1,17 +1,18 @@
+import os
 import re
-import pymongo
-from datetime import datetime
+import uuid
+from datetime import datetime, timezone
+import psycopg2
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem, CloseSpider
 
 
 class CleaningPipeline:
     """
-    Parses raw scraped strings into usable numeric fields, and enforces
-    price_min/price_max as a hard filter here — after price_numeric is
-    known — rather than relying on any platform's URL-level price filter
-    actually working. This is the one place price range is guaranteed
-    correct regardless of what each site's search UI supports.
+    Unchanged from before — parses raw scraped strings into usable
+    numeric fields and enforces price_min/price_max here (after
+    price_numeric is known), rather than depending on any platform's
+    URL-level price filter actually working.
     """
 
     def process_item(self, item, spider):
@@ -48,7 +49,7 @@ class CleaningPipeline:
         if desc:
             adapter["description"] = " ".join(desc.split())
 
-        adapter["scraped_at"] = datetime.utcnow()
+        adapter["scraped_at"] = datetime.now(timezone.utc)
 
         return item
 
@@ -104,67 +105,115 @@ class CleaningPipeline:
         return cleaned
 
 
-class MongoPipeline:
+class PostgresPipeline:
     """
-    Saves the cleaned item, updates the spider's own records_collected
-    counter (so should_dispatch() and any external progress callback see
-    it immediately), and stops the spider once max_records is hit —
-    exactly the pattern that turned out to matter a lot: raising
-    CloseSpider here, combined with should_dispatch() capping new
-    requests spider-side, is what keeps a targeted run from grinding
-    through a large backlog after the target's already been reached.
+    Writes into the same `properties` table Prisma's schema.prisma
+    defines and migrates — this pipeline never touches schema, only
+    inserts/updates rows. Column names are quoted exactly matching
+    Prisma's camelCase convention (no @map per field, same as your
+    existing User/Listing models), since Postgres is case-sensitive
+    for quoted identifiers and Prisma always quotes.
     """
 
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
+    PURPOSE_MAP = {"sale": "SALE", "rent": "RENT"}
+    SIZE_UNIT_MAP = {"marla": "MARLA", "kanal": "KANAL", "sqft": "SQFT", "unknown": "UNKNOWN"}
+
+    def __init__(self, dsn):
+        self.dsn = dsn
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(
-            mongo_uri=crawler.settings.get("MONGO_URI"),
-            mongo_db=crawler.settings.get("MONGO_DATABASE"),
-        )
+        return cls(dsn=crawler.settings.get("POSTGRES_DSN"))
 
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri, serverSelectionTimeoutMS=5000)
-        self.db = self.client[self.mongo_db]
-        self.collection = self.db["properties"]
-
+        self.conn = psycopg2.connect(self.dsn)
+        self.conn.autocommit = True
         try:
-            self.client.admin.command("ping")
-            spider.logger.info("MongoDB connected successfully")
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT 1")
+            spider.logger.info("Postgres connected successfully")
         except Exception as e:
-            spider.logger.error(f"MongoDB connection failed: {e}")
+            spider.logger.error(f"Postgres connection failed: {e}")
             raise
 
-        try:
-            self.collection.create_index([("platform", 1), ("listing_id", 1)], unique=True)
-            self.collection.create_index([("city", 1)])
-            self.collection.create_index([("category", 1)])
-            self.collection.create_index([("price_numeric", 1)])
-            self.collection.create_index([("scraped_at", -1)])
-        except Exception as e:
-            spider.logger.warning(f"Index creation skipped: {e}")
-
     def close_spider(self, spider):
-        self.client.close()
+        self.conn.close()
 
     def process_item(self, item, spider):
-        doc = dict(ItemAdapter(item))
+        adapter = ItemAdapter(item)
 
         if spider.max_records is not None and spider.records_collected >= spider.max_records:
             raise DropItem("Target already reached")
 
+        purpose = self.PURPOSE_MAP.get((adapter.get("purpose") or "").lower())
+        size_unit = self.SIZE_UNIT_MAP.get((adapter.get("size_unit") or "").lower(), "UNKNOWN")
+
+        row_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
         try:
-            self.collection.update_one(
-                {"platform": doc["platform"], "listing_id": doc["listing_id"]},
-                {"$set": doc},
-                upsert=True,
-            )
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO properties (
+                        id, platform, "listingId", url, title, category, purpose,
+                        price, "priceNumeric", size, "sizeNumeric", "sizeUnit",
+                        city, location, locality, bedrooms, bathrooms, description,
+                        amenities, "sellerName", "agencyName", phone, mobile,
+                        "agencyProfileUrl", "addedDate", "isProject", "scrapedAt",
+                        "createdAt", "updatedAt"
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s,
+                        %s, %s
+                    )
+                    ON CONFLICT (platform, "listingId") DO UPDATE SET
+                        url = EXCLUDED.url,
+                        title = EXCLUDED.title,
+                        category = EXCLUDED.category,
+                        purpose = EXCLUDED.purpose,
+                        price = EXCLUDED.price,
+                        "priceNumeric" = EXCLUDED."priceNumeric",
+                        size = EXCLUDED.size,
+                        "sizeNumeric" = EXCLUDED."sizeNumeric",
+                        "sizeUnit" = EXCLUDED."sizeUnit",
+                        city = EXCLUDED.city,
+                        location = EXCLUDED.location,
+                        locality = EXCLUDED.locality,
+                        bedrooms = EXCLUDED.bedrooms,
+                        bathrooms = EXCLUDED.bathrooms,
+                        description = EXCLUDED.description,
+                        amenities = EXCLUDED.amenities,
+                        "sellerName" = EXCLUDED."sellerName",
+                        "agencyName" = EXCLUDED."agencyName",
+                        phone = EXCLUDED.phone,
+                        mobile = EXCLUDED.mobile,
+                        "agencyProfileUrl" = EXCLUDED."agencyProfileUrl",
+                        "addedDate" = EXCLUDED."addedDate",
+                        "isProject" = EXCLUDED."isProject",
+                        "scrapedAt" = EXCLUDED."scrapedAt",
+                        "updatedAt" = EXCLUDED."updatedAt"
+                    """,
+                    (
+                        row_id, adapter.get("platform"), adapter.get("listing_id"), adapter.get("url"),
+                        adapter.get("title"), adapter.get("category"), purpose,
+                        adapter.get("price"), adapter.get("price_numeric"), adapter.get("size"),
+                        adapter.get("size_numeric"), size_unit,
+                        adapter.get("city"), adapter.get("location"), adapter.get("locality"),
+                        adapter.get("bedrooms", 0), adapter.get("bathrooms", 0), adapter.get("description"),
+                        adapter.get("amenities", []), adapter.get("seller_name"), adapter.get("agency_name"),
+                        adapter.get("phone"), adapter.get("mobile"),
+                        adapter.get("agency_profile_url"), adapter.get("added_date"),
+                        adapter.get("is_project", False), adapter.get("scraped_at", now),
+                        now, now,
+                    ),
+                )
         except Exception as e:
             spider.records_rejected += 1
-            spider.logger.error(f"MongoDB write failure: {e}")
+            spider.logger.error(f"Postgres write failure: {e}")
             raise DropItem(f"DB write failure: {e}")
 
         spider.records_collected += 1
