@@ -22,9 +22,7 @@ AUTOTHROTTLE_START_DELAY = 3
 AUTOTHROTTLE_MAX_DELAY = 15
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
-# NOTE: no "br" here on purpose — Brotli-compressed responses come back as
-# unreadable binary unless the `Brotli` package is installed. It is
-# installed (see requirements), so this is just belt-and-suspenders.
+
 DEFAULT_REQUEST_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.5",
@@ -44,18 +42,16 @@ DOWNLOADER_MIDDLEWARES = {
 # Pipelines
 ITEM_PIPELINES = {
     "leads_scraper.pipelines.CleaningPipeline": 200,
-    "leads_scraper.pipelines.MongoPipeline": 300,
+    "leads_scraper.pipelines.PostgresPipeline": 300,
 }
 
-# MongoDB
-MONGO_DATABASE = os.getenv("MONGO_DATABASE", "leads_raw")
-MONGO_URI = os.getenv(
-    "MONGO_URI",
-    "mongodb://leads_user:leads_password@127.0.0.1:27017/leads_raw?authSource=admin",
+# Postgres
+POSTGRES_DSN = os.getenv(
+    "POSTGRES_DSN",
+    "postgresql://leads_user:leads_password@127.0.0.1:5432/leads_db",
 )
 
-# Optional progress callback (Flask microservice / orchestrator). Spiders
-# work fine with this unset — report_progress()/closed() just no-op.
+
 CALLBACK_BASE_URL = os.getenv("CALLBACK_BASE_URL", "")
 
 # Retry
