@@ -133,6 +133,7 @@ model Property {
   mobile           String?
   agencyProfileUrl String?
   addedDate        String?
+  listedAt         DateTime?
   isProject        Boolean  @default(false)
   scrapedAt        DateTime @default(now())
   createdAt        DateTime @default(now())

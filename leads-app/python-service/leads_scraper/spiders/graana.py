@@ -1,3 +1,4 @@
+import json
 import re
 import scrapy
 from itertools import product
@@ -110,10 +111,6 @@ class GraanaSpider(BaseSpider):
     def parse_listing_page(self, response, canonical_category, cat_slug, city, purpose_name, purpose_path, page):
         self.logger.info(f"[graana] {city}/{canonical_category}/{purpose_name} page {page} — {response.url}")
 
-        # Graana is Next.js, SSR HTML — Scrapy can parse it directly.
-        # aria-label / semantic tags preferred; MUI hash classes
-        # (mui-style-xxx) are fallbacks only, and are exactly the kind of
-        # thing that breaks silently — the warning below is the canary.
         cards = response.css("a[href*='/property/']")
         if not cards:
             self.logger.warning(f"[graana] No listing links found — possible block or structure change — {response.url}")
@@ -140,7 +137,12 @@ class GraanaSpider(BaseSpider):
             yield scrapy.Request(
                 url=detail_url,
                 callback=self.parse_detail,
-                cb_kwargs={"canonical_category": canonical_category, "city": city, "purpose_name": purpose_name, "card_data": card_data},
+                cb_kwargs={
+                    "canonical_category": canonical_category,
+                    "city": city,
+                    "purpose_name": purpose_name,
+                    "card_data": card_data,
+                },
                 errback=self.handle_error,
             )
 
@@ -168,7 +170,6 @@ class GraanaSpider(BaseSpider):
     # ── Detail page ──────────────────────────────────────────────────────
 
     def parse_detail(self, response, canonical_category, city, purpose_name, card_data):
-        # Already fetched — only bail on the real goal, never should_dispatch().
         if self.max_records is not None and self.records_collected >= self.max_records:
             return
         if response.status in (403, 429):
@@ -176,108 +177,87 @@ class GraanaSpider(BaseSpider):
             self.records_rejected += 1
             return
 
-        listing_id = self._extract_id(response.url)
-        price = self._extract_price_from_page(response) or card_data["price"]
+        raw = response.css("script#__NEXT_DATA__::text").get()
+        if not raw:
+            self.logger.warning(f"[graana] No __NEXT_DATA__ blob found — falling back to card data: {response.url}")
+            yield self.build_item(
+                listing_id=self._extract_id(response.url),
+                url=response.url,
+                title="",
+                price=card_data["price"],
+                city=city,
+                locality=card_data["location"],
+                location=card_data["location"],
+                category=canonical_category,
+                purpose=purpose_name,
+                description="",
+                seller_name="",
+                agency_name="",
+                agency_profile_url="",
+                phone="",
+                mobile="",
+                bedrooms="",
+                bathrooms="",
+                size="",
+                added_date=card_data["date"],
+                amenities=[],
+                is_project=False,
+            )
+            return
 
-        # Container div.mui-style-gkl3pv holds beds/baths/area by position.
-        spec_values = response.css("div.mui-style-gkl3pv div.MuiTypography-subtitle2New::text").getall()
-        bedrooms = spec_values[0].strip() if len(spec_values) > 0 else ""
-        bathrooms = spec_values[1].strip() if len(spec_values) > 1 else ""
-        size = spec_values[2].strip() if len(spec_values) > 2 else ""
+        try:
+            payload = json.loads(raw)
+            prop = payload["props"]["pageProps"]["data"]
+        except Exception as e:
+            self.logger.error(f"[graana] Could not parse __NEXT_DATA__: {e} — {response.url}")
+            return
 
-        location = response.css("h5::text").get("").strip() or card_data["location"]
+        size_value = prop.get("size")
+        size_unit = prop.get("sizeUnit", "")
+        size = f"{size_value} {size_unit}".strip() if size_value is not None else ""
 
-        slug = response.url.rstrip("/").split("/")[-1]
-        title = re.sub(r"-\d+$", "", slug).replace("-", " ").title()
-
-        desc_parts = response.css(
-            "[class*='description'] p::text, [class*='Description'] p::text, section p::text"
-        ).getall()
-        description = " ".join(p.strip() for p in desc_parts if p.strip())
-
-        seller_name = response.css(
-            "[class*='agentName']::text, [class*='agent-name']::text, "
-            "[class*='sellerName']::text, h6::text"
-        ).get("").strip()
-
-        added_date = response.css("div.mui-style-layoxhv::text").get("").strip() or card_data["date"]
-
-        agency_name = response.css(
-            "[class*='agencyName']::text, [class*='agency-name']::text"
-        ).get("").strip()
+        agency = prop.get("agency") or {}
+        amenities = self._flatten_features(prop)
 
         item = self.build_item(
-            listing_id=listing_id,
+            listing_id=str(prop.get("id", self._extract_id(response.url))),
             url=response.url,
-            title=title,
-            price=price,
-            city=city,
-            locality=location,
-            location=location,
-            category=canonical_category,
-            purpose=purpose_name,
-            description=description,
-            seller_name=seller_name,
-            agency_name=agency_name,
+            title=prop.get("customTitle", "") or "",
+            price=str(prop.get("price", "")),
+            city=prop.get("city.name") or city,
+            locality=prop.get("area.name") or prop.get("address", ""),
+            location=prop.get("address", "") or prop.get("area.name", ""),
+            category=prop.get("subtype") or canonical_category,
+            purpose="rent" if prop.get("purpose") == "rent" else "sale",
+            description=prop.get("description") or "",
+            seller_name=prop.get("name", "") or agency.get("name", ""),
+            agency_name=agency.get("name", ""),
             agency_profile_url="",
-            phone="",
-            mobile="",
-            bedrooms=bedrooms,
-            bathrooms=bathrooms,
+            phone=prop.get("phone", "") or "",
+            mobile=prop.get("phone", "") or "",
+            bedrooms=str(prop.get("bed", "") or ""),
+            bathrooms=str(prop.get("bath", "") or ""),
             size=size,
-            added_date=added_date,
-            amenities=self._extract_amenities(response),
+            added_date=prop.get("createdAt", "") or "",
+            amenities=amenities,
             is_project=False,
         )
 
-        yield scrapy.Request(
-            url=response.url,
-            callback=self.extract_phone,
-            cb_kwargs={"item": item},
-            meta={
-                "playwright": True,
-                "playwright_include_page": True,
-                "playwright_page_goto_kwargs": {"wait_until": "domcontentloaded", "timeout": 30000},
-            },
-            dont_filter=True,  # same URL as parse_detail, different callback
-            errback=self.handle_error,
-        )
-
-    # ── Phone via Playwright ─────────────────────────────────────────────
-
-    async def extract_phone(self, response, item):
-        page = response.meta["playwright_page"]
-        try:
-            # Try a few likely selectors in order rather than one combined
-            # locator string — mixing Playwright's text= engine with plain
-            # CSS in a single comma-joined string isn't reliably "try any
-            # of these", so each candidate gets its own explicit attempt.
-            call_btn = None
-            for selector in ["button:has-text('Call')", "[aria-label='Call']", "text=Call"]:
-                candidate = page.locator(selector).first
-                try:
-                    await candidate.wait_for(timeout=3000)
-                    call_btn = candidate
-                    break
-                except Exception:
-                    continue
-
-            if call_btn is None:
-                self.logger.warning(f"[graana] No Call button found — {item['url']}")
-            else:
-                await call_btn.click()
-                await page.wait_for_selector("a[href^='tel:']", timeout=6000)
-                tel_link = await page.locator("a[href^='tel:']").first.get_attribute("href", timeout=4000)
-                if tel_link:
-                    phone = tel_link.replace("tel:", "").strip()
-                    item["phone"] = phone
-                    self.logger.info(f"[graana] Phone: {phone} — {item['url']}")
-        except Exception as e:
-            self.logger.warning(f"[graana] Phone extraction failed: {e} — {item['url']}")
-        finally:
-            await page.close()
-
         yield item
+
+    def _flatten_features(self, prop: dict) -> list:
+        amenities = []
+        for key in (
+            "primaryFeatures",
+            "secondaryFeatures",
+            "utilityFeatures",
+            "communicationFeatures",
+            "nearByFeatures",
+        ):
+            features = prop.get(key) or {}
+            for name, value in features.items():
+                amenities.append(f"{name}: {value}" if value not in (None, "", True) else name)
+        return amenities
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
