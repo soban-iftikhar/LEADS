@@ -5,6 +5,12 @@ from datetime import datetime, timezone
 import psycopg2
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem, CloseSpider
+from datetime import timedelta
+
+RELATIVE_DATE_RE = re.compile(
+    r"(\d+)\s*(minute|hour|day|week|month|year)s?\s*ago", re.IGNORECASE
+)
+
 
 
 class CleaningPipeline:
@@ -50,6 +56,7 @@ class CleaningPipeline:
             adapter["description"] = " ".join(desc.split())
 
         adapter["scraped_at"] = datetime.now(timezone.utc)
+        adapter["listed_at"] = self.parse_listed_at(adapter.get("added_date", ""), adapter["scraped_at"])
 
         return item
 
@@ -223,3 +230,31 @@ class PostgresPipeline:
             raise CloseSpider("target_reached")
 
         return item
+
+
+    def parse_listed_at(self, raw: str, scraped_at: datetime):
+        if not raw:
+            return None
+        raw = raw.strip()
+
+        # Graana/Ilaan already give real ISO timestamps — use directly.
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            pass
+
+        # Zameen/OLX give relative text — compute an absolute estimate.
+        match = self.RELATIVE_DATE_RE.search(raw)
+        if not match:
+            return None  # unrecognized format — leave null rather than guess
+
+        amount, unit = int(match.group(1)), match.group(2).lower()
+        unit_map = {
+            "minute": timedelta(minutes=amount),
+            "hour": timedelta(hours=amount),
+            "day": timedelta(days=amount),
+            "week": timedelta(weeks=amount),
+            "month": timedelta(days=amount * 30),
+            "year": timedelta(days=amount * 365),
+        }
+        return scraped_at - unit_map[unit]

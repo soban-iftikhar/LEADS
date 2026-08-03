@@ -9,7 +9,7 @@ no separate "lite" version needed anymore.
 
 ```bash
 # Targeted — only this exact combination
-scrapy crawl zameen -a city=Islamabad -a category=flat -a price_min=5000000 -a price_max=15000000 -a max_records=15
+scrapy crawl olx -a city=Islamabad -a category=flat -a price_min=5000000 -a price_max=15000000 -a max_records=15
 
 # General — old broad-sweep behavior (city/category loop, sized by full_scrape)
 scrapy crawl olx -a full_scrape=true
