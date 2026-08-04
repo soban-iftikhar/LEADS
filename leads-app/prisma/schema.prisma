@@ -167,6 +167,7 @@ model Prospect {
   propertyId    String
   property      Property       @relation(fields: [propertyId], references: [id])
   contact       String
+  waMessageId   String?        // the outreach message's WhatsApp ID, so status webhooks and future Campaign tracking can find this row
   status        ProspectStatus @default(CONTACTED)
   contactedAt   DateTime       @default(now())
   repliedAt     DateTime?
