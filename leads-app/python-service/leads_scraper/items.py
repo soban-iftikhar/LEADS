@@ -3,15 +3,15 @@ import scrapy
 
 class PropertyItem(scrapy.Item):
     # Source info
-    platform = scrapy.Field()        # "zameen"
+    platform = scrapy.Field()        # "zameen", "olx", "graana", ...
     listing_id = scrapy.Field()      # external ID from platform
     url = scrapy.Field()             # full detail page URL
     scraped_at = scrapy.Field()      # timestamp
 
     # Property details
     title = scrapy.Field()
-    category = scrapy.Field()        # House, Apartment, Plot, Commercial
-    purpose = scrapy.Field()         # For Sale, For Rent
+    category = scrapy.Field()        # CANONICAL category (see categories.py)
+    purpose = scrapy.Field()         # "sale" or "rent"
     price = scrapy.Field()           # raw string e.g. "15.95 Crore"
     price_numeric = scrapy.Field()   # converted to PKR integer
     size = scrapy.Field()            # raw string e.g. "5 Marla"
