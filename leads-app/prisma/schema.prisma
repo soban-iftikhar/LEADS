@@ -1,42 +1,15 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
+
 datasource db {
   provider = "postgresql"
 }
 
-//_________________________________USER SCHEMA__________________________________________
-model User {
-  id                  String    @id @default(cuid())
-  fullName            String
-  email               String    @unique
-  phone               String?   @unique
-  passwordHash        String
-  role                Role
-
-  passwordResetToken     String?
-  passwordResetExpiresAt DateTime?
-  
-  isEmailVerified     Boolean   @default(false)
-  isPhoneVerified     Boolean   @default(false)
-
-  emailOtpHash        String?
-  emailOtpExpiresAt   DateTime?
-
-  phoneOtpHash        String?
-  phoneOtpExpiresAt   DateTime?
-
-  otpAttempts         Int       @default(0)
-
-  isActive            Boolean   @default(true)
-
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  listings  Listing[]
-  @@map("users")
-}
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
 
 enum Role {
   BUYER
@@ -44,9 +17,6 @@ enum Role {
   ADMIN
 }
 
-
-
-//_________________________________LISTING SCHEMA__________________________________________
 enum Purpose {
   SALE
   RENT
@@ -56,6 +26,7 @@ enum SizeUnit {
   MARLA
   KANAL
   SQFT
+  UNKNOWN
 }
 
 enum ListingStatus {
@@ -65,29 +36,111 @@ enum ListingStatus {
   DELETED
 }
 
-model Listing {
-  id              String     @id @default(cuid())
-  title           String
-  category        String
-  purpose         Purpose
-  city            String
-  locality        String
-  size            Float
-  sizeUnit        SizeUnit
-  price           Float
-  bedrooms        Int?
-  bathrooms       Int?
-  description     String
-  images          String[]
-  status          ListingStatus @default(PENDING_AI_REVIEW)
-  originalDesc    String?
-  aiEnhancedDesc  String?
-  sellerId        String
-  seller          User       @relation(fields: [sellerId], references: [id])
-  viewCount       Int        @default(0)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+// -----------------------------------------------------------------------------
+// USER SCHEMA
+// -----------------------------------------------------------------------------
 
-  @@map("listings")
+model User {
+  id                     String    @id @default(cuid())
+  fullName               String
+  email                  String    @unique
+  phone                  String?   @unique
+  passwordHash           String
+  role                   Role
+
+  passwordResetToken     String?
+  passwordResetExpiresAt DateTime?
+
+  isEmailVerified        Boolean   @default(false)
+  isPhoneVerified        Boolean   @default(false)
+
+  emailOtpHash           String?
+  emailOtpExpiresAt      DateTime?
+
+  phoneOtpHash           String?
+  phoneOtpExpiresAt      DateTime?
+
+  otpAttempts            Int       @default(0)
+
+  isActive               Boolean   @default(true)
+
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  listings               Listing[]
+
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// LISTING SCHEMA (Platform Native Listings)
+// -----------------------------------------------------------------------------
+
+model Listing {
+  id             String        @id @default(cuid())
+  title          String
+  category       String
+  purpose        Purpose
+  city           String
+  locality       String
+  size           Float
+  sizeUnit       SizeUnit
+  price          Float
+  bedrooms       Int?
+  bathrooms      Int?
+  description    String
+  images         String[]
+  status         ListingStatus @default(PENDING_AI_REVIEW)
+  originalDesc   String?
+  aiEnhancedDesc String?
+  sellerId       String
+  seller         User          @relation(fields: [sellerId], references: [id])
+  viewCount      Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
   @@index([city, category, purpose])
+  @@map("listings")
+}
+
+// -----------------------------------------------------------------------------
+// PROPERTY SCHEMA (External Scraped Properties)
+// -----------------------------------------------------------------------------
+
+model Property {
+  id               String   @id @default(cuid())
+  platform         String
+  listingId        String
+  url              String
+  title            String
+  category         String
+  purpose          Purpose?
+  price            String
+  priceNumeric     Float
+  size             String
+  sizeNumeric      Float
+  sizeUnit         SizeUnit
+  city             String
+  location         String
+  locality         String
+  bedrooms         Int      @default(0)
+  bathrooms        Int      @default(0)
+  description      String
+  amenities        String[]
+  sellerName       String?
+  agencyName       String?
+  phone            String?
+  mobile           String?
+  agencyProfileUrl String?
+  addedDate        String?
+  isProject        Boolean  @default(false)
+  scrapedAt        DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([platform, listingId])
+  @@index([city, category, purpose])
+  @@index([priceNumeric])
+  @@index([scrapedAt])
+  @@map("properties")
 }
