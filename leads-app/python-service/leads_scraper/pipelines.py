@@ -52,18 +52,42 @@ class CleaningPipeline:
         adapter["scraped_at"] = datetime.now(timezone.utc)
         adapter["listed_at"] = self.parse_listed_at(adapter.get("added_date", ""), adapter["scraped_at"])
 
-        adapter["scraped_at"] = datetime.now(timezone.utc)
-        adapter["listed_at"] = parse_listed_at(adapter.get("added_date", ""), adapter["scraped_at"])
-
         if spider.since_hours is not None:
             cutoff = adapter["scraped_at"] - timedelta(hours=spider.since_hours)
-        # Unparseable date is treated as "too old to trust" — the whole point of this filter is a freshness guarantee, so an unknown age should never silently pass it.
-        
-        if adapter["listed_at"] is None or adapter["listed_at"] < cutoff:
-            spider.records_rejected += 1
-            raise DropItem(f"Older than {spider.since_hours}h cutoff: {adapter.get('url')}")
+            # Unparseable date is treated as too old to trust — a freshness
+            # filter must never let an unknown age silently through.
+            if adapter["listed_at"] is None or adapter["listed_at"] < cutoff:
+                spider.records_rejected += 1
+                raise DropItem(f"Older than {spider.since_hours}h cutoff: {adapter.get('url')}")
 
         return item
+
+    def parse_listed_at(self, raw: str, scraped_at: datetime):
+        if not raw:
+            return None
+        raw = raw.strip()
+
+        # Graana/Ilaan give real ISO timestamps — use directly.
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            pass
+
+        # Zameen/OLX give relative text — compute an absolute estimate.
+        match = RELATIVE_DATE_RE.search(raw)
+        if not match:
+            return None
+
+        amount, unit = int(match.group(1)), match.group(2).lower()
+        unit_map = {
+            "minute": timedelta(minutes=amount),
+            "hour": timedelta(hours=amount),
+            "day": timedelta(days=amount),
+            "week": timedelta(weeks=amount),
+            "month": timedelta(days=amount * 30),
+            "year": timedelta(days=amount * 365),
+        }
+        return scraped_at - unit_map[unit]
 
     def parse_price(self, price_str: str):
         if not price_str:
@@ -172,14 +196,14 @@ class PostgresPipeline:
                         price, "priceNumeric", size, "sizeNumeric", "sizeUnit",
                         city, location, locality, bedrooms, bathrooms, description,
                         amenities, "sellerName", "agencyName", phone, mobile,
-                        "agencyProfileUrl", "addedDate", "isProject", "scrapedAt",
+                        "agencyProfileUrl", "addedDate", "listedAt", "isProject", "scrapedAt",
                         "createdAt", "updatedAt"
                     ) VALUES (
                         %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s,
                         %s, %s
                     )
                     ON CONFLICT (platform, "listingId") DO UPDATE SET
@@ -205,6 +229,7 @@ class PostgresPipeline:
                         mobile = EXCLUDED.mobile,
                         "agencyProfileUrl" = EXCLUDED."agencyProfileUrl",
                         "addedDate" = EXCLUDED."addedDate",
+                        "listedAt" = EXCLUDED."listedAt",
                         "isProject" = EXCLUDED."isProject",
                         "scrapedAt" = EXCLUDED."scrapedAt",
                         "updatedAt" = EXCLUDED."updatedAt"
@@ -219,6 +244,7 @@ class PostgresPipeline:
                         adapter.get("amenities", []), adapter.get("seller_name"), adapter.get("agency_name"),
                         adapter.get("phone"), adapter.get("mobile"),
                         adapter.get("agency_profile_url"), adapter.get("added_date"),
+                        adapter.get("listed_at"),
                         adapter.get("is_project", False), adapter.get("scraped_at", now),
                         now, now,
                     ),
@@ -235,31 +261,3 @@ class PostgresPipeline:
             raise CloseSpider("target_reached")
 
         return item
-
-
-    def parse_listed_at(self, raw: str, scraped_at: datetime):
-        if not raw:
-            return None
-        raw = raw.strip()
-
-        # Graana/Ilaan already give real ISO timestamps — use directly.
-        try:
-            return datetime.fromisoformat(raw.replace("Z", "+00:00"))
-        except ValueError:
-            pass
-
-        # Zameen/OLX give relative text — compute an absolute estimate.
-        match = self.RELATIVE_DATE_RE.search(raw)
-        if not match:
-            return None  # unrecognized format — leave null rather than guess
-
-        amount, unit = int(match.group(1)), match.group(2).lower()
-        unit_map = {
-            "minute": timedelta(minutes=amount),
-            "hour": timedelta(hours=amount),
-            "day": timedelta(days=amount),
-            "week": timedelta(weeks=amount),
-            "month": timedelta(days=amount * 30),
-            "year": timedelta(days=amount * 365),
-        }
-        return scraped_at - unit_map[unit]
