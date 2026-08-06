@@ -40,4 +40,5 @@ class PropertyItem(scrapy.Item):
 
     # Metadata
     added_date = scrapy.Field()      # raw string e.g. "3 hours ago"
+    listed_at = scrapy.Field()       # parsed absolute datetime from added_date
     is_project = scrapy.Field()      # False for individual listings
