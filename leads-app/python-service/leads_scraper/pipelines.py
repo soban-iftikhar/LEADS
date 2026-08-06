@@ -14,12 +14,6 @@ RELATIVE_DATE_RE = re.compile(
 
 
 class CleaningPipeline:
-    """
-    Unchanged from before — parses raw scraped strings into usable
-    numeric fields and enforces price_min/price_max here (after
-    price_numeric is known), rather than depending on any platform's
-    URL-level price filter actually working.
-    """
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
@@ -57,6 +51,17 @@ class CleaningPipeline:
 
         adapter["scraped_at"] = datetime.now(timezone.utc)
         adapter["listed_at"] = self.parse_listed_at(adapter.get("added_date", ""), adapter["scraped_at"])
+
+        adapter["scraped_at"] = datetime.now(timezone.utc)
+        adapter["listed_at"] = parse_listed_at(adapter.get("added_date", ""), adapter["scraped_at"])
+
+        if spider.since_hours is not None:
+            cutoff = adapter["scraped_at"] - timedelta(hours=spider.since_hours)
+        # Unparseable date is treated as "too old to trust" — the whole point of this filter is a freshness guarantee, so an unknown age should never silently pass it.
+        
+        if adapter["listed_at"] is None or adapter["listed_at"] < cutoff:
+            spider.records_rejected += 1
+            raise DropItem(f"Older than {spider.since_hours}h cutoff: {adapter.get('url')}")
 
         return item
 
