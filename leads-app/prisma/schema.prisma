@@ -138,10 +138,41 @@ model Property {
   scrapedAt        DateTime @default(now())
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  prospects Prospect[]
 
   @@unique([platform, listingId])
   @@index([city, category, purpose])
   @@index([priceNumeric])
   @@index([scrapedAt])
   @@map("properties")
+}
+
+
+
+// -----------------------------------------------------------------------------
+// PROSPECT SCHEMA
+// -----------------------------------------------------------------------------
+
+enum ProspectStatus {
+  CONTACTED
+  REPLIED
+  DECLINED
+  FORM_SENT
+  FORM_SUBMITTED
+}
+
+
+model Prospect {
+  id            String         @id @default(cuid())
+  propertyId    String
+  property      Property       @relation(fields: [propertyId], references: [id])
+  contact       String
+  status        ProspectStatus @default(CONTACTED)
+  contactedAt   DateTime       @default(now())
+  repliedAt     DateTime?
+  lastReplyText String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("prospects")
 }
