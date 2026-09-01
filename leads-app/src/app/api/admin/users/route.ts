@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth/jwt'
 
-// ── Auth helper ───────────────────────────────────────────────────────────────
+// Auth helper
 function getAdminFromRequest(req: NextRequest) {
   const token = req.cookies.get('token')?.value
   if (!token) return null
   try {
     const payload = verifyToken(token)
-    if (payload.role !== 'ADMIN') return null
+    if (!payload || payload.role !== 'ADMIN') return null
     return payload
   } catch {
     return null
   }
 }
 
-// ── GET /api/admin/users ──────────────────────────────────────────────────────
+// GET /api/admin/users
 export async function GET(req: NextRequest) {
   const admin = getAdminFromRequest(req)
   if (!admin) {

@@ -3,20 +3,20 @@ import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth/jwt'
 import { z } from 'zod'
 
-// ── Auth helper ───────────────────────────────────────────────────────────────
+// Auth helper
 function getAdminFromRequest(req: NextRequest) {
   const token = req.cookies.get('token')?.value
   if (!token) return null
   try {
     const payload = verifyToken(token)
-    if (payload.role !== 'ADMIN') return null
+    if (!payload || payload.role !== 'ADMIN') return null
     return payload
   } catch {
     return null
   }
 }
 
-// ── GET /api/admin/users/[id] ─────────────────────────────────────────────────
+// GET /api/admin/users/[id]
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -40,7 +40,7 @@ export async function GET(
         isActive:        true,
         createdAt:       true,
         updatedAt:       true,
-        // exclude passwordHash, OTP fields — never expose these
+        // exclude passwordHash, OTP fields to prevent exposing them
       },
     })
 
@@ -58,7 +58,7 @@ export async function GET(
   }
 }
 
-// ── PATCH /api/admin/users/[id] ───────────────────────────────────────────────
+// PATCH /api/admin/users/[id]
 const updateSchema = z.object({
   isActive: z.boolean().optional(),
   role:     z.enum(['BUYER', 'SELLER', 'ADMIN']).optional(),
@@ -141,7 +141,7 @@ export async function PATCH(
   }
 }
 
-// ── DELETE /api/admin/users/[id] ──────────────────────────────────────────────
+// DELETE /api/admin/users/[id]
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }

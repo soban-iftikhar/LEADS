@@ -27,7 +27,7 @@ class IlaanSpider(BaseSpider):
 
     PAGE_SIZE = 20
 
-    # ── Request resolution (targeted vs general) ────────────────────────
+    # Request resolution (targeted vs general)
 
     def _resolve_categories(self):
         if self.category:
@@ -79,7 +79,7 @@ class IlaanSpider(BaseSpider):
             errback=self.handle_error,
         )
 
-    # ── Listing page (JSON API) ─────────────────────────────────────────
+    # Listing page (JSON API)
 
     def parse_listing_page(self, response, canonical_category, purpose_name, api_type, status, page):
         try:
@@ -163,7 +163,7 @@ class IlaanSpider(BaseSpider):
             is_project=False,
         )
 
-    # ── Reveal contact ───────────────────────────────────────────────
+    # Reveal contact
 
     def reveal_contact(self, response, item):
         try:
