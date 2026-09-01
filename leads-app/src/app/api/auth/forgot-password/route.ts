@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Build the reset URL with the RAW token
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}&email=${email}`;
 
-    // Send email via SendGrid
+    // Send email via Resend
     try {
       await sendPasswordResetEmail(user.fullName, email, resetUrl);
     } catch (emailError) {

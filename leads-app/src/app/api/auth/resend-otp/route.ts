@@ -74,9 +74,9 @@ export async function POST(request: NextRequest) {
       try {
         await sendOtpEmail(email, user.fullName, otp);
       } catch (emailError) {
-        console.error("Failed to resend OTP email:", emailError);
+        console.error("Failed to resend OTP email:", emailError instanceof Error ? emailError.message : emailError);
         return errorResponse(
-          "Failed to send verification code. Please try again.",
+          emailError instanceof Error ? emailError.message : "Failed to send verification code. Please try again.",
           500
         );
       }

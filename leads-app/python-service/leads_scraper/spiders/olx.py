@@ -39,7 +39,7 @@ class OLXSpider(BaseSpider):
         spider.id_token = crawler.settings.get("OLX_ID_TOKEN")
         return spider
 
-    # ── Request resolution (targeted vs general) ────────────────────────
+    # Request resolution (targeted vs general)
 
     def _resolve_cities(self):
         if self.city:
@@ -82,7 +82,7 @@ class OLXSpider(BaseSpider):
         separator = "&" if "?" in cat_path else "?"
         return f"{self.BASE_URL}{cat_path}{separator}location={city}"
 
-    # ── Listing page ─────────────────────────────────────────────────────
+    # Listing page
 
     def parse_listing_page(self, response, city, canonical_category, cat_path, page):
         self.logger.info(f"[olx] {city}/{canonical_category} page {page} — {response.url}")
@@ -129,7 +129,7 @@ class OLXSpider(BaseSpider):
             "added_date_card": card.css("span[aria-label='Creation date']::text").get("").strip(),
         }
 
-    # ── Detail page ──────────────────────────────────────────────────────
+    # Detail page
 
     def parse_detail(self, response, city, canonical_category, card_data):
         # Already fetched — only bail on the real goal, never should_dispatch().
@@ -214,7 +214,7 @@ class OLXSpider(BaseSpider):
         separator = "&" if "?" in current_url else "?"
         return f"{current_url}{separator}page={next_page}"
 
-    # ── Contact info API ─────────────────────────────────────────────────
+    # Contact info API
 
     def parse_contact_info(self, response, item):
         if response.status == 401:
@@ -242,7 +242,7 @@ class OLXSpider(BaseSpider):
 
         yield item
 
-    # ── Helpers ──────────────────────────────────────────────────────────
+    # Helpers
 
     def _extract_price_text(self, selector) -> str:
         for text in selector.css("span::text, div::text").getall():

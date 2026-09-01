@@ -37,7 +37,7 @@ class GraanaSpider(BaseSpider):
     PURPOSE_PATHS = {"sale": "sale", "rent": "rent"}
     PAGE_SIZE = 30
 
-    # ── Request resolution (targeted vs general) ────────────────────────
+    # Request resolution (targeted vs general)
 
     def _resolve_cities(self):
         if self.city:
@@ -106,7 +106,7 @@ class GraanaSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-    # ── Listing page ─────────────────────────────────────────────────────
+    # Listing page
 
     def parse_listing_page(self, response, canonical_category, cat_slug, city, purpose_name, purpose_path, page):
         self.logger.info(f"[graana] {city}/{canonical_category}/{purpose_name} page {page} — {response.url}")
@@ -167,7 +167,7 @@ class GraanaSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-    # ── Detail page ──────────────────────────────────────────────────────
+    # Detail page
 
     def parse_detail(self, response, canonical_category, city, purpose_name, card_data):
         if self.max_records is not None and self.records_collected >= self.max_records:
@@ -259,7 +259,7 @@ class GraanaSpider(BaseSpider):
                 amenities.append(f"{name}: {value}" if value not in (None, "", True) else name)
         return amenities
 
-    # ── Helpers ──────────────────────────────────────────────────────────
+    # Helpers
 
     def _extract_price_from_card(self, card) -> str:
         for text in card.css("*::text").getall():
