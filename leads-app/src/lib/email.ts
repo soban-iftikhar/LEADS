@@ -7,7 +7,7 @@ const FROM = `${process.env.EMAIL_FROM_NAME || "LEADS"} <${process.env.EMAIL_FRO
 // Generic send function 
 async function sendEmail(to: string, subject: string, html: string) {
   try {
-    const { error } = await resend.emails.send({
+    const { error, data } = await resend.emails.send({
       from: FROM,
       to,
       subject,
@@ -15,12 +15,17 @@ async function sendEmail(to: string, subject: string, html: string) {
     });
 
     if (error) {
-      console.error("Resend error:", error);
-      throw new Error("Failed to send email");
+      console.error("Resend API error:", JSON.stringify(error, null, 2));
+      throw new Error(`Resend failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    if (!data?.id) {
+      console.error("Resend: No message ID returned", data);
+      throw new Error("Email sent but no confirmation received from Resend");
     }
   } catch (error) {
-    console.error("Resend error:", error);
-    throw new Error("Failed to send email");
+    console.error("Email send error details:", error);
+    throw error;
   }
 }
 

@@ -57,13 +57,13 @@ class BaseSpider(scrapy.Spider):
         self.dispatched = 0
         self.errors = []
 
-    # ── Category mapping ────────────────────────────────────────────
+    # Category mapping
 
     def platform_category(self, canonical: str):
         """Maps a canonical category to this platform's own value, or None if this platform doesn't support it."""
         return self.CATEGORY_MAP.get(canonical)
 
-    # ── Dispatch cap ─────────────────────────────────────────────────
+    # Dispatch cap
 
     def should_dispatch(self) -> bool:
         if self.max_records is None:
@@ -74,7 +74,7 @@ class BaseSpider(scrapy.Spider):
             return False
         return True
 
-    # ── Item builder ─────────────────────────────────────────────────
+    # Item builder
 
     def build_item(self, **kwargs) -> PropertyItem:
         item = PropertyItem()
@@ -83,7 +83,7 @@ class BaseSpider(scrapy.Spider):
             item[key] = value
         return item
 
-    # ── Error handler ────────────────────────────────────────────────
+    # Error handler
 
     def handle_error(self, failure):
         url = failure.request.url
@@ -91,7 +91,7 @@ class BaseSpider(scrapy.Spider):
         self.logger.error(f"[{self.platform_name}] Request failed: {url} — {msg}")
         self.errors.append({"url": url, "error": msg})
 
-    # ── Optional progress callback (only fires if job_id + CALLBACK_BASE_URL set) ──
+    # Optional progress callback (only fires if job_id + CALLBACK_BASE_URL set)
 
     def report_progress(self):
         if not self.job_id:
@@ -109,7 +109,7 @@ class BaseSpider(scrapy.Spider):
         except Exception:
             self.logger.warning(f"[{self.platform_name}] progress callback failed")
 
-    # ── Closed ───────────────────────────────────────────────────────
+    # Closed
 
     def closed(self, reason):
         self.logger.info(

@@ -1,4 +1,4 @@
-const WHATSAPP_API_URL = `https://graph.facebook.com/v25.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`
+const WHATSAPP_API_URL = `https://graph.facebook.com/${process.env.WHATSAPP_API_VERSION || "v20.0"}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`
 
 export async function sendWhatsAppOTP(
   phone: string,
@@ -8,7 +8,7 @@ export async function sendWhatsAppOTP(
     const response = await fetch(WHATSAPP_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.WHATSAPP_API_TOKEN}`,
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

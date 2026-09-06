@@ -44,7 +44,7 @@ class ZameenSpider(BaseSpider):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    # ── Request resolution (targeted vs general) ────────────────────────
+    # Request resolution (targeted vs general)
 
     def _resolve_cities(self):
         if self.city:
@@ -112,7 +112,7 @@ class ZameenSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-    # ── Level 1: Search results page ────────────────────────────────────
+    # Level 1: Search results page
 
     def parse(self, response, page, city_name, canonical_category, purpose_name):
         self.logger.info(f"[zameen] [{city_name}/{canonical_category}/{purpose_name}] page {page} — {response.url}")
@@ -182,7 +182,7 @@ class ZameenSpider(BaseSpider):
             return next_url
         return None
 
-    # ── Level 2: Property detail page ───────────────────────────────────
+    # Level 2: Property detail page
 
     def parse_property(self, response, city_name, canonical_category, purpose_name):
         # This response is already fetched — only bail on the real goal
@@ -290,7 +290,7 @@ class ZameenSpider(BaseSpider):
 
         yield item
 
-    # ── Helpers ──────────────────────────────────────────────────────────
+    # Helpers
 
     def _extract_listing_id(self, url: str) -> str:
         match = re.search(r"-(\d+-\d+)-\d+\.html$", url)
