@@ -18,9 +18,6 @@ class ZameenSpider(BaseSpider):
         "Peshawar": 6,
     }
 
-    # canonical -> Zameen's own (coarse) category path. Zameen only
-    # exposes 4 buckets, so several canonical categories collapse into
-    # "Commercial" here — that's a real platform limitation, not a bug.
     CATEGORY_MAP = {
         "house": "Homes",
         "flat": "Flats",
