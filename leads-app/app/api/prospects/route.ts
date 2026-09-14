@@ -26,18 +26,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Could not normalize "${contact}" for WhatsApp` }, { status: 400 });
   }
 
-  const existing = await prisma.prospect.findFirst({ where: { propertyId } });
+  const existing = await prisma.legacyProspect.findFirst({ where: { propertyId } });
   if (existing) {
     return NextResponse.json({ error: "Already contacted this property", prospect: existing }, { status: 409 });
   }
 
-  const prospect = await prisma.prospect.create({
+  const prospect = await prisma.legacyProspect.create({
     data: { propertyId, contact },
   });
 
   try {
     const waMessageId = await sendTemplateMessage(waNumber, property.sellerName || "");
-    const updated = await prisma.prospect.update({
+    const updated = await prisma.legacyProspect.update({
       where: { id: prospect.id },
       data: { waMessageId },
     });
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const prospects = await prisma.prospect.findMany({
+  const prospects = await prisma.legacyProspect.findMany({
     include: { property: true },
     orderBy: { createdAt: "desc" },
   });

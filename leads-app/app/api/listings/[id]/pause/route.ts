@@ -14,7 +14,7 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const existing = await prisma.listing.findUnique({
+    const existing = await prisma.legacyListing.findUnique({
       where: { id },
       select: { sellerId: true, status: true },
     });
@@ -38,7 +38,7 @@ export async function PATCH(
 
     const newStatus = existing.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
 
-    const updated = await prisma.listing.update({
+    const updated = await prisma.legacyListing.update({
       where: { id },
       data: { status: newStatus },
     });

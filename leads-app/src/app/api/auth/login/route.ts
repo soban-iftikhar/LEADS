@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = parsed.data;
 
     // 3. Find user
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.legacyUser.findUnique({ where: { email } });
 
     // Generic error message regardless of whether email exists or
     // password is wrong — prevents user enumeration (security NFR).

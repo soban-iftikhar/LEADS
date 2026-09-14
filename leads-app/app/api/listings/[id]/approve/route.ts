@@ -14,7 +14,7 @@ export async function POST(
 
     const { id } = await params;
 
-    const listing = await prisma.listing.findUnique({
+    const listing = await prisma.legacyListing.findUnique({
       where: { id },
       select: {
         sellerId: true,
@@ -47,7 +47,7 @@ export async function POST(
         ? listing.aiEnhancedDesc
         : listing.originalDesc;
 
-    const updated = await prisma.listing.update({
+    const updated = await prisma.legacyListing.update({
       where: { id },
       data: {
         description: finalDescription ?? "",

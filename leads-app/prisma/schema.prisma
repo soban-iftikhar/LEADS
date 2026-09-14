@@ -1,130 +1,1450 @@
+// LEADS database. One Postgres instance, one schema per concern (DR-17, DR-23).
+// Python reads and writes the same tables with plain SQL, so every id and
+// timestamp default is set in the database, not by the Prisma client.
+
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["public", "config", "app", "intel", "ops", "master", "zameen", "olx", "graana", "ilaan"]
 }
 
-// -----------------------------------------------------------------------------
-// ENUMS
-// -----------------------------------------------------------------------------
+// =============================================================================
+// config
+// =============================================================================
+
+model Region {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String            @unique
+  slug       String            @unique
+  active     Boolean           @default(false)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  localities Locality[]
+  portalMaps PortalRegionMap[]
+  segments   CrawlSegment[]
+
+  @@map("regions")
+  @@schema("config")
+}
+
+model Locality {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  regionId String     @map("region_id") @db.Uuid
+  name     String
+  slug     String
+  aliases  String[]
+  parentId String?    @map("parent_id") @db.Uuid
+  lat      Decimal?   @db.Decimal(9, 6)
+  lng      Decimal?   @db.Decimal(9, 6)
+  active   Boolean    @default(true)
+  region   Region     @relation(fields: [regionId], references: [id])
+  parent   Locality?  @relation("LocalityTree", fields: [parentId], references: [id])
+  children Locality[] @relation("LocalityTree")
+
+  @@unique([regionId, slug])
+  @@map("localities")
+  @@schema("config")
+}
+
+model Portal {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug              String            @unique // zameen | olx | graana | ilaan
+  name              String
+  active            Boolean           @default(true)
+  requestsPerMinute Int               @default(20) @map("requests_per_minute")
+  regionMaps        PortalRegionMap[]
+  segments          CrawlSegment[]
+
+  @@map("portals")
+  @@schema("config")
+}
+
+model PortalRegionMap {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portalId       String  @map("portal_id") @db.Uuid
+  regionId       String  @map("region_id") @db.Uuid
+  externalCityId String  @map("external_city_id")
+  active         Boolean @default(true)
+  portal         Portal  @relation(fields: [portalId], references: [id])
+  region         Region  @relation(fields: [regionId], references: [id])
+
+  @@unique([portalId, regionId])
+  @@map("portal_region_maps")
+  @@schema("config")
+}
+
+model CrawlSegment {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portalId  String    @map("portal_id") @db.Uuid
+  regionId  String    @map("region_id") @db.Uuid
+  category  String
+  purpose   String
+  active    Boolean   @default(true)
+  lastRunAt DateTime? @map("last_run_at") @db.Timestamptz(6)
+  portal    Portal    @relation(fields: [portalId], references: [id])
+  region    Region    @relation(fields: [regionId], references: [id])
+
+  @@unique([portalId, regionId, category, purpose])
+  @@map("crawl_segments")
+  @@schema("config")
+}
+
+model LeadCriteria {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  version     Int      @unique
+  rules       Json     @db.JsonB // format: SPEC_00 3.7
+  active      Boolean  @default(false)
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("lead_criteria")
+  @@schema("config")
+}
+
+model PackagePlan {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  leadCount    Int     @map("lead_count")
+  pricePkr     BigInt  @map("price_pkr")
+  deliveryDays Int     @default(60) @map("delivery_days")
+  active       Boolean @default(true)
+  sortOrder    Int     @default(0) @map("sort_order")
+  orders       Order[]
+
+  @@map("package_plans")
+  @@schema("config")
+}
+
+model MessageTemplate {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key            String           @unique
+  purpose        TemplatePurpose
+  language       TemplateLanguage
+  body           String // {{placeholders}}
+  waTemplateName String?          @map("wa_template_name") // approved Cloud API template name
+  active         Boolean          @default(true)
+
+  @@map("message_templates")
+  @@schema("config")
+}
+
+model AppSetting {
+  key         String   @id
+  value       Json     @db.JsonB
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("app_settings")
+  @@schema("config")
+}
+
+enum TemplatePurpose {
+  PROSPECT_SELLER
+  BUYER_CAMPAIGN
+  FOLLOW_UP
+  FORM_LINK
+  LEAD_DELIVERED
+
+  @@schema("config")
+}
+
+enum TemplateLanguage {
+  EN
+  ROMAN_UR
+
+  @@schema("config")
+}
+
+// =============================================================================
+// app: identity
+// =============================================================================
+
+model User {
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String              @unique // stored lowercased
+  passwordHash     String              @map("password_hash") // bcrypt cost 12
+  role             Role
+  status           UserStatus          @default(ACTIVE)
+  emailVerifiedAt  DateTime?           @map("email_verified_at") @db.Timestamptz(6)
+  phoneHash        String?             @unique @map("phone_hash")
+  phoneEnc         String?             @map("phone_enc")
+  phoneVerifiedAt  DateTime?           @map("phone_verified_at") @db.Timestamptz(6)
+  failedLoginCount Int                 @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?           @map("locked_until") @db.Timestamptz(6)
+  lastLoginAt      DateTime?           @map("last_login_at") @db.Timestamptz(6)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer         CustomerProfile?
+  buyer            BuyerProfile?
+  sessions         Session[]
+  tokens           VerificationToken[]
+  listings         Listing[]
+  savedListings    SavedListing[]
+  orders           Order[]
+  leads            Lead[]
+  notifications    Notification[]
+
+  @@map("users")
+  @@schema("app")
+}
 
 enum Role {
+  CUSTOMER_SELLER
+  CUSTOMER_AGENCY
+  BUYER
+  ADMIN
+
+  @@schema("app")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+
+  @@schema("app")
+}
+
+model Session {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  userAgent String?   @map("user_agent")
+  ipHash    String?   @map("ip_hash")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+  @@schema("app")
+}
+
+model VerificationToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      TokenType
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  attempts  Int       @default(0)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("verification_tokens")
+  @@schema("app")
+}
+
+enum TokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  PHONE_OTP
+
+  @@schema("app")
+}
+
+model CustomerProfile {
+  userId        String       @id @map("user_id") @db.Uuid
+  kind          CustomerKind
+  displayName   String       @map("display_name") // person or agency name
+  contactPerson String?      @map("contact_person") // agency only
+  areas         String[] // locality ids
+  propertyTypes String[]     @map("property_types")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+  @@schema("app")
+}
+
+enum CustomerKind {
+  SELLER
+  AGENCY
+
+  @@schema("app")
+}
+
+model BuyerProfile {
+  userId         String   @id @map("user_id") @db.Uuid
+  name           String
+  contactId      String?  @unique @map("contact_id") @db.Uuid
+  preferredAreas String[] @map("preferred_areas")
+  budgetMinPkr   BigInt?  @map("budget_min_pkr")
+  budgetMaxPkr   BigInt?  @map("budget_max_pkr")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact        Contact? @relation(fields: [contactId], references: [id])
+
+  @@map("buyer_profiles")
+  @@schema("app")
+}
+
+// =============================================================================
+// app: listings on LEADS (verified)
+// =============================================================================
+
+model Listing {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId      String          @map("customer_id") @db.Uuid
+  source          ListingSource
+  masterListingId String?         @map("master_listing_id") @db.Uuid
+  slug            String          @unique
+  title           String
+  description     String?
+  category        String
+  purpose         String
+  pricePkr        BigInt          @map("price_pkr")
+  sizeValue       Decimal         @map("size_value") @db.Decimal(12, 2)
+  sizeUnit        String          @map("size_unit")
+  sizeSqft        Decimal         @map("size_sqft") @db.Decimal(12, 2)
+  regionId        String          @map("region_id") @db.Uuid
+  localityId      String          @map("locality_id") @db.Uuid
+  addressText     String?         @map("address_text")
+  lat             Decimal?        @db.Decimal(9, 6)
+  lng             Decimal?        @db.Decimal(9, 6)
+  bedrooms        Int?
+  bathrooms       Int?
+  amenities       String[]
+  status          ListingStatus   @default(DRAFT)
+  criteriaVersion Int?            @map("criteria_version")
+  criteriaResult  Json?           @map("criteria_result") @db.JsonB
+  rejectionReason String?         @map("rejection_reason")
+  publishedAt     DateTime?       @map("published_at") @db.Timestamptz(6)
+  soldAt          DateTime?       @map("sold_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer        User            @relation(fields: [customerId], references: [id])
+  masterListing   MasterListing?  @relation(fields: [masterListingId], references: [id])
+  images          ListingImage[]
+  reviews         ListingReview[]
+  savedBy         SavedListing[]
+  orders          Order[]
+  campaigns       Campaign[]
+  leads           Lead[]
+
+  @@index([status, regionId, localityId, category, purpose])
+  @@index([customerId])
+  @@map("listings")
+  @@schema("app")
+}
+
+enum ListingSource {
+  SELF_POSTED
+  AGENCY_POSTED
+  PROSPECT_CONVERTED
+
+  @@schema("app")
+}
+
+enum ListingStatus {
+  DRAFT
+  UNDER_REVIEW
+  NEEDS_INFO
+  APPROVED
+  REJECTED
+  PAUSED
+  SOLD
+  ARCHIVED
+
+  @@schema("app")
+}
+
+model ListingImage {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId    String  @map("listing_id") @db.Uuid
+  cloudinaryId String  @map("cloudinary_id")
+  url          String
+  position     Int
+  listing      Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, position])
+  @@map("listing_images")
+  @@schema("app")
+}
+
+model ListingReview {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId String         @map("listing_id") @db.Uuid
+  adminId   String         @map("admin_id") @db.Uuid
+  decision  ReviewDecision
+  note      String?
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  listing   Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_reviews")
+  @@schema("app")
+}
+
+enum ReviewDecision {
+  APPROVE
+  REJECT
+  NEED_INFO
+
+  @@schema("app")
+}
+
+model SavedListing {
+  buyerUserId String   @map("buyer_user_id") @db.Uuid
+  listingId   String   @map("listing_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  buyer       User     @relation(fields: [buyerUserId], references: [id], onDelete: Cascade)
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([buyerUserId, listingId])
+  @@map("saved_listings")
+  @@schema("app")
+}
+
+// =============================================================================
+// app: packages, money
+// =============================================================================
+
+model Order {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId      String      @map("customer_id") @db.Uuid
+  listingId       String      @map("listing_id") @db.Uuid
+  packagePlanId   String      @map("package_plan_id") @db.Uuid
+  leadCount       Int         @map("lead_count") // snapshot at purchase
+  pricePkr        BigInt      @map("price_pkr") // snapshot at purchase
+  pricePerLeadPkr BigInt      @map("price_per_lead_pkr") // snapshot at purchase
+  status          OrderStatus @default(PENDING_PAYMENT)
+  windowStartsAt  DateTime?   @map("window_starts_at") @db.Timestamptz(6) // set on payment
+  windowEndsAt    DateTime?   @map("window_ends_at") @db.Timestamptz(6)
+  deliveredCount  Int         @default(0) @map("delivered_count")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer        User        @relation(fields: [customerId], references: [id])
+  listing         Listing     @relation(fields: [listingId], references: [id])
+  packagePlan     PackagePlan @relation(fields: [packagePlanId], references: [id])
+  payments        Payment[]
+  cashback        Cashback?
+  campaign        Campaign?
+  leads           Lead[]
+
+  @@index([customerId])
+  @@index([status, windowEndsAt])
+  @@map("orders")
+  @@schema("app")
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  CANCELLED
+
+  @@schema("app")
+}
+
+model Payment {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId     String        @map("order_id") @db.Uuid
+  provider    String
+  providerRef String?       @unique @map("provider_ref")
+  amountPkr   BigInt        @map("amount_pkr")
+  status      PaymentStatus
+  raw         Json?         @db.JsonB
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  order       Order         @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@map("payments")
+  @@schema("app")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+
+  @@schema("app")
+}
+
+model Cashback {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId          String         @unique @map("order_id") @db.Uuid
+  undeliveredCount Int            @map("undelivered_count")
+  amountPkr        BigInt         @map("amount_pkr")
+  status           CashbackStatus @default(PENDING)
+  providerRef      String?        @map("provider_ref")
+  paidAt           DateTime?      @map("paid_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  order            Order          @relation(fields: [orderId], references: [id])
+
+  @@map("cashbacks")
+  @@schema("app")
+}
+
+enum CashbackStatus {
+  PENDING
+  PAID
+  FAILED
+
+  @@schema("app")
+}
+
+// =============================================================================
+// app: people, outreach, leads
+// =============================================================================
+
+// One row per real phone number we know about: prospects, campaign targets, buyers (DR-25).
+model Contact {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneHash         String              @unique @map("phone_hash")
+  phoneEnc          String?             @map("phone_enc") // cleared by the purge job
+  name              String?
+  firstSource       ContactSource       @map("first_source")
+  dnc               Boolean             @default(false)
+  dncReason         DncReason?          @map("dnc_reason")
+  dncAt             DateTime?           @map("dnc_at") @db.Timestamptz(6)
+  purgeAt           DateTime?           @map("purge_at") @db.Timestamptz(6) // null once the contact is a lead or user
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  buyerProfile      BuyerProfile?
+  capCounters       ContactCapCounter[]
+  prospectOutreach  ProspectOutreach[]
+  campaignTargets   CampaignTarget[]
+  messages          Message[]
+  formLinks         FormLink[]
+  leads             Lead[]
+  sellerLinks       SellerContactLink[]
+
+  @@index([purgeAt])
+  @@map("contacts")
+  @@schema("app")
+}
+
+enum ContactSource {
+  PORTAL_SELLER
+  BUYER_SIGNUP
+  FORM
+  INQUIRY
+
+  @@schema("app")
+}
+
+enum DncReason {
+  STOP_REQUEST
+  ANGRY_REPLY
+  ADMIN
+  COMPLAINT
+
+  @@schema("app")
+}
+
+model ContactCapCounter {
+  contactId    String   @map("contact_id") @db.Uuid
+  periodStart  DateTime @map("period_start") @db.Timestamptz(6)
+  listingsSent Int      @default(0) @map("listings_sent")
+  contact      Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, periodStart])
+  @@map("contact_cap_counters")
+  @@schema("app")
+}
+
+// Converting a portal seller into a customer (PRS-1).
+model ProspectOutreach {
+  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  masterListingId    String         @unique @map("master_listing_id") @db.Uuid
+  contactId          String         @map("contact_id") @db.Uuid
+  selectedById       String         @map("selected_by_id") @db.Uuid
+  status             ProspectStatus @default(SELECTED)
+  convertedUserId    String?        @map("converted_user_id") @db.Uuid
+  convertedListingId String?        @map("converted_listing_id") @db.Uuid
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  masterListing      MasterListing  @relation(fields: [masterListingId], references: [id])
+  contact            Contact        @relation(fields: [contactId], references: [id])
+  messages           Message[]
+  formLinks          FormLink[]
+
+  @@index([contactId])
+  @@map("prospect_outreach")
+  @@schema("app")
+}
+
+enum ProspectStatus {
+  SELECTED
+  CONTACTED
+  REPLIED
+  INTERESTED
+  FORM_SENT
+  CONVERTED
+  DECLINED
+  STOPPED
+  NO_REPLY
+
+  @@schema("app")
+}
+
+// Finding buyers for a paid order (SYS-2).
+model Campaign {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId     String           @unique @map("order_id") @db.Uuid
+  listingId   String           @map("listing_id") @db.Uuid
+  status      CampaignStatus   @default(PLANNED)
+  matchParams Json             @map("match_params") @db.JsonB
+  startedAt   DateTime?        @map("started_at") @db.Timestamptz(6)
+  endedAt     DateTime?        @map("ended_at") @db.Timestamptz(6)
+  order       Order            @relation(fields: [orderId], references: [id])
+  listing     Listing          @relation(fields: [listingId], references: [id])
+  targets     CampaignTarget[]
+
+  @@map("campaigns")
+  @@schema("app")
+}
+
+enum CampaignStatus {
+  PLANNED
+  RUNNING
+  PAUSED
+  DONE
+
+  @@schema("app")
+}
+
+model CampaignTarget {
+  id                    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId            String         @map("campaign_id") @db.Uuid
+  contactId             String         @map("contact_id") @db.Uuid
+  sourceMasterListingId String?        @map("source_master_listing_id") @db.Uuid
+  score                 Decimal        @db.Decimal(8, 4)
+  status                TargetStatus   @default(QUEUED)
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign              Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact               Contact        @relation(fields: [contactId], references: [id])
+  sourceMasterListing   MasterListing? @relation(fields: [sourceMasterListingId], references: [id])
+  messages              Message[]
+  formLinks             FormLink[]
+
+  @@unique([campaignId, contactId])
+  @@index([status])
+  @@map("campaign_targets")
+  @@schema("app")
+}
+
+enum TargetStatus {
+  QUEUED
+  SKIPPED_DNC
+  SKIPPED_CAP
+  SENT
+  REPLIED
+  INTERESTED
+  NOT_INTERESTED
+  STOPPED
+  FORM_SENT
+  FORM_SUBMITTED
+  CONVERTED
+  NO_REPLY
+
+  @@schema("app")
+}
+
+model Message {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactId          String            @map("contact_id") @db.Uuid
+  direction          Direction
+  channel            Channel
+  campaignTargetId   String?           @map("campaign_target_id") @db.Uuid
+  prospectOutreachId String?           @map("prospect_outreach_id") @db.Uuid
+  templateId         String?           @map("template_id") @db.Uuid
+  body               String
+  waMessageId        String?           @unique @map("wa_message_id")
+  status             MessageStatus
+  sentByUserId       String?           @map("sent_by_user_id") @db.Uuid // staff who tapped send in WA_LINK mode
+  intent             Intent?
+  intentConfidence   Decimal?          @map("intent_confidence") @db.Decimal(4, 3)
+  classifierModel    String?           @map("classifier_model")
+  needsReview        Boolean           @default(false) @map("needs_review")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  sentAt             DateTime?         @map("sent_at") @db.Timestamptz(6)
+  contact            Contact           @relation(fields: [contactId], references: [id])
+  campaignTarget     CampaignTarget?   @relation(fields: [campaignTargetId], references: [id])
+  prospectOutreach   ProspectOutreach? @relation(fields: [prospectOutreachId], references: [id])
+
+  @@index([contactId, createdAt])
+  @@map("messages")
+  @@schema("app")
+}
+
+enum Direction {
+  OUT
+  IN
+
+  @@schema("app")
+}
+
+enum Channel {
+  WA_API
+  WA_LINK
+
+  @@schema("app")
+}
+
+enum MessageStatus {
+  PENDING_STAFF
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  RECEIVED
+
+  @@schema("app")
+}
+
+enum Intent {
+  INTERESTED
+  NOT_INTERESTED
+  QUESTION
+  STOP
+  ANGRY
+  OTHER
+
+  @@schema("app")
+}
+
+model FormLink {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash          String            @unique @map("token_hash") // the URL carries the raw token
+  kind               FormKind
+  contactId          String            @map("contact_id") @db.Uuid
+  listingId          String?           @map("listing_id") @db.Uuid
+  masterListingId    String?           @map("master_listing_id") @db.Uuid
+  campaignTargetId   String?           @map("campaign_target_id") @db.Uuid
+  prospectOutreachId String?           @map("prospect_outreach_id") @db.Uuid
+  expiresAt          DateTime          @map("expires_at") @db.Timestamptz(6)
+  openedAt           DateTime?         @map("opened_at") @db.Timestamptz(6)
+  submittedAt        DateTime?         @map("submitted_at") @db.Timestamptz(6)
+  contact            Contact           @relation(fields: [contactId], references: [id])
+  campaignTarget     CampaignTarget?   @relation(fields: [campaignTargetId], references: [id])
+  prospectOutreach   ProspectOutreach? @relation(fields: [prospectOutreachId], references: [id])
+  submission         FormSubmission?
+
+  @@map("form_links")
+  @@schema("app")
+}
+
+enum FormKind {
+  BUYER_INTEREST
+  PROSPECT_DETAILS
+
+  @@schema("app")
+}
+
+model FormSubmission {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  formLinkId    String   @unique @map("form_link_id") @db.Uuid
+  data          Json     @db.JsonB
+  phoneVerified Boolean  @default(false) @map("phone_verified")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  formLink      FormLink @relation(fields: [formLinkId], references: [id])
+
+  @@map("form_submissions")
+  @@schema("app")
+}
+
+model Lead {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactId         String        @map("contact_id") @db.Uuid
+  listingId         String        @map("listing_id") @db.Uuid
+  customerId        String        @map("customer_id") @db.Uuid
+  orderId           String?       @map("order_id") @db.Uuid
+  source            LeadSource
+  countsTowardOrder Boolean       @map("counts_toward_order")
+  buyerName         String?       @map("buyer_name")
+  budgetMinPkr      BigInt?       @map("budget_min_pkr")
+  budgetMaxPkr      BigInt?       @map("budget_max_pkr")
+  timeline          String?
+  note              String?
+  status            LeadStatus    @default(DELIVERED)
+  customerStage     CustomerStage @default(NEW) @map("customer_stage")
+  followUpAt        DateTime?     @map("follow_up_at") @db.Timestamptz(6)
+  deliveredAt       DateTime      @default(now()) @map("delivered_at") @db.Timestamptz(6)
+  contact           Contact       @relation(fields: [contactId], references: [id])
+  listing           Listing       @relation(fields: [listingId], references: [id])
+  customer          User          @relation(fields: [customerId], references: [id])
+  order             Order?        @relation(fields: [orderId], references: [id])
+  report            LeadReport?
+
+  @@unique([contactId, listingId]) // DR-10: one buyer + one property, once
+  @@index([customerId, deliveredAt])
+  @@map("leads")
+  @@schema("app")
+}
+
+enum LeadSource {
+  CAMPAIGN_REPLY
+  CAMPAIGN_FORM
+  BUYER_INQUIRY
+
+  @@schema("app")
+}
+
+enum LeadStatus {
+  DELIVERED
+  REPORTED
+  REPORT_UPHELD
+  REPORT_REJECTED
+
+  @@schema("app")
+}
+
+enum CustomerStage {
+  NEW
+  CONTACTED
+  VIEWING
+  CLOSED_WON
+  CLOSED_LOST
+
+  @@schema("app")
+}
+
+model LeadReport {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leadId       String       @unique @map("lead_id") @db.Uuid
+  reason       String
+  details      String?
+  status       ReportStatus @default(OPEN)
+  decidedById  String?      @map("decided_by_id") @db.Uuid
+  decidedAt    DateTime?    @map("decided_at") @db.Timestamptz(6)
+  decisionNote String?      @map("decision_note")
+  lead         Lead         @relation(fields: [leadId], references: [id])
+
+  @@map("lead_reports")
+  @@schema("app")
+}
+
+enum ReportStatus {
+  OPEN
+  UPHELD
+  REJECTED
+
+  @@schema("app")
+}
+
+// =============================================================================
+// intel
+// =============================================================================
+
+model AreaBenchmark {
+  localityId         String   @map("locality_id") @db.Uuid
+  category           String
+  purpose            String
+  sizeBand           String   @map("size_band")
+  medianPricePerSqft Decimal  @map("median_price_per_sqft") @db.Decimal(14, 2)
+  p25                Decimal  @db.Decimal(14, 2)
+  p75                Decimal  @db.Decimal(14, 2)
+  sampleSize         Int      @map("sample_size")
+  computedAt         DateTime @map("computed_at") @db.Timestamptz(6)
+
+  @@id([localityId, category, purpose, sizeBand])
+  @@map("area_benchmarks")
+  @@schema("intel")
+}
+
+model ListingScore {
+  masterListingId   String        @id @map("master_listing_id") @db.Uuid
+  qualityScore      Decimal       @map("quality_score") @db.Decimal(8, 4)
+  priceDeviationPct Decimal?      @map("price_deviation_pct") @db.Decimal(8, 2)
+  predictedPricePkr BigInt?       @map("predicted_price_pkr")
+  exitProb30d       Decimal?      @map("exit_prob_30d") @db.Decimal(5, 4)
+  propensityScore   Decimal       @map("propensity_score") @db.Decimal(8, 4)
+  rankScore         Decimal       @map("rank_score") @db.Decimal(8, 4)
+  modelVersion      String        @map("model_version")
+  computedAt        DateTime      @map("computed_at") @db.Timestamptz(6)
+  masterListing     MasterListing @relation(fields: [masterListingId], references: [id], onDelete: Cascade)
+
+  @@map("listing_scores")
+  @@schema("intel")
+}
+
+model ListingCluster {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  canonicalMasterListingId String   @map("canonical_master_listing_id") @db.Uuid
+  memberIds                String[] @map("member_ids")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("listing_clusters")
+  @@schema("intel")
+}
+
+// Buyer pool: who sells what, where.
+model SellerContactLink {
+  contactId       String        @map("contact_id") @db.Uuid
+  masterListingId String        @map("master_listing_id") @db.Uuid
+  contact         Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  masterListing   MasterListing @relation(fields: [masterListingId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, masterListingId])
+  @@index([masterListingId])
+  @@map("seller_contact_links")
+  @@schema("intel")
+}
+
+// =============================================================================
+// ops
+// =============================================================================
+
+model JobRequest {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          JobType
+  payload       Json      @db.JsonB
+  status        JobStatus @default(PENDING)
+  requestedById String?   @map("requested_by_id") @db.Uuid
+  error         String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  startedAt     DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@map("job_requests")
+  @@schema("ops")
+}
+
+enum JobType {
+  CRAWL_MANUAL
+  CRAWL_PROBE
+  CAMPAIGN_START
+  CAMPAIGN_PAUSE
+  PROSPECT_START
+  CLASSIFY_MESSAGE
+  RECOMPUTE_INTEL
+  SEND_MESSAGE
+
+  @@schema("ops")
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+
+  @@schema("ops")
+}
+
+model Notification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      String
+  payload   Json      @db.JsonB
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  emailedAt DateTime? @map("emailed_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+  @@schema("ops")
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entity      String
+  entityId    String?  @map("entity_id")
+  before      Json?    @db.JsonB
+  after       Json?    @db.JsonB
+  ipHash      String?  @map("ip_hash")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entity, entityId])
+  @@index([actorUserId, createdAt])
+  @@map("audit_log")
+  @@schema("ops")
+}
+
+// =============================================================================
+// Portal listings (SPEC_01 3.1-3.4). One table per portal, same common columns.
+// In portal tables price, size and locality may be null: rows are never dropped
+// for missing values (3.4). CHECK constraints live in the migration SQL.
+// =============================================================================
+
+model ZameenListing {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform             String    @default("zameen")
+  externalId           String    @map("external_id")
+  url                  String
+  title                String
+  category             String
+  purpose              String
+  priceRaw             String?   @map("price_raw")
+  pricePkr             BigInt?   @map("price_pkr")
+  sizeRaw              String?   @map("size_raw")
+  sizeValue            Decimal?  @map("size_value") @db.Decimal(12, 2)
+  sizeUnit             String?   @map("size_unit")
+  sizeSqft             Decimal?  @map("size_sqft") @db.Decimal(12, 2)
+  city                 String
+  locality             String?
+  locationText         String?   @map("location_text")
+  listedAt             DateTime  @map("listed_at") @db.Timestamptz(6)
+  listedAtPrecision    String    @map("listed_at_precision")
+  scrapedAt            DateTime  @map("scraped_at") @db.Timestamptz(6)
+  firstSeenAt          DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt           DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contentHash          String    @map("content_hash")
+  bedrooms             Int?
+  bathrooms            Int?
+  description          String?
+  amenities            String[]
+  sellerName           String?   @map("seller_name")
+  agencyName           String?   @map("agency_name")
+  agencyProfileUrl     String?   @map("agency_profile_url")
+  isAgency             Boolean?  @map("is_agency")
+  phoneEnc             String?   @map("phone_enc")
+  phoneHash            String?   @map("phone_hash")
+  addedDateRaw         String?   @map("added_date_raw")
+  latitude             Decimal?  @db.Decimal(9, 6)
+  longitude            Decimal?  @db.Decimal(9, 6)
+  imageUrls            String[]  @map("image_urls")
+  // promoted (FIELD_INVENTORY section 4)
+  isVerified           Boolean?  @map("is_verified")
+  isFeatured           Boolean?  @map("is_featured")
+  product              String?
+  agencyTier           String?   @map("agency_tier")
+  agencySince          DateTime? @map("agency_since") @db.Timestamptz(6)
+  completionStatus     String?   @map("completion_status")
+  builtYear            Int?      @map("built_year")
+  floors               Int?
+  raw                  Json      @db.JsonB
+  masterRejectedReason String?   @map("master_rejected_reason")
+
+  @@unique([platform, externalId])
+  @@index([city, locality, category, purpose])
+  @@index([pricePkr])
+  @@index([listedAt])
+  @@index([lastSeenAt])
+  @@index([phoneHash])
+  @@map("listings")
+  @@schema("zameen")
+}
+
+model OlxListing {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform             String    @default("olx")
+  externalId           String    @map("external_id")
+  url                  String
+  title                String
+  category             String
+  purpose              String
+  priceRaw             String?   @map("price_raw")
+  pricePkr             BigInt?   @map("price_pkr")
+  sizeRaw              String?   @map("size_raw")
+  sizeValue            Decimal?  @map("size_value") @db.Decimal(12, 2)
+  sizeUnit             String?   @map("size_unit")
+  sizeSqft             Decimal?  @map("size_sqft") @db.Decimal(12, 2)
+  city                 String
+  locality             String?
+  locationText         String?   @map("location_text")
+  listedAt             DateTime  @map("listed_at") @db.Timestamptz(6)
+  listedAtPrecision    String    @map("listed_at_precision")
+  scrapedAt            DateTime  @map("scraped_at") @db.Timestamptz(6)
+  firstSeenAt          DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt           DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contentHash          String    @map("content_hash")
+  bedrooms             Int?
+  bathrooms            Int?
+  description          String?
+  amenities            String[]
+  sellerName           String?   @map("seller_name")
+  agencyName           String?   @map("agency_name")
+  agencyProfileUrl     String?   @map("agency_profile_url")
+  isAgency             Boolean?  @map("is_agency")
+  phoneEnc             String?   @map("phone_enc")
+  phoneHash            String?   @map("phone_hash")
+  addedDateRaw         String?   @map("added_date_raw")
+  latitude             Decimal?  @db.Decimal(9, 6)
+  longitude            Decimal?  @db.Decimal(9, 6)
+  imageUrls            String[]  @map("image_urls")
+  // promoted (FIELD_INVENTORY section 4)
+  isVerified           Boolean?  @map("is_verified")
+  isFeatured           Boolean?  @map("is_featured")
+  product              String?
+  isFurnished          Boolean?  @map("is_furnished")
+  floorLevel           Int?      @map("floor_level")
+  portalExpiresAt      DateTime? @map("portal_expires_at") @db.Timestamptz(6)
+  raw                  Json      @db.JsonB
+  masterRejectedReason String?   @map("master_rejected_reason")
+
+  @@unique([platform, externalId])
+  @@index([city, locality, category, purpose])
+  @@index([pricePkr])
+  @@index([listedAt])
+  @@index([lastSeenAt])
+  @@index([phoneHash])
+  @@map("listings")
+  @@schema("olx")
+}
+
+model GraanaListing {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform             String    @default("graana")
+  externalId           String    @map("external_id")
+  url                  String
+  title                String
+  category             String
+  purpose              String
+  priceRaw             String?   @map("price_raw")
+  pricePkr             BigInt?   @map("price_pkr")
+  sizeRaw              String?   @map("size_raw")
+  sizeValue            Decimal?  @map("size_value") @db.Decimal(12, 2)
+  sizeUnit             String?   @map("size_unit")
+  sizeSqft             Decimal?  @map("size_sqft") @db.Decimal(12, 2)
+  city                 String
+  locality             String?
+  locationText         String?   @map("location_text")
+  listedAt             DateTime  @map("listed_at") @db.Timestamptz(6)
+  listedAtPrecision    String    @map("listed_at_precision")
+  scrapedAt            DateTime  @map("scraped_at") @db.Timestamptz(6)
+  firstSeenAt          DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt           DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contentHash          String    @map("content_hash")
+  bedrooms             Int?
+  bathrooms            Int?
+  description          String?
+  amenities            String[]
+  sellerName           String?   @map("seller_name")
+  agencyName           String?   @map("agency_name")
+  agencyProfileUrl     String?   @map("agency_profile_url")
+  isAgency             Boolean?  @map("is_agency")
+  phoneEnc             String?   @map("phone_enc")
+  phoneHash            String?   @map("phone_hash")
+  addedDateRaw         String?   @map("added_date_raw")
+  latitude             Decimal?  @db.Decimal(9, 6)
+  longitude            Decimal?  @db.Decimal(9, 6)
+  imageUrls            String[]  @map("image_urls")
+  // promoted (FIELD_INVENTORY section 4)
+  agencySince          DateTime? @map("agency_since") @db.Timestamptz(6)
+  condition            String?
+  portalExpiresAt      DateTime? @map("portal_expires_at") @db.Timestamptz(6)
+  raw                  Json      @db.JsonB
+  masterRejectedReason String?   @map("master_rejected_reason")
+
+  @@unique([platform, externalId])
+  @@index([city, locality, category, purpose])
+  @@index([pricePkr])
+  @@index([listedAt])
+  @@index([lastSeenAt])
+  @@index([phoneHash])
+  @@map("listings")
+  @@schema("graana")
+}
+
+model IlaanListing {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform             String    @default("ilaan")
+  externalId           String    @map("external_id")
+  url                  String? // Ilaan has no confirmed public detail URL yet (FIELD_INVENTORY F7)
+  title                String
+  category             String
+  purpose              String
+  priceRaw             String?   @map("price_raw")
+  pricePkr             BigInt?   @map("price_pkr")
+  sizeRaw              String?   @map("size_raw")
+  sizeValue            Decimal?  @map("size_value") @db.Decimal(12, 2)
+  sizeUnit             String?   @map("size_unit")
+  sizeSqft             Decimal?  @map("size_sqft") @db.Decimal(12, 2)
+  city                 String
+  locality             String?
+  locationText         String?   @map("location_text")
+  listedAt             DateTime  @map("listed_at") @db.Timestamptz(6)
+  listedAtPrecision    String    @map("listed_at_precision")
+  scrapedAt            DateTime  @map("scraped_at") @db.Timestamptz(6)
+  firstSeenAt          DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt           DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contentHash          String    @map("content_hash")
+  bedrooms             Int?
+  bathrooms            Int?
+  description          String?
+  amenities            String[]
+  sellerName           String?   @map("seller_name")
+  agencyName           String?   @map("agency_name")
+  agencyProfileUrl     String?   @map("agency_profile_url")
+  isAgency             Boolean?  @map("is_agency")
+  phoneEnc             String?   @map("phone_enc")
+  phoneHash            String?   @map("phone_hash")
+  addedDateRaw         String?   @map("added_date_raw")
+  latitude             Decimal?  @db.Decimal(9, 6)
+  longitude            Decimal?  @db.Decimal(9, 6)
+  imageUrls            String[]  @map("image_urls")
+  // promoted (FIELD_INVENTORY section 4)
+  isVerified           Boolean?  @map("is_verified")
+  isFeatured           Boolean?  @map("is_featured")
+  isGoldVerified       Boolean?  @map("is_gold_verified")
+  raw                  Json      @db.JsonB
+  masterRejectedReason String?   @map("master_rejected_reason")
+
+  @@unique([platform, externalId])
+  @@index([city, locality, category, purpose])
+  @@index([pricePkr])
+  @@index([listedAt])
+  @@index([lastSeenAt])
+  @@index([phoneHash])
+  @@map("listings")
+  @@schema("ilaan")
+}
+
+// =============================================================================
+// master (SPEC_01 3.5, 3.6)
+// =============================================================================
+
+model MasterListing {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform               String
+  externalId             String              @map("external_id")
+  url                    String
+  title                  String
+  category               String
+  purpose                String
+  priceRaw               String              @map("price_raw")
+  pricePkr               BigInt              @map("price_pkr")
+  sizeRaw                String              @map("size_raw")
+  sizeValue              Decimal             @map("size_value") @db.Decimal(12, 2)
+  sizeUnit               String              @map("size_unit")
+  sizeSqft               Decimal             @map("size_sqft") @db.Decimal(12, 2)
+  city                   String
+  locality               String
+  locationText           String              @map("location_text")
+  listedAt               DateTime            @map("listed_at") @db.Timestamptz(6)
+  listedAtPrecision      String              @map("listed_at_precision")
+  scrapedAt              DateTime            @map("scraped_at") @db.Timestamptz(6)
+  firstSeenAt            DateTime            @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt             DateTime            @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contentHash            String              @map("content_hash")
+  bedrooms               Int?
+  bathrooms              Int?
+  description            String?
+  amenities              String[]
+  sellerName             String?             @map("seller_name")
+  agencyName             String?             @map("agency_name")
+  agencyProfileUrl       String?             @map("agency_profile_url")
+  isAgency               Boolean?            @map("is_agency")
+  phoneEnc               String?             @map("phone_enc")
+  phoneHash              String?             @map("phone_hash")
+  addedDateRaw           String?             @map("added_date_raw")
+  latitude               Decimal?            @db.Decimal(9, 6)
+  longitude              Decimal?            @db.Decimal(9, 6)
+  imageUrls              String[]            @map("image_urls")
+  // promoted, shared meaning
+  isVerified             Boolean?            @map("is_verified")
+  isFeatured             Boolean?            @map("is_featured")
+  portalExpiresAt        DateTime?           @map("portal_expires_at") @db.Timestamptz(6)
+  agencySince            DateTime?           @map("agency_since") @db.Timestamptz(6)
+  builtYear              Int?                @map("built_year")
+  isFurnished            Boolean?            @map("is_furnished")
+  floorLevel             Int?                @map("floor_level")
+  // promoted, portal-specific
+  zameenProduct          String?             @map("zameen_product")
+  zameenAgencyTier       String?             @map("zameen_agency_tier")
+  zameenCompletionStatus String?             @map("zameen_completion_status")
+  zameenFloors           Int?                @map("zameen_floors")
+  olxProduct             String?             @map("olx_product")
+  graanaCondition        String?             @map("graana_condition")
+  ilaanIsGoldVerified    Boolean?            @map("ilaan_is_gold_verified")
+  // provenance
+  sourceRowId            String              @map("source_row_id") @db.Uuid
+  sourceSchema           String              @map("source_schema")
+  clusterId              String?             @map("cluster_id") @db.Uuid // cross-portal dedupe (later spec)
+  appListings            Listing[]
+  prospectOutreach       ProspectOutreach?
+  campaignTargets        CampaignTarget[]
+  score                  ListingScore?
+  sellerLinks            SellerContactLink[]
+
+  @@unique([platform, externalId])
+  @@index([city, locality, category, purpose])
+  @@index([pricePkr])
+  @@index([listedAt])
+  @@index([lastSeenAt])
+  @@index([phoneHash])
+  @@index([clusterId])
+  @@map("listings")
+  @@schema("master")
+}
+
+// Change history for portal rows. listing_id is the portal row id; with four
+// portal tables there is no single FK target, so platform says which table.
+model ListingEvent {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform  String
+  listingId String   @map("listing_id") @db.Uuid
+  type      String // PRICE_CHANGE | EDIT
+  old       Json?    @db.JsonB
+  new       Json?    @db.JsonB
+  at        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([platform, listingId, at])
+  @@map("listing_events")
+  @@schema("master")
+}
+
+model CrawlRun {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  startedAt   DateTime         @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt  DateTime?        @map("finished_at") @db.Timestamptz(6)
+  trigger     String // schedule | manual | catchup
+  windowHours Int              @map("window_hours")
+  status      String // running | success | partial | failed
+  error       String?
+  portals     CrawlRunPortal[]
+
+  @@index([status, startedAt])
+  @@map("crawl_runs")
+  @@schema("master")
+}
+
+model CrawlRunPortal {
+  runId         String    @map("run_id") @db.Uuid
+  platform      String
+  startedAt     DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz(6)
+  pagesFetched  Int?      @map("pages_fetched")
+  itemsSeen     Int?      @map("items_seen")
+  itemsNew      Int?      @map("items_new")
+  itemsUpdated  Int?      @map("items_updated")
+  itemsRejected Int?      @map("items_rejected")
+  errors        Int?
+  status        String
+  run           CrawlRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@id([runId, platform])
+  @@map("crawl_run_portals")
+  @@schema("master")
+}
+
+// =============================================================================
+// public: legacy tables from before v4. Kept so current routes keep working
+// until F0 auth and SPEC_01 readers replace them; dropped in a later migration.
+// =============================================================================
+
+enum LegacyRole {
   BUYER
   SELLER
   ADMIN
+
+  @@map("Role")
+  @@schema("public")
 }
 
-enum Purpose {
+enum LegacyPurpose {
   SALE
   RENT
+
+  @@map("Purpose")
+  @@schema("public")
 }
 
-enum SizeUnit {
+enum LegacySizeUnit {
   MARLA
   KANAL
   SQFT
   UNKNOWN
+
+  @@map("SizeUnit")
+  @@schema("public")
 }
 
-enum ListingStatus {
+enum LegacyListingStatus {
   PENDING_AI_REVIEW
   ACTIVE
   PAUSED
   DELETED
+
+  @@map("ListingStatus")
+  @@schema("public")
 }
 
-// -----------------------------------------------------------------------------
-// USER SCHEMA
-// -----------------------------------------------------------------------------
+enum LegacyProspectStatus {
+  CONTACTED
+  REPLIED
+  DECLINED
+  FORM_SENT
+  FORM_SUBMITTED
 
-model User {
-  id                     String    @id @default(cuid())
+  @@map("ProspectStatus")
+  @@schema("public")
+}
+
+model LegacyUser {
+  id                     String          @id @default(cuid())
   fullName               String
-  email                  String    @unique
-  phone                  String?   @unique
+  email                  String          @unique
+  phone                  String?         @unique
   passwordHash           String
-  role                   Role
-
+  role                   LegacyRole
   passwordResetToken     String?
   passwordResetExpiresAt DateTime?
-
-  isEmailVerified        Boolean   @default(false)
-  isPhoneVerified        Boolean   @default(false)
-
+  isEmailVerified        Boolean         @default(false)
+  isPhoneVerified        Boolean         @default(false)
   emailOtpHash           String?
   emailOtpExpiresAt      DateTime?
-
   phoneOtpHash           String?
   phoneOtpExpiresAt      DateTime?
-
-  otpAttempts            Int       @default(0)
-
-  isActive               Boolean   @default(true)
-
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-
-  listings               Listing[]
+  otpAttempts            Int             @default(0)
+  isActive               Boolean         @default(true)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  listings               LegacyListing[]
 
   @@map("users")
+  @@schema("public")
 }
 
-// -----------------------------------------------------------------------------
-// LISTING SCHEMA (Platform Native Listings)
-// -----------------------------------------------------------------------------
-
-model Listing {
-  id             String        @id @default(cuid())
+model LegacyListing {
+  id             String              @id @default(cuid())
   title          String
   category       String
-  purpose        Purpose
+  purpose        LegacyPurpose
   city           String
   locality       String
   size           Float
-  sizeUnit       SizeUnit
+  sizeUnit       LegacySizeUnit
   price          Float
   bedrooms       Int?
   bathrooms      Int?
   description    String
   images         String[]
-  status         ListingStatus @default(PENDING_AI_REVIEW)
+  status         LegacyListingStatus @default(PENDING_AI_REVIEW)
   originalDesc   String?
   aiEnhancedDesc String?
   sellerId       String
-  seller         User          @relation(fields: [sellerId], references: [id])
-  viewCount      Int           @default(0)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  seller         LegacyUser          @relation(fields: [sellerId], references: [id])
+  viewCount      Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@index([city, category, purpose])
   @@map("listings")
+  @@schema("public")
 }
 
-// -----------------------------------------------------------------------------
-// PROPERTY SCHEMA (External Scraped Properties)
-// -----------------------------------------------------------------------------
-
 model Property {
-  id               String   @id @default(cuid())
+  id               String           @id @default(cuid())
   platform         String
   listingId        String
   url              String
   title            String
   category         String
-  purpose          Purpose?
+  purpose          LegacyPurpose?
   price            String
   priceNumeric     Float
   size             String
   sizeNumeric      Float
-  sizeUnit         SizeUnit
+  sizeUnit         LegacySizeUnit
   city             String
   location         String
   locality         String
-  bedrooms         Int      @default(0)
-  bathrooms        Int      @default(0)
+  bedrooms         Int              @default(0)
+  bathrooms        Int              @default(0)
   description      String
   amenities        String[]
   sellerName       String?
@@ -134,46 +1454,33 @@ model Property {
   agencyProfileUrl String?
   addedDate        String?
   listedAt         DateTime?
-  isProject        Boolean  @default(false)
-  scrapedAt        DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  prospects Prospect[]
+  isProject        Boolean          @default(false)
+  scrapedAt        DateTime         @default(now())
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  prospects        LegacyProspect[]
 
   @@unique([platform, listingId])
   @@index([city, category, purpose])
   @@index([priceNumeric])
   @@index([scrapedAt])
   @@map("properties")
+  @@schema("public")
 }
 
-
-
-// -----------------------------------------------------------------------------
-// PROSPECT SCHEMA
-// -----------------------------------------------------------------------------
-
-enum ProspectStatus {
-  CONTACTED
-  REPLIED
-  DECLINED
-  FORM_SENT
-  FORM_SUBMITTED
-}
-
-
-model Prospect {
-  id            String         @id @default(cuid())
+model LegacyProspect {
+  id            String               @id @default(cuid())
   propertyId    String
-  property      Property       @relation(fields: [propertyId], references: [id])
+  property      Property             @relation(fields: [propertyId], references: [id])
   contact       String
-  waMessageId   String?        // the outreach message's WhatsApp ID, so status webhooks and future Campaign tracking can find this row
-  status        ProspectStatus @default(CONTACTED)
-  contactedAt   DateTime       @default(now())
+  waMessageId   String?
+  status        LegacyProspectStatus @default(CONTACTED)
+  contactedAt   DateTime             @default(now())
   repliedAt     DateTime?
   lastReplyText String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 
   @@map("prospects")
+  @@schema("public")
 }

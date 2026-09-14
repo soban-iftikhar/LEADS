@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Find user
     // we always return the same success response whether or not the email exists, to prevent user enumeration attacks.
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.legacyUser.findUnique({ where: { email } });
 
     if (!user) {
       // Fake success to prevent reveal of whether the email exists in the system
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const resetExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // Save hashed token to DB
-    await prisma.user.update({
+    await prisma.legacyUser.update({
       where: { email },
       data: {
         passwordResetToken: resetTokenHash,

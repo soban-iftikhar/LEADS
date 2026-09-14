@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const [users, total] = await Promise.all([
-      prisma.user.findMany({
+      prisma.legacyUser.findMany({
         where,
         orderBy: { [sortBy]: order },
         skip,
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
           updatedAt:       true,
         },
       }),
-      prisma.user.count({ where }),
+      prisma.legacyUser.count({ where }),
     ])
 
     return NextResponse.json({

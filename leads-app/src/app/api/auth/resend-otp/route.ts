@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const { email, type } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.legacyUser.findUnique({ where: { email } });
 
     if (!user) {
       return successResponse({
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (type === "email") {
-      await prisma.user.update({
+      await prisma.legacyUser.update({
         where: { email },
         data: {
           emailOtpHash: otpHash,
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      await prisma.user.update({
+      await prisma.legacyUser.update({
         where: { email },
         data: {
           phoneOtpHash: otpHash,

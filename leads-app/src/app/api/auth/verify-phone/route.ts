@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const { phone, otp } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { phone } });
+    const user = await prisma.legacyUser.findUnique({ where: { phone } });
 
     if (!user) {
       return errorResponse("Invalid request.", 400);
@@ -49,13 +49,13 @@ export async function POST(request: NextRequest) {
     const isValid = await verifyOtp(otp, user.phoneOtpHash);
 
     if (!isValid) {
-      await prisma.user.update({
+      await prisma.legacyUser.update({
         where: { phone },
         data: { otpAttempts: { increment: 1 } },
       });
 
       if (user.otpAttempts + 1 >= Number(process.env.OTP_MAX_ATTEMPTS ?? 5)) {
-        await prisma.user.update({
+        await prisma.legacyUser.update({
           where: { phone },
           data: {
             phoneOtpHash: null,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("Incorrect verification code. Please try again.", 400);
     }
 
-    await prisma.user.update({
+    await prisma.legacyUser.update({
       where: { phone },
       data: {
         isPhoneVerified: true,

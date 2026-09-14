@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { email, otp } = parsed.data;
 
     // Find user
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.legacyUser.findUnique({ where: { email } });
 
     if (!user) {
       return errorResponse("Invalid request.", 400);
@@ -58,14 +58,14 @@ export async function POST(request: NextRequest) {
 
     if (!isValid) {
       // Increment attempt counter
-      await prisma.user.update({
+      await prisma.legacyUser.update({
         where: { email },
         data: { otpAttempts: { increment: 1 } },
       });
 
       // Lock account after too many wrong attempts
       if (user.otpAttempts + 1 >= Number(process.env.OTP_MAX_ATTEMPTS ?? 5)) {
-        await prisma.user.update({
+        await prisma.legacyUser.update({
           where: { email },
           data: {
             emailOtpHash: null,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark email as verified and clear OTP fields
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await prisma.legacyUser.update({
       where: { email },
       data: {
         isEmailVerified: true,
