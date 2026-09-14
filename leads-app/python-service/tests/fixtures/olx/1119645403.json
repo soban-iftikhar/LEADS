@@ -1,0 +1,294 @@
+{
+  "captured_at": "2026-11-09T20:55:46.954486+00:00",
+  "source_url": "https://www.olx.com.pk/item/7-marla-residential-plot-is-available-in-lahore-motorway-city-block-p-for-sale-iid-1119645403",
+  "search_url": "https://www.olx.com.pk/residential-plots-land-plots_c40/?filter=type_eq_residential-plots-sale&location=islamabad",
+  "detail": {
+    "activeProducts": {
+      "featured_ad": {
+        "expiresAt": 1794392875.695955,
+        "appliedAt": 1791800875.695955,
+        "productPurchaseId": 18664022,
+        "name": {
+          "en": "Feature Ad for 30 days"
+        }
+      },
+      "ad_limit_bump": {
+        "expiresAt": 1792743992.709318,
+        "appliedAt": 1790151992.709318,
+        "productPurchaseId": 18533421,
+        "name": {
+          "en": "Post another Ad"
+        }
+      }
+    },
+    "breadCrumbs": [
+      {
+        "item": "https://www.olx.com.pk",
+        "@type": "ListItem",
+        "name": "Home",
+        "position": 1
+      },
+      {
+        "item": "https://www.olx.com.pk/mobiles_c1411",
+        "@type": "ListItem",
+        "name": "Mobiles",
+        "position": 2
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453",
+        "@type": "ListItem",
+        "name": "Mobile Phones",
+        "position": 3
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-mobiles",
+        "@type": "ListItem",
+        "name": "Zte",
+        "position": 4
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model",
+        "position": 5
+      },
+      {
+        "item": "https://www.olx.com.pk/lahore_g4060673/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model in Lahore",
+        "position": 6
+      }
+    ],
+    "category": [
+      {
+        "externalID": "2",
+        "id": 1,
+        "level": 0,
+        "name": "Property for Sale",
+        "nameSingular": "Property for Sale",
+        "roles": [
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "enabled_for_ads_sitemap"
+        ],
+        "seoName": "Property for Sale",
+        "slug": "property-for-sale"
+      },
+      {
+        "externalID": "40",
+        "id": 15,
+        "level": 1,
+        "name": "Land & Plots",
+        "nameSingular": "Land & Plot",
+        "roles": [
+          "include_purpose_in_title",
+          "include_purpose_in_description",
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "enabled_for_ads_sitemap"
+        ],
+        "seoName": "Land & Plots for Sale",
+        "slug": "land-plots"
+      }
+    ],
+    "contactInfo": {
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ]
+    },
+    "createdAt": 1790151992.709318,
+    "description": "Take a decision today to own your Residential Plot in an ideal location at an ideal price. Looking for real estate options in Lahore? We are here to suggest the most excellent neighbourhoods. Looking for the most trusted 7 Marla options. Here is something to consider. Make this ideal property yours at a bargain price of Rs. 4500000. There is nothing better than purchasing your property in a thriving locality and we have just the options for you. A modern lifestyle awaits you in Lahore Motorway City - Block P. \n\nYou can leave your contact details for our representative to call you. ,,,,,",
+    "documentCount": 0,
+    "documents": [],
+    "expiresAt": 1794392875.695955,
+    "externalID": "1119645403",
+    "extraFields": {
+      "ft": 7,
+      "type": "residential-plots-sale",
+      "price": 4500000,
+      "ft_unit": "marla",
+      "deliverable": "no",
+      "video": "no",
+      "panorama": "no",
+      "seller_verified": "no"
+    },
+    "format": "full",
+    "formattedExtraFields": [
+      {
+        "name": "Area",
+        "attribute": "ft",
+        "formattedValue": "7.00"
+      },
+      {
+        "name": "Type",
+        "attribute": "type",
+        "formattedValue": "Residential Plots"
+      },
+      {
+        "name": "Price",
+        "attribute": "price",
+        "formattedValue": "4,500,000"
+      },
+      {
+        "name": "Area unit",
+        "attribute": "ft_unit",
+        "formattedValue": "Marla"
+      }
+    ],
+    "geo_point": [
+      74.21264421,
+      31.64084108
+    ],
+    "geography": {
+      "lat": 31.64084108,
+      "lng": 74.21264421
+    },
+    "id": 106867329,
+    "isSellerVerified": false,
+    "location": [
+      {
+        "externalID": "1000001",
+        "id": 1,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "pakistan_g1000001"
+      },
+      {
+        "externalID": "2003006",
+        "id": 7,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "punjab_g2003006"
+      },
+      {
+        "externalID": "4060673",
+        "id": 85,
+        "level": 2,
+        "name": "Lahore",
+        "slug": "lahore_g4060673"
+      },
+      {
+        "externalID": "5000591",
+        "id": 1129,
+        "level": 3,
+        "name": "Lahore Motorway City",
+        "slug": "lahore-motorway-city_g5000591"
+      },
+      {
+        "externalID": "15568",
+        "id": 49564,
+        "level": 4,
+        "name": "Lahore Motorway City - Block P",
+        "slug": "lahore-lahore-motorway-city-block-p_g15568"
+      }
+    ],
+    "objectID": 106867329,
+    "panoramaCount": 0,
+    "panoramas": [],
+    "photos": [
+      {
+        "id": 647768412,
+        "externalID": "zameen-54782310",
+        "title": null,
+        "orderIndex": null,
+        "nimaScore": null
+      }
+    ],
+    "postingID": 211880763,
+    "price": 0,
+    "product": "featured",
+    "productConsumptionIDs": [
+      31213203,
+      31144581,
+      31026545,
+      30980323,
+      30970999
+    ],
+    "productInfo": {
+      "expiresAt": 1794392875.695955,
+      "name": "Feature Ad for 30 days"
+    },
+    "productRefreshedAt": 1792473369.935381,
+    "purpose": "for-sale",
+    "rawDescription": "Take a decision today to own your Residential Plot in an ideal location at an ideal price. Looking for real estate options in Lahore? We are here to suggest the most excellent neighbourhoods. Looking for the most trusted 7 Marla options. Here is something to consider. Make this ideal property yours at a bargain price of Rs. 4500000. There is nothing better than purchasing your property in a thriving locality and we have just the options for you. A modern lifestyle awaits you in Lahore Motorway City - Block P. \n\nYou can leave your contact details for our representative to call you. ,,,,,",
+    "slug": "7-marla-residential-plot-is-available-in-lahore-motorway-city-block-p-for-sale",
+    "sourceID": 3,
+    "state": "active",
+    "stateMessage": "This ad is currently live.",
+    "timestamp": 1792473369.935381,
+    "title": "7 Marla Residential Plot Is Available In Lahore Motorway City - Block P For Sale",
+    "type": "general",
+    "updatedAt": 1790151992.803805,
+    "userExternalID": "00000000-0000-0000-0000-752722334674",
+    "videoCount": 0,
+    "videos": [],
+    "virtualState": "featured",
+    "locationTranslations": [
+      {
+        "en": {
+          "externalID": "1000001",
+          "id": 1,
+          "level": 0,
+          "name": "Pakistan",
+          "slug": "pakistan_g1000001"
+        }
+      },
+      {
+        "en": {
+          "externalID": "2003006",
+          "id": 7,
+          "level": 1,
+          "name": "Punjab",
+          "slug": "punjab_g2003006"
+        }
+      },
+      {
+        "en": {
+          "externalID": "4060673",
+          "id": 85,
+          "level": 2,
+          "name": "Lahore",
+          "slug": "lahore_g4060673"
+        }
+      },
+      {
+        "en": {
+          "externalID": "5000591",
+          "id": 1129,
+          "level": 3,
+          "name": "Lahore Motorway City",
+          "slug": "lahore-motorway-city_g5000591"
+        }
+      },
+      {
+        "en": {
+          "externalID": "15568",
+          "id": 49564,
+          "level": 4,
+          "name": "Lahore Motorway City - Block P",
+          "slug": "lahore-lahore-motorway-city-block-p_g15568"
+        }
+      }
+    ],
+    "adTags": []
+  },
+  "contact_info": {
+    "status": 200,
+    "body": {
+      "name": "Test Seller",
+      "mobile": "+923046595562",
+      "whatsapp": null,
+      "proxyMobile": null,
+      "mobileNumbers": [
+        "+923046595562"
+      ],
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ]
+    }
+  }
+}

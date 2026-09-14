@@ -1,0 +1,993 @@
+{
+  "captured_at": "2026-11-09T20:56:30.793362+00:00",
+  "source_url": "https://www.zameen.com/Property/islamabad_islamabad_expressway_possesionable_office_in_the_central_business_district_of_islamabad-51151440-9014-3.html",
+  "search_url": "https://www.zameen.com/Commercial/Islamabad-3-1.html?purpose=1",
+  "detail": {
+    "active": true,
+    "agency": {
+      "active": true,
+      "createdAt": "2024-03-11T07:40:16+00:00",
+      "externalID": "201530",
+      "id": 19856626,
+      "licenses": [],
+      "logo": {
+        "id": 248941588,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/248941588/ac2188e0c82e4f649d665195ad90c37e"
+      },
+      "name": "Desire Properties",
+      "objectID": 19856626,
+      "product": "titanium",
+      "productScore": 1,
+      "roles": [],
+      "slug": "Islamabad-Desire_Properties-201530-1",
+      "tier": 4,
+      "tr": 4,
+      "type": "agency"
+    },
+    "amenities": [
+      {
+        "amenities": [
+          {
+            "externalID": 1,
+            "format": "number",
+            "rank": 1,
+            "slug": "built-in-year",
+            "text": "Built in year",
+            "value": "2024",
+            "icon": "built-in-year"
+          },
+          {
+            "externalID": 4,
+            "format": "number",
+            "rank": 1,
+            "slug": "parking-spaces",
+            "text": "Parking Spaces",
+            "value": "",
+            "icon": "parking-spaces"
+          },
+          {
+            "externalID": 7,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "lobby-in-building",
+            "text": "Lobby in Building",
+            "value": "",
+            "icon": "lobby"
+          },
+          {
+            "externalID": 8,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "double-glazed-windows",
+            "text": "Double Glazed Windows",
+            "value": "",
+            "icon": "double-glazed-windows"
+          },
+          {
+            "externalID": 9,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "central-air-conditioning",
+            "text": "Central Air Conditioning",
+            "value": "",
+            "icon": "central-air-conditioning"
+          },
+          {
+            "externalID": 10,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "central-heating",
+            "text": "Central Heating",
+            "value": "",
+            "icon": "central-heating"
+          },
+          {
+            "externalID": 11,
+            "format": "select",
+            "rank": 1,
+            "slug": "flooring",
+            "text": "Flooring",
+            "value": "",
+            "icon": "flooring"
+          },
+          {
+            "externalID": 12,
+            "format": "select",
+            "rank": 1,
+            "slug": "electricity-backup",
+            "text": "Electricity Backup",
+            "value": "",
+            "icon": "electricity-backup"
+          },
+          {
+            "externalID": 13,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "waste-disposal",
+            "text": "Waste Disposal",
+            "value": "",
+            "icon": "waste-disposal"
+          },
+          {
+            "externalID": 14,
+            "format": "number",
+            "rank": 1,
+            "slug": "floor",
+            "text": "Floor",
+            "value": "",
+            "icon": "floor"
+          },
+          {
+            "externalID": 16,
+            "format": "number",
+            "rank": 1,
+            "slug": "floors-in-building",
+            "text": "Floors in Building",
+            "value": "16",
+            "icon": "total-floors-in-building"
+          },
+          {
+            "externalID": 18,
+            "format": "number",
+            "rank": 1,
+            "slug": "elevators",
+            "text": "Elevators",
+            "value": "",
+            "icon": "number-of-elevators-in-building"
+          },
+          {
+            "externalID": 19,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "service-elevators-in-building",
+            "text": "Service Elevators in Building",
+            "value": "",
+            "icon": "service-elevators-in-building"
+          },
+          {
+            "externalID": 20,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-main-features",
+            "text": "Other Main Features",
+            "value": "",
+            "icon": "other-key-features"
+          },
+          {
+            "externalID": 22,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "furnished",
+            "text": "Furnished",
+            "value": "",
+            "icon": "furnished"
+          }
+        ],
+        "externalGroupID": 1,
+        "groupRank": 1,
+        "text": "Main Features"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 23,
+            "format": "number",
+            "rank": 1,
+            "slug": "rooms",
+            "text": "Rooms",
+            "value": "",
+            "icon": "total-rooms"
+          },
+          {
+            "externalID": 26,
+            "format": "number",
+            "rank": 1,
+            "slug": "servant-quarters",
+            "text": "Servant Quarters",
+            "value": "",
+            "icon": "number-of-servant-quarters"
+          },
+          {
+            "externalID": 38,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-rooms",
+            "text": "Other Rooms",
+            "value": "",
+            "icon": "any-other-rooms"
+          }
+        ],
+        "externalGroupID": 2,
+        "groupRank": 2,
+        "text": "Rooms"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 51,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "broadband-internet-access",
+            "text": "Broadband Internet Access",
+            "value": "",
+            "icon": "broadband-internet-access"
+          },
+          {
+            "externalID": 52,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "satellite-or-cable-tv-ready",
+            "text": "Satellite or Cable TV Ready",
+            "value": "",
+            "icon": "satellite-or-cable-tv-ready"
+          },
+          {
+            "externalID": 53,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "business-center-or-media-room-in-building",
+            "text": "Business Center or Media Room in Building",
+            "value": "",
+            "icon": "business-center-or-media-room-in-building"
+          },
+          {
+            "externalID": 54,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "conference-room-in-building",
+            "text": "Conference Room in Building",
+            "value": "",
+            "icon": "conference-room-in-building"
+          },
+          {
+            "externalID": 55,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "intercom",
+            "text": "Intercom",
+            "value": "",
+            "icon": "intercom"
+          },
+          {
+            "externalID": 56,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "atm-machines",
+            "text": "ATM Machines",
+            "value": "",
+            "icon": "atm-credit-card-machines-in-building"
+          },
+          {
+            "externalID": 57,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-business-and-communication-facilities",
+            "text": "Other Business and Communication Facilities",
+            "value": "",
+            "icon": "other-business-amenities"
+          }
+        ],
+        "externalGroupID": 4,
+        "groupRank": 4,
+        "text": "Business and Communication"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 58,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-lawn-or-garden",
+            "text": "Community Lawn or Garden",
+            "value": "",
+            "icon": "community-lawn-or-garden"
+          },
+          {
+            "externalID": 59,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-swimming-pool",
+            "text": "Community Swimming Pool",
+            "value": "",
+            "icon": "community-swimming-pool"
+          },
+          {
+            "externalID": 60,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-gym",
+            "text": "Community Gym",
+            "value": "",
+            "icon": "community-gym"
+          },
+          {
+            "externalID": 61,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "first-aid-or-medical-centre",
+            "text": "First Aid or Medical Centre",
+            "value": "",
+            "icon": "first-aid-or-medical-centre"
+          },
+          {
+            "externalID": 62,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "day-care-centre",
+            "text": "Day Care Centre",
+            "value": "",
+            "icon": "day-care-centre"
+          },
+          {
+            "externalID": 63,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "kids-play-area",
+            "text": "Kids Play Area",
+            "value": "",
+            "icon": "kids-play-area"
+          },
+          {
+            "externalID": 64,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "barbeque-area",
+            "text": "Barbeque Area",
+            "value": "",
+            "icon": "barbeque-area"
+          },
+          {
+            "externalID": 65,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "mosque",
+            "text": "Mosque",
+            "value": "",
+            "icon": "community-mosque"
+          },
+          {
+            "externalID": 66,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-centre",
+            "text": "Community Centre",
+            "value": "",
+            "icon": "community-centre"
+          },
+          {
+            "externalID": 67,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-community-facilities",
+            "text": "Other Community Facilities",
+            "value": "",
+            "icon": "other-community-facilities"
+          }
+        ],
+        "externalGroupID": 5,
+        "groupRank": 5,
+        "text": "Community Features"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 68,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "lawn-or-garden",
+            "text": "Lawn or Garden",
+            "value": "",
+            "icon": "lawn-or-garden"
+          },
+          {
+            "externalID": 72,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-healthcare-and-recreation-facilities",
+            "text": "Other Healthcare and Recreation Facilities",
+            "value": "",
+            "icon": "other-recreational-facilities"
+          }
+        ],
+        "externalGroupID": 6,
+        "groupRank": 6,
+        "text": "Healthcare Recreational"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 73,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-schools",
+            "text": "Nearby Schools",
+            "value": "",
+            "icon": "schools"
+          },
+          {
+            "externalID": 74,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-hospitals",
+            "text": "Nearby Hospitals",
+            "value": "",
+            "icon": "hospitals"
+          },
+          {
+            "externalID": 75,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-shopping-malls",
+            "text": "Nearby Shopping Malls",
+            "value": "",
+            "icon": "shopping-malls"
+          },
+          {
+            "externalID": 76,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-restaurants",
+            "text": "Nearby Restaurants",
+            "value": "",
+            "icon": "restaurants"
+          },
+          {
+            "externalID": 77,
+            "format": "text",
+            "rank": 1,
+            "slug": "distance-from-airport-kms",
+            "text": "Distance From Airport (kms)",
+            "value": "",
+            "icon": "distance-from-airport-(kms)"
+          },
+          {
+            "externalID": 78,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-public-transport-service",
+            "text": "Nearby Public Transport Service",
+            "value": "",
+            "icon": "public-transport-service"
+          },
+          {
+            "externalID": 79,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-nearby-places",
+            "text": "Other Nearby Places",
+            "value": "",
+            "icon": "other-nearby-places"
+          }
+        ],
+        "externalGroupID": 7,
+        "groupRank": 7,
+        "text": "Nearby Locations and Other Facilities"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 80,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "maintenance-staff",
+            "text": "Maintenance Staff",
+            "value": "",
+            "icon": "maintenance-staff"
+          },
+          {
+            "externalID": 81,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "security-staff",
+            "text": "Security Staff",
+            "value": "",
+            "icon": "security-staff"
+          },
+          {
+            "externalID": 86,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "facilities-for-disabled",
+            "text": "Facilities for Disabled",
+            "value": "",
+            "icon": "facilities-for-disabled"
+          },
+          {
+            "externalID": 88,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-facilities",
+            "text": "Other Facilities",
+            "value": "",
+            "icon": "other-maintenance-services"
+          }
+        ],
+        "externalGroupID": 8,
+        "groupRank": 8,
+        "text": "Other Facilities\r\n"
+      }
+    ],
+    "approvedAt": 1727325010,
+    "area": 60.57278208,
+    "baths": 7,
+    "category": [
+      {
+        "externalID": "3",
+        "id": 3,
+        "level": 0,
+        "name": "Commercial",
+        "nameSingular": "Commercial",
+        "roles": [],
+        "seoName": "Commercial",
+        "slug": "Commercial"
+      },
+      {
+        "externalID": "13",
+        "id": 21,
+        "level": 1,
+        "name": "Offices",
+        "nameSingular": "Office",
+        "roles": [],
+        "seoName": "Offices",
+        "slug": "Offices"
+      }
+    ],
+    "completionStatus": "completed",
+    "contactName": "Test Seller",
+    "coverPhoto": {
+      "id": 300360784,
+      "externalID": "276410335",
+      "title": "Possesionable Office In The Central Business District Of Islamabad",
+      "orderIndex": 0,
+      "nimaScore": null,
+      "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360784/620cdbbb07144969af1ff5fcbcc668f7",
+      "main": true,
+      "uuid": "cb91d392-f7b9-4b20-8849-5fc435380079"
+    },
+    "coverVideo": {
+      "externalID": 440949,
+      "title": null,
+      "host": "youtube",
+      "url": "https://youtu.be/dPkvwv2i_ds",
+      "orderIndex": 0
+    },
+    "createdAt": 1794200595,
+    "description": "Do you looking for the Office space in Islamabad at the prime location of main express highway the widest road of Islamabad with beautiful view of Margalla Hills, Urban Forest, Park, Lake and many more views. <br /> <br />It's available on Instalments plan",
+    "externalID": "51151440",
+    "extraFields": {
+      "dldPropertySK": "51151440"
+    },
+    "floorPlans": [],
+    "furnishingStatus": "furnished",
+    "geo_point": [
+      73.111507,
+      33.632166
+    ],
+    "geography": {
+      "lat": 33.632166,
+      "lng": 73.111507
+    },
+    "hasExactGeography": true,
+    "hierarchyPath": "Islamabad Expressway Islamabad Islamabad Capital Pakistan",
+    "id": 48884141,
+    "installments": {
+      "remainingInstallments": 0
+    },
+    "isVerified": false,
+    "link": "https://www.zameen.com/Property/islamabad_islamabad_expressway_possesionable_office_in_the_central_business_district_of_islamabad-51151440-9014-3.html",
+    "location": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1562",
+        "id": 9,
+        "level": 1,
+        "name": "Islamabad Capital",
+        "slug": "/Islamabad_Capital-1562"
+      },
+      {
+        "externalID": "3",
+        "id": 12,
+        "level": 2,
+        "name": "Islamabad",
+        "slug": "/Islamabad-3"
+      },
+      {
+        "externalID": "9014",
+        "id": 4433,
+        "level": 3,
+        "name": "Islamabad Expressway",
+        "slug": "/Islamabad_Islamabad_Expressway-9014"
+      }
+    ],
+    "objectID": 48884141,
+    "occupancyStatus": "notSpecified",
+    "ownerID": 5362259007,
+    "ownershipStatus": "notSpecified",
+    "panoramaCount": 0,
+    "panoramas": [],
+    "phoneNumber": {
+      "mobileNumbers": [
+        "+923345875301"
+      ],
+      "phoneNumbers": [
+        "+923325542947"
+      ],
+      "proxyMobile": null,
+      "proxyPhone": null,
+      "whatsapp": "923312603849"
+    },
+    "photoCount": 5,
+    "photos": [
+      {
+        "id": 300360784,
+        "externalID": "276410335",
+        "title": "1 ",
+        "orderIndex": 0,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360784/620cdbbb07144969af1ff5fcbcc668f7",
+        "uuid": "cb91d392-f7b9-4b20-8849-5fc435380079"
+      },
+      {
+        "id": 300360802,
+        "externalID": "276410337",
+        "title": "2 ",
+        "orderIndex": 1,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360802/6d50e842b660402680542dba8d4b9468",
+        "uuid": "babf12dc-ab75-4070-be64-7c20988fa59d"
+      },
+      {
+        "id": 300360811,
+        "externalID": "276410338",
+        "title": "3 ",
+        "orderIndex": 2,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360811/00af01a8a1cc4a8a97dc554e6f8b5974",
+        "uuid": "5c745309-0cf2-4a8b-ab9d-d72ca91ef020"
+      },
+      {
+        "id": 300360827,
+        "externalID": "276410339",
+        "title": "4 ",
+        "orderIndex": 3,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360827/63853447d9764e67bc8e80bc4412372b",
+        "uuid": "c4800837-7e92-4358-94ed-d1502ba260db"
+      },
+      {
+        "id": 300360835,
+        "externalID": "276410340",
+        "title": "5 ",
+        "orderIndex": 4,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/300360835/b138d691e1fe448eb732e21b6548bbaa",
+        "uuid": "b6a5d5fe-795d-4566-8832-5ef59dd84a9d"
+      }
+    ],
+    "price": 24450000,
+    "product": "superhot",
+    "productLabel": "default",
+    "propertyTour": false,
+    "purpose": "for-sale",
+    "reactivatedAt": 1793255963.187344,
+    "rooms": 0,
+    "score": 9990,
+    "shortDescription": "Do you looking for the Office space in Islamabad at the prime location of main express highway the",
+    "slug": "islamabad_islamabad_expressway_possesionable_office_in_the_central_business_district_of_islamabad-51151440-9014-3",
+    "sourceID": 1,
+    "state": "active",
+    "title": "Possesionable Office In The Central Business District Of Islamabad",
+    "touchedAt": 1794200596.648828,
+    "type": "property",
+    "updatedAt": 1794200596,
+    "userExternalID": "00000000-0000-0000-0000-536225900716",
+    "verification": {
+      "status": "unverified",
+      "type": null,
+      "eligible": false,
+      "comment": null,
+      "updatedAt": 1727325030.93347,
+      "verifiedAt": null,
+      "visitedAt": null,
+      "trucheckedAt": 0
+    },
+    "videoCount": 1,
+    "videos": [
+      {
+        "externalID": 440949,
+        "title": null,
+        "host": "youtube",
+        "url": "https://youtu.be/dPkvwv2i_ds",
+        "orderIndex": 0
+      }
+    ],
+    "isDeveloper": false,
+    "isStudio": false,
+    "primaryPhoneNumber": "+923345875301",
+    "mobilePhoneNumber": "+923345875301",
+    "coverPhotoID": 300360784,
+    "coverPhotoTitle": "Possesionable Office In The Central Business District Of Islamabad",
+    "labels": {
+      "categoryName": "Offices",
+      "locationNames": [
+        "Pakistan",
+        "Islamabad Capital",
+        "Islamabad",
+        "Islamabad Expressway"
+      ],
+      "locationHierarchy": "Islamabad Expressway, Islamabad, Islamabad Capital"
+    },
+    "referenceNumber": "ID51151440",
+    "isOfTitaniumPlusAgency": false,
+    "isOfTitaniumAgency": true,
+    "isOfFeaturedAgency": false,
+    "locationTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521"
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521"
+        }
+      },
+      {
+        "en": {
+          "id": 9,
+          "level": 1,
+          "externalID": "1562",
+          "name": "Islamabad Capital",
+          "slug": "/Islamabad_Capital-1562"
+        },
+        "ur": {
+          "id": 9,
+          "level": 1,
+          "externalID": "1562",
+          "name": "اسلام آباد کیپیٹل",
+          "slug": "/Islamabad_Capital-1562"
+        }
+      },
+      {
+        "en": {
+          "id": 12,
+          "level": 2,
+          "externalID": "3",
+          "name": "Islamabad",
+          "slug": "/Islamabad-3"
+        },
+        "ur": {
+          "id": 12,
+          "level": 2,
+          "externalID": "3",
+          "name": "اسلام آباد",
+          "slug": "/Islamabad-3"
+        }
+      },
+      {
+        "en": {
+          "id": 4433,
+          "level": 3,
+          "externalID": "9014",
+          "name": "Islamabad Expressway",
+          "slug": "/Islamabad_Islamabad_Expressway-9014"
+        },
+        "ur": {
+          "id": 4433,
+          "level": 3,
+          "externalID": "9014",
+          "name": "اسلام آباد ایکسپریس وے",
+          "slug": "/Islamabad_Islamabad_Expressway-9014"
+        }
+      }
+    ],
+    "locations": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "isMain": true,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1562",
+        "id": 9,
+        "isMain": true,
+        "level": 1,
+        "name": "Islamabad Capital",
+        "slug": "/Islamabad_Capital-1562"
+      },
+      {
+        "externalID": "3",
+        "id": 12,
+        "isMain": true,
+        "level": 2,
+        "name": "Islamabad",
+        "slug": "/Islamabad-3"
+      },
+      {
+        "externalID": "9014",
+        "id": 4433,
+        "isMain": true,
+        "level": 3,
+        "name": "Islamabad Expressway",
+        "slug": "/Islamabad_Islamabad_Expressway-9014"
+      }
+    ],
+    "locationsTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 9,
+          "level": 1,
+          "externalID": "1562",
+          "name": "Islamabad Capital",
+          "slug": "/Islamabad_Capital-1562",
+          "isMain": true
+        },
+        "ur": {
+          "id": 9,
+          "level": 1,
+          "externalID": "1562",
+          "name": "اسلام آباد کیپیٹل",
+          "slug": "/Islamabad_Capital-1562",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 12,
+          "level": 2,
+          "externalID": "3",
+          "name": "Islamabad",
+          "slug": "/Islamabad-3",
+          "isMain": true
+        },
+        "ur": {
+          "id": 12,
+          "level": 2,
+          "externalID": "3",
+          "name": "اسلام آباد",
+          "slug": "/Islamabad-3",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 4433,
+          "level": 3,
+          "externalID": "9014",
+          "name": "Islamabad Expressway",
+          "slug": "/Islamabad_Islamabad_Expressway-9014",
+          "isMain": true
+        },
+        "ur": {
+          "id": 4433,
+          "level": 3,
+          "externalID": "9014",
+          "name": "اسلام آباد ایکسپریس وے",
+          "slug": "/Islamabad_Islamabad_Expressway-9014",
+          "isMain": true
+        }
+      }
+    ],
+    "categoryTranslations": [
+      {
+        "en": {
+          "id": 3,
+          "level": 0,
+          "externalID": "3",
+          "name": "Commercial",
+          "slug": "Commercial",
+          "roles": [],
+          "seoName": "Commercial",
+          "nameSingular": "Commercial"
+        },
+        "ur": {
+          "id": 3,
+          "level": 0,
+          "externalID": "3",
+          "name": "کمرشل",
+          "slug": "Commercial",
+          "roles": [],
+          "seoName": "کمرشل",
+          "nameSingular": "کمرشل پراپرٹی"
+        }
+      },
+      {
+        "en": {
+          "id": 21,
+          "level": 1,
+          "externalID": "13",
+          "name": "Offices",
+          "slug": "Offices",
+          "roles": [],
+          "seoName": "Offices",
+          "nameSingular": "Office"
+        },
+        "ur": {
+          "id": 21,
+          "level": 1,
+          "externalID": "13",
+          "name": "دفاتر",
+          "slug": "Offices",
+          "roles": [],
+          "seoName": "دفاتر",
+          "nameSingular": "دفتر"
+        }
+      }
+    ],
+    "requiresLoginForContact": false,
+    "hasEmail": true,
+    "hidePrice": false,
+    "links": {
+      "topLevelCategoryLinks": [
+        {
+          "location": {
+            "name": "Islamabad",
+            "slug": "/Islamabad-3",
+            "type": null
+          },
+          "category": {
+            "name": "Commercial",
+            "slug": "Commercial"
+          },
+          "purpose": "for-sale"
+        },
+        {
+          "location": {
+            "name": "Islamabad Expressway",
+            "slug": "/Islamabad_Islamabad_Expressway-9014",
+            "type": null
+          },
+          "category": {
+            "name": "Commercial",
+            "slug": "Commercial"
+          },
+          "purpose": "for-sale"
+        }
+      ]
+    }
+  },
+  "show_numbers": {
+    "contact_details": {
+      "phone": [
+        "+923325542947"
+      ],
+      "mobile": "+923325542947",
+      "agency_name": "Desire Properties",
+      "fax": null
+    },
+    "success": true
+  }
+}

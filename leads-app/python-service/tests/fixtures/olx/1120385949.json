@@ -1,0 +1,427 @@
+{
+  "captured_at": "2026-11-09T20:55:37.584120+00:00",
+  "source_url": "https://www.olx.com.pk/item/flat-for-sale-groud-floor-main-korangi-crossing-31-g-allah-wala-town-iid-1120385949",
+  "search_url": "https://www.olx.com.pk/apartments-flats_c1725/?location=rawalpindi",
+  "detail": {
+    "activeProducts": {
+      "featured_ad": {
+        "expiresAt": 1794407795.64406,
+        "appliedAt": 1791815795.64406,
+        "productPurchaseId": 18665614,
+        "name": {
+          "en": "Feature Ad for 30 days"
+        }
+      },
+      "ad_limit_bump": {
+        "expiresAt": 1794407677.794763,
+        "appliedAt": 1791815677.794763,
+        "productPurchaseId": 18665601,
+        "name": {
+          "en": "Post another Ad"
+        }
+      }
+    },
+    "breadCrumbs": [
+      {
+        "item": "https://www.olx.com.pk",
+        "@type": "ListItem",
+        "name": "Home",
+        "position": 1
+      },
+      {
+        "item": "https://www.olx.com.pk/mobiles_c1411",
+        "@type": "ListItem",
+        "name": "Mobiles",
+        "position": 2
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453",
+        "@type": "ListItem",
+        "name": "Mobile Phones",
+        "position": 3
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-mobiles",
+        "@type": "ListItem",
+        "name": "Zte",
+        "position": 4
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model",
+        "position": 5
+      },
+      {
+        "item": "https://www.olx.com.pk/karachi_g4060695/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model in Karachi",
+        "position": 6
+      }
+    ],
+    "category": [
+      {
+        "externalID": "2",
+        "id": 1,
+        "level": 0,
+        "name": "Property for Sale",
+        "nameSingular": "Property for Sale",
+        "roles": [
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "enabled_for_ads_sitemap"
+        ],
+        "seoName": "Property for Sale",
+        "slug": "property-for-sale"
+      },
+      {
+        "externalID": "1725",
+        "id": 18,
+        "level": 1,
+        "name": "Apartments & Flats",
+        "nameSingular": "Apartments & Flat",
+        "roles": [
+          "include_purpose_in_title",
+          "include_purpose_in_description",
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "combined_sitemap_group_parent"
+        ],
+        "seoName": "Apartments & Flats for Sale",
+        "slug": "apartments-flats"
+      }
+    ],
+    "contactInfo": {
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ],
+      "name": "Test Seller"
+    },
+    "createdAt": 1791815677.794763,
+    "description": "Flat for sale west open",
+    "documentCount": 0,
+    "documents": [],
+    "expiresAt": 1794407795.64406,
+    "externalID": "1120385949",
+    "extraFields": {
+      "ft": 60,
+      "price": 2600000,
+      "rooms": "2",
+      "ft_unit": "sqfeet",
+      "features": [
+        "kitchen"
+      ],
+      "bathrooms": "2",
+      "furnished": "no",
+      "floor_level": "0",
+      "deliverable": "no",
+      "video": "no",
+      "panorama": "no",
+      "seller_verified": "no"
+    },
+    "format": "full",
+    "formattedExtraFields": [
+      {
+        "name": "Area",
+        "attribute": "ft",
+        "formattedValue": "60.00"
+      },
+      {
+        "name": "Price",
+        "attribute": "price",
+        "formattedValue": "2,600,000.00"
+      },
+      {
+        "name": "Bedrooms",
+        "attribute": "rooms",
+        "formattedValue": "2"
+      },
+      {
+        "name": "Area unit",
+        "attribute": "ft_unit",
+        "formattedValue": "Square Feet"
+      },
+      {
+        "name": "Features",
+        "attribute": "features",
+        "formattedValue": [
+          "Kitchen"
+        ]
+      },
+      {
+        "name": "Bathrooms",
+        "attribute": "bathrooms",
+        "formattedValue": "2"
+      },
+      {
+        "name": "Furnished",
+        "attribute": "furnished",
+        "formattedValue": "Unfurnished"
+      },
+      {
+        "name": "Floor Level",
+        "attribute": "floor_level",
+        "formattedValue": "Ground"
+      }
+    ],
+    "geo_point": [
+      67.10612127,
+      24.82047459
+    ],
+    "geography": {
+      "lat": 24.82047459,
+      "lng": 67.10612127
+    },
+    "id": 107610761,
+    "isSellerVerified": false,
+    "location": [
+      {
+        "externalID": "1000001",
+        "id": 1,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "pakistan_g1000001"
+      },
+      {
+        "externalID": "2003007",
+        "id": 8,
+        "level": 1,
+        "name": "Sindh",
+        "slug": "sindh_g2003007"
+      },
+      {
+        "externalID": "4060695",
+        "id": 71,
+        "level": 2,
+        "name": "Karachi",
+        "slug": "karachi_g4060695"
+      },
+      {
+        "externalID": "5000181",
+        "id": 1108,
+        "level": 3,
+        "name": "Korangi",
+        "slug": "korangi_g5000181"
+      },
+      {
+        "externalID": "7056",
+        "id": 47065,
+        "level": 4,
+        "name": "Allahwala Town",
+        "slug": "karachi-allahwala-town_g7056"
+      },
+      {
+        "externalID": "18613",
+        "id": 54445,
+        "level": 5,
+        "name": "Allahwala Town - Sector 31-G",
+        "slug": "karachi-allahwala-town-sector-31-g_g18613"
+      }
+    ],
+    "objectID": 107610761,
+    "panoramaCount": 0,
+    "panoramas": [],
+    "photos": [
+      {
+        "id": 652191933,
+        "externalID": "6b2ab1d2-31a9-41a2-9b64-9bc7c35b7e88",
+        "title": null,
+        "orderIndex": 0,
+        "nimaScore": null
+      },
+      {
+        "id": 652191934,
+        "externalID": "f406f947-645b-4dbd-b2ee-691c3a1da75a",
+        "title": null,
+        "orderIndex": 1,
+        "nimaScore": null
+      },
+      {
+        "id": 652191935,
+        "externalID": "53a82e56-dcf3-4d4d-8e07-47750126b320",
+        "title": null,
+        "orderIndex": 2,
+        "nimaScore": null
+      },
+      {
+        "id": 652191936,
+        "externalID": "5a5f17bb-e07d-49da-b1f2-d5f896c59bb0",
+        "title": null,
+        "orderIndex": 3,
+        "nimaScore": null
+      },
+      {
+        "id": 652191937,
+        "externalID": "4c2ddb57-1ffc-4480-9b9b-f1b8bd9e26ef",
+        "title": null,
+        "orderIndex": 4,
+        "nimaScore": null
+      },
+      {
+        "id": 652191938,
+        "externalID": "4815fae9-d31b-4e14-a45e-6f61264aa2c5",
+        "title": null,
+        "orderIndex": 5,
+        "nimaScore": null
+      },
+      {
+        "id": 652191939,
+        "externalID": "24f36f69-bc1d-4b1c-9b15-0be38eff057c",
+        "title": null,
+        "orderIndex": 6,
+        "nimaScore": null
+      },
+      {
+        "id": 652191940,
+        "externalID": "443ea524-f591-46a1-9906-b8887fdb1194",
+        "title": null,
+        "orderIndex": 7,
+        "nimaScore": null
+      },
+      {
+        "id": 652191941,
+        "externalID": "ec50675e-58b5-486d-ac41-14dbebffea7e",
+        "title": null,
+        "orderIndex": 8,
+        "nimaScore": null
+      },
+      {
+        "id": 652191942,
+        "externalID": "0dea889a-2508-4e45-84d0-d6b881d73a11",
+        "title": null,
+        "orderIndex": 9,
+        "nimaScore": null
+      },
+      {
+        "id": 652191943,
+        "externalID": "36cfcbfd-d8be-4e0f-aab0-a70cd769fdb8",
+        "title": null,
+        "orderIndex": 10,
+        "nimaScore": null
+      },
+      {
+        "id": 652191944,
+        "externalID": "6520162c-86ad-465b-9db9-d76cc4dbc800",
+        "title": null,
+        "orderIndex": 11,
+        "nimaScore": null
+      },
+      {
+        "id": 652191945,
+        "externalID": "6a86abd9-6b0e-4945-ae64-c24306019390",
+        "title": null,
+        "orderIndex": 12,
+        "nimaScore": null
+      },
+      {
+        "id": 652191946,
+        "externalID": "87dd125e-10a4-40c0-8d80-def1d152df26",
+        "title": null,
+        "orderIndex": 13,
+        "nimaScore": null
+      }
+    ],
+    "postingID": 212817264,
+    "price": 0,
+    "product": "featured",
+    "productConsumptionIDs": [
+      31147083,
+      31147065
+    ],
+    "productInfo": {
+      "expiresAt": 1794407795.64406,
+      "name": "Feature Ad for 30 days"
+    },
+    "productRefreshedAt": 1791815795.64406,
+    "purpose": "for-sale",
+    "rawDescription": "Flat for sale west open",
+    "slug": "flat-for-sale-groud-floor-main-korangi-crossing-31-g-allah-wala-town",
+    "sourceID": 3,
+    "state": "active",
+    "stateMessage": "This ad is currently live.",
+    "timestamp": 1791815795.64406,
+    "title": "Flat for sale Groud floor main korangi crossing 31 G Allah wala Town",
+    "type": "general",
+    "updatedAt": 1791815982.335138,
+    "userExternalID": "00000000-0000-0000-0000-352508003341",
+    "videoCount": 0,
+    "videos": [],
+    "virtualState": "featured",
+    "locationTranslations": [
+      {
+        "en": {
+          "externalID": "1000001",
+          "id": 1,
+          "level": 0,
+          "name": "Pakistan",
+          "slug": "pakistan_g1000001"
+        }
+      },
+      {
+        "en": {
+          "externalID": "2003007",
+          "id": 8,
+          "level": 1,
+          "name": "Sindh",
+          "slug": "sindh_g2003007"
+        }
+      },
+      {
+        "en": {
+          "externalID": "4060695",
+          "id": 71,
+          "level": 2,
+          "name": "Karachi",
+          "slug": "karachi_g4060695"
+        }
+      },
+      {
+        "en": {
+          "externalID": "5000181",
+          "id": 1108,
+          "level": 3,
+          "name": "Korangi",
+          "slug": "korangi_g5000181"
+        }
+      },
+      {
+        "en": {
+          "externalID": "7056",
+          "id": 47065,
+          "level": 4,
+          "name": "Allahwala Town",
+          "slug": "karachi-allahwala-town_g7056"
+        }
+      },
+      {
+        "en": {
+          "externalID": "18613",
+          "id": 54445,
+          "level": 5,
+          "name": "Allahwala Town - Sector 31-G",
+          "slug": "karachi-allahwala-town-sector-31-g_g18613"
+        }
+      }
+    ],
+    "adTags": []
+  },
+  "contact_info": {
+    "status": 200,
+    "body": {
+      "name": "Test Seller",
+      "mobile": "+923055415055",
+      "whatsapp": null,
+      "proxyMobile": null,
+      "mobileNumbers": [
+        "+923055415055"
+      ],
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ]
+    }
+  }
+}
