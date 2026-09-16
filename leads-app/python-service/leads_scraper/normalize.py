@@ -7,8 +7,11 @@ Field paths come from docs/specs/FIELD_INVENTORY.md.
 """
 
 import hashlib
+import re
 from datetime import datetime
 from decimal import Decimal
+
+from sqids import Sqids
 
 from leads.redact import redact
 from leads_scraper import parsing as p
@@ -272,15 +275,80 @@ def normalize_graana(payload: dict, ctx: dict, settings) -> dict:
 
 # --- ilaan --------------------------------------------------------------------
 
+# Ilaan builds its listing links in the browser from the API fields. This is a port of the
+# site's own generatePropertySEOUrl / encodePropertyId (Sqids with their alphabet).
+_ILAAN_SQIDS = Sqids(alphabet="f7k2xqm9v5jw3n8hytep1gbsz0rlud4oa6ic", min_length=8)
+_ILAAN_SECTION = {
+    "house": "house", "villa": "house", "flat": "flats", "apartment": "flats", "plot": "plots",
+    "land": "plots", "commercial": "commercial", "office": "commercial", "shop": "commercial",
+    "warehouse": "commercial", "farmhouse": "farmhouse", "penthouse": "penthouse", "room": "room",
+}
+_ILAAN_PURPOSE = {"forsale": "sale", "sale": "sale", "forrent": "rent", "rent": "rent"}
+
+
+def _ilaan_slug(text: str) -> str:
+    t = re.sub(r"[^\w\s-]", "", text.lower().strip())
+    return re.sub(r"-+", "-", re.sub(r"\s+", "-", t)).strip("-")
+
+
+def _js_number(value) -> str:
+    f = float(value)
+    return str(int(f)) if f.is_integer() else repr(f)
+
+
+def ilaan_url(entry: dict, portal_type: str | None, status: str | None) -> str | None:
+    try:
+        pid = int(entry.get("propertyId"))
+    except (TypeError, ValueError):
+        return None
+    if pid < 1 or not portal_type:
+        return None
+    ptype = portal_type.lower().strip()
+    purpose = _ILAAN_PURPOSE.get(re.sub(r"\s+", "", (status or "sale").lower()), "sale")
+    parts = []
+    area, unit = entry.get("landArea"), (entry.get("areaUnitName") or "").lower()
+    if area and unit:
+        for needle, label in (("marla", "marla"), ("kanal", "kanal"), ("sqft", "sqft"),
+                              ("sq ft", "sqft"), ("sqyd", "sqyd"), ("sq yd", "sqyd")):
+            if needle in unit:
+                parts.append(f"{_js_number(area)}-{label}")
+                break
+    parts += [ptype, "for", purpose]
+    locality = entry.get("localityName")
+    if not locality and entry.get("address"):
+        pieces = [x.strip() for x in entry["address"].split(",")]
+        locality = pieces[0] if len(pieces) > 1 else None
+    if locality:
+        parts += ["in", _ilaan_slug(locality)]
+    if entry.get("cityName"):
+        if not locality:
+            parts.append("in")
+        parts.append(_ilaan_slug(entry["cityName"]))
+    section = _ILAAN_SECTION.get(ptype, "property")
+    return (f"https://www.ilaan.com/{section}-for-{purpose}/{'-'.join(parts).lower()}"
+            f"-pid{_ILAAN_SQIDS.encode([pid])}")
+
+
+def _ilaan_search(payload: dict) -> tuple[str | None, str | None]:
+    """(type, status) the listing was found under: from the spider, or the fixture's source_url."""
+    search = payload.get("search") or {}
+    if search.get("type"):
+        return search.get("type"), search.get("status")
+    src = payload.get("source_url") or ""
+    t, st = re.search(r"[?&]type=([^&]+)", src), re.search(r"[?&]status=([^&]+)", src)
+    return (t.group(1) if t else None), (st.group(1) if st else None)
+
+
 def normalize_ilaan(payload: dict, ctx: dict, settings) -> dict:
     e = payload["listing"]
     reveal = (payload.get("reveal_contact") or {}).get("body") or {}
     contact = reveal.get("data") or {}
     rec = _base("ilaan", ctx, payload)
+    portal_type, status = _ilaan_search(payload)
 
     rec.update({
         "external_id": str(e["propertyId"]),
-        "url": ctx.get("url"),  # no confirmed public detail URL (FIELD_INVENTORY F7)
+        "url": _first(ctx.get("url"), ilaan_url(e, portal_type, status)),
         "title": e.get("heading"),
         "category": ctx.get("category"),
         "purpose": ctx.get("purpose") or "sale",
