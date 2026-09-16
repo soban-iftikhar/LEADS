@@ -16,32 +16,34 @@ datasource db {
 // =============================================================================
 
 model Region {
-  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String            @unique
-  slug       String            @unique
-  active     Boolean           @default(false)
-  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  localities Locality[]
-  portalMaps PortalRegionMap[]
-  segments   CrawlSegment[]
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String            @unique
+  slug           String            @unique
+  active         Boolean           @default(false)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  localities     Locality[]
+  portalMaps     PortalRegionMap[]
+  segments       CrawlSegment[]
+  masterListings MasterListing[]
 
   @@map("regions")
   @@schema("config")
 }
 
 model Locality {
-  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  regionId String     @map("region_id") @db.Uuid
-  name     String
-  slug     String
-  aliases  String[]
-  parentId String?    @map("parent_id") @db.Uuid
-  lat      Decimal?   @db.Decimal(9, 6)
-  lng      Decimal?   @db.Decimal(9, 6)
-  active   Boolean    @default(true)
-  region   Region     @relation(fields: [regionId], references: [id])
-  parent   Locality?  @relation("LocalityTree", fields: [parentId], references: [id])
-  children Locality[] @relation("LocalityTree")
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  regionId       String          @map("region_id") @db.Uuid
+  name           String
+  slug           String
+  aliases        String[]
+  parentId       String?         @map("parent_id") @db.Uuid
+  lat            Decimal?        @db.Decimal(9, 6)
+  lng            Decimal?        @db.Decimal(9, 6)
+  active         Boolean         @default(true)
+  region         Region          @relation(fields: [regionId], references: [id])
+  parent         Locality?       @relation("LocalityTree", fields: [parentId], references: [id])
+  children       Locality[]      @relation("LocalityTree")
+  masterListings MasterListing[]
 
   @@unique([regionId, slug])
   @@map("localities")
@@ -495,24 +497,30 @@ enum CashbackStatus {
 
 // One row per real phone number we know about: prospects, campaign targets, buyers (DR-25).
 model Contact {
-  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phoneHash         String              @unique @map("phone_hash")
-  phoneEnc          String?             @map("phone_enc") // cleared by the purge job
-  name              String?
-  firstSource       ContactSource       @map("first_source")
-  dnc               Boolean             @default(false)
-  dncReason         DncReason?          @map("dnc_reason")
-  dncAt             DateTime?           @map("dnc_at") @db.Timestamptz(6)
-  purgeAt           DateTime?           @map("purge_at") @db.Timestamptz(6) // null once the contact is a lead or user
-  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  buyerProfile      BuyerProfile?
-  capCounters       ContactCapCounter[]
-  prospectOutreach  ProspectOutreach[]
-  campaignTargets   CampaignTarget[]
-  messages          Message[]
-  formLinks         FormLink[]
-  leads             Lead[]
-  sellerLinks       SellerContactLink[]
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneHash        String              @unique @map("phone_hash")
+  phoneEnc         String?             @map("phone_enc") // the only copy of the number; cleared by the purge job
+  encKeyVersion    Int                 @default(1) @map("enc_key_version") // which PHONE_ENC_KEY encrypted it
+  name             String?
+  firstSource      ContactSource       @map("first_source")
+  dnc              Boolean             @default(false)
+  dncReason        DncReason?          @map("dnc_reason")
+  dncAt            DateTime?           @map("dnc_at") @db.Timestamptz(6)
+  purgeAt          DateTime?           @map("purge_at") @db.Timestamptz(6) // null once the contact is a lead or user
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  buyerProfile     BuyerProfile?
+  capCounters      ContactCapCounter[]
+  prospectOutreach ProspectOutreach[]
+  campaignTargets  CampaignTarget[]
+  messages         Message[]
+  formLinks        FormLink[]
+  leads            Lead[]
+  sellerLinks      SellerContactLink[]
+  masterListings   MasterListing[]
+  zameenListings   ZameenListing[]
+  olxListings      OlxListing[]
+  graanaListings   GraanaListing[]
+  ilaanListings    IlaanListing[]
 
   @@index([purgeAt])
   @@map("contacts")
@@ -900,11 +908,17 @@ model JobRequest {
   status        JobStatus @default(PENDING)
   requestedById String?   @map("requested_by_id") @db.Uuid
   error         String?
+  attempts      Int       @default(0)
+  maxAttempts   Int       @default(3) @map("max_attempts")
+  runAfter      DateTime  @default(now()) @map("run_after") @db.Timestamptz(6) // retry backoff / delayed jobs
+  lockedAt      DateTime? @map("locked_at") @db.Timestamptz(6)
+  lockedBy      String?   @map("locked_by") // worker that claimed it; stale locks are re-queued
+  dedupeKey     String?   @unique @map("dedupe_key") // same key = same job, inserted once
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   startedAt     DateTime? @map("started_at") @db.Timestamptz(6)
   finishedAt    DateTime? @map("finished_at") @db.Timestamptz(6)
 
-  @@index([status, createdAt])
+  @@index([status, runAfter])
   @@map("job_requests")
   @@schema("ops")
 }
@@ -928,6 +942,15 @@ enum JobStatus {
   DONE
   FAILED
 
+  @@schema("ops")
+}
+
+model Heartbeat {
+  service String   @id // beat | worker-crawl | worker-main
+  beatAt  DateTime @default(now()) @map("beat_at") @db.Timestamptz(6)
+  meta    Json?    @db.JsonB
+
+  @@map("heartbeats")
   @@schema("ops")
 }
 
@@ -1000,7 +1023,7 @@ model ZameenListing {
   agencyName           String?   @map("agency_name")
   agencyProfileUrl     String?   @map("agency_profile_url")
   isAgency             Boolean?  @map("is_agency")
-  phoneEnc             String?   @map("phone_enc")
+  contactId            String?   @map("contact_id") @db.Uuid
   phoneHash            String?   @map("phone_hash")
   addedDateRaw         String?   @map("added_date_raw")
   latitude             Decimal?  @db.Decimal(9, 6)
@@ -1015,8 +1038,13 @@ model ZameenListing {
   completionStatus     String?   @map("completion_status")
   builtYear            Int?      @map("built_year")
   floors               Int?
+  // lifecycle: set by the presence sweep when the ad leaves the portal
+  status               String    @default("active")
+  exitedAt             DateTime? @map("exited_at") @db.Timestamptz(6)
+  lastCheckedAt        DateTime? @map("last_checked_at") @db.Timestamptz(6)
   raw                  Json      @db.JsonB
   masterRejectedReason String?   @map("master_rejected_reason")
+  contact              Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@unique([platform, externalId])
   @@index([city, locality, category, purpose])
@@ -1024,6 +1052,8 @@ model ZameenListing {
   @@index([listedAt])
   @@index([lastSeenAt])
   @@index([phoneHash])
+  @@index([contactId])
+  @@index([status, lastCheckedAt])
   @@map("listings")
   @@schema("zameen")
 }
@@ -1059,7 +1089,7 @@ model OlxListing {
   agencyName           String?   @map("agency_name")
   agencyProfileUrl     String?   @map("agency_profile_url")
   isAgency             Boolean?  @map("is_agency")
-  phoneEnc             String?   @map("phone_enc")
+  contactId            String?   @map("contact_id") @db.Uuid
   phoneHash            String?   @map("phone_hash")
   addedDateRaw         String?   @map("added_date_raw")
   latitude             Decimal?  @db.Decimal(9, 6)
@@ -1072,8 +1102,13 @@ model OlxListing {
   isFurnished          Boolean?  @map("is_furnished")
   floorLevel           Int?      @map("floor_level")
   portalExpiresAt      DateTime? @map("portal_expires_at") @db.Timestamptz(6)
+  // lifecycle: set by the presence sweep when the ad leaves the portal
+  status               String    @default("active")
+  exitedAt             DateTime? @map("exited_at") @db.Timestamptz(6)
+  lastCheckedAt        DateTime? @map("last_checked_at") @db.Timestamptz(6)
   raw                  Json      @db.JsonB
   masterRejectedReason String?   @map("master_rejected_reason")
+  contact              Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@unique([platform, externalId])
   @@index([city, locality, category, purpose])
@@ -1081,6 +1116,8 @@ model OlxListing {
   @@index([listedAt])
   @@index([lastSeenAt])
   @@index([phoneHash])
+  @@index([contactId])
+  @@index([status, lastCheckedAt])
   @@map("listings")
   @@schema("olx")
 }
@@ -1116,7 +1153,7 @@ model GraanaListing {
   agencyName           String?   @map("agency_name")
   agencyProfileUrl     String?   @map("agency_profile_url")
   isAgency             Boolean?  @map("is_agency")
-  phoneEnc             String?   @map("phone_enc")
+  contactId            String?   @map("contact_id") @db.Uuid
   phoneHash            String?   @map("phone_hash")
   addedDateRaw         String?   @map("added_date_raw")
   latitude             Decimal?  @db.Decimal(9, 6)
@@ -1126,8 +1163,13 @@ model GraanaListing {
   agencySince          DateTime? @map("agency_since") @db.Timestamptz(6)
   condition            String?
   portalExpiresAt      DateTime? @map("portal_expires_at") @db.Timestamptz(6)
+  // lifecycle: set by the presence sweep when the ad leaves the portal
+  status               String    @default("active")
+  exitedAt             DateTime? @map("exited_at") @db.Timestamptz(6)
+  lastCheckedAt        DateTime? @map("last_checked_at") @db.Timestamptz(6)
   raw                  Json      @db.JsonB
   masterRejectedReason String?   @map("master_rejected_reason")
+  contact              Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@unique([platform, externalId])
   @@index([city, locality, category, purpose])
@@ -1135,6 +1177,8 @@ model GraanaListing {
   @@index([listedAt])
   @@index([lastSeenAt])
   @@index([phoneHash])
+  @@index([contactId])
+  @@index([status, lastCheckedAt])
   @@map("listings")
   @@schema("graana")
 }
@@ -1170,7 +1214,7 @@ model IlaanListing {
   agencyName           String?   @map("agency_name")
   agencyProfileUrl     String?   @map("agency_profile_url")
   isAgency             Boolean?  @map("is_agency")
-  phoneEnc             String?   @map("phone_enc")
+  contactId            String?   @map("contact_id") @db.Uuid
   phoneHash            String?   @map("phone_hash")
   addedDateRaw         String?   @map("added_date_raw")
   latitude             Decimal?  @db.Decimal(9, 6)
@@ -1180,8 +1224,13 @@ model IlaanListing {
   isVerified           Boolean?  @map("is_verified")
   isFeatured           Boolean?  @map("is_featured")
   isGoldVerified       Boolean?  @map("is_gold_verified")
+  // lifecycle: set by the presence sweep when the ad leaves the portal
+  status               String    @default("active")
+  exitedAt             DateTime? @map("exited_at") @db.Timestamptz(6)
+  lastCheckedAt        DateTime? @map("last_checked_at") @db.Timestamptz(6)
   raw                  Json      @db.JsonB
   masterRejectedReason String?   @map("master_rejected_reason")
+  contact              Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@unique([platform, externalId])
   @@index([city, locality, category, purpose])
@@ -1189,6 +1238,8 @@ model IlaanListing {
   @@index([listedAt])
   @@index([lastSeenAt])
   @@index([phoneHash])
+  @@index([contactId])
+  @@index([status, lastCheckedAt])
   @@map("listings")
   @@schema("ilaan")
 }
@@ -1228,7 +1279,7 @@ model MasterListing {
   agencyName             String?             @map("agency_name")
   agencyProfileUrl       String?             @map("agency_profile_url")
   isAgency               Boolean?            @map("is_agency")
-  phoneEnc               String?             @map("phone_enc")
+  contactId              String?             @map("contact_id") @db.Uuid
   phoneHash              String?             @map("phone_hash")
   addedDateRaw           String?             @map("added_date_raw")
   latitude               Decimal?            @db.Decimal(9, 6)
@@ -1250,10 +1301,20 @@ model MasterListing {
   olxProduct             String?             @map("olx_product")
   graanaCondition        String?             @map("graana_condition")
   ilaanIsGoldVerified    Boolean?            @map("ilaan_is_gold_verified")
+  // resolved against config tables by the locality resolver; null until matched
+  regionId               String?             @map("region_id") @db.Uuid
+  localityId             String?             @map("locality_id") @db.Uuid
+  // lifecycle: set by the presence sweep when the ad leaves the portal
+  status                 String              @default("active")
+  exitedAt               DateTime?           @map("exited_at") @db.Timestamptz(6)
+  lastCheckedAt          DateTime?           @map("last_checked_at") @db.Timestamptz(6)
   // provenance
   sourceRowId            String              @map("source_row_id") @db.Uuid
   sourceSchema           String              @map("source_schema")
   clusterId              String?             @map("cluster_id") @db.Uuid // cross-portal dedupe (later spec)
+  contact                Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  region                 Region?             @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  localityRef            Locality?           @relation(fields: [localityId], references: [id], onDelete: SetNull)
   appListings            Listing[]
   prospectOutreach       ProspectOutreach?
   campaignTargets        CampaignTarget[]
@@ -1267,6 +1328,9 @@ model MasterListing {
   @@index([lastSeenAt])
   @@index([phoneHash])
   @@index([clusterId])
+  @@index([contactId])
+  @@index([localityId, category, purpose])
+  @@index([status, lastCheckedAt])
   @@map("listings")
   @@schema("master")
 }
@@ -1295,6 +1359,10 @@ model CrawlRun {
   windowHours Int              @map("window_hours")
   status      String // running | success | partial | failed
   error       String?
+  // e.g. "schedule:2026-11-10". Unique, so a second scheduled run for the same day cannot
+  // be created even if the Redis lock is lost. Null for manual runs.
+  lockKey     String?          @unique @map("lock_key")
+  stats       Json?            @db.JsonB
   portals     CrawlRunPortal[]
 
   @@index([status, startedAt])
@@ -1314,6 +1382,7 @@ model CrawlRunPortal {
   itemsRejected Int?      @map("items_rejected")
   errors        Int?
   status        String
+  error         String?
   run           CrawlRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
 
   @@id([runId, platform])

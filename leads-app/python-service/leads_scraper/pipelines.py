@@ -34,6 +34,7 @@ class CleaningPipeline:
             spider.logger.warning(f"[{platform}] {rec['external_id']}: {warning}")
 
         phone = rec.pop("_phone", None)
+        # phone_enc is only ever written to app.contacts (store.write_record), never to a listing row
         rec["phone_hash"], rec["phone_enc"] = protect_phone(
             phone, self.settings.phone_hash_pepper, self.settings.phone_enc_key
         )
