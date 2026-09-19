@@ -17,6 +17,10 @@ TEST_PEPPER = base64.b64encode(bytes(range(32))).decode()
 TEST_ENC_KEY = base64.b64encode(bytes(range(32, 64))).decode()
 os.environ["PHONE_HASH_PEPPER"] = TEST_PEPPER
 os.environ["PHONE_ENC_KEY"] = TEST_ENC_KEY
+os.environ["CELERY_BROKER_URL"] = os.getenv("TEST_REDIS_URL", "redis://127.0.0.1:6379/15")
+os.environ["CELERY_RESULT_BACKEND"] = os.environ["CELERY_BROKER_URL"]
+for _k in ("RESEND_API_KEY", "EMAIL_FROM", "ADMIN_ALERT_EMAIL"):
+    os.environ[_k] = ""  # tests never send email
 os.environ["DATABASE_URL"] = os.getenv(
     "TEST_DATABASE_URL", "postgresql://leads_user:leads_password@localhost:5432/leads_test"
 )
@@ -49,7 +53,7 @@ def spider():
 TRUNCATE = """
 TRUNCATE zameen.listings, olx.listings, graana.listings, ilaan.listings,
          master.listings, master.listing_events, master.crawl_run_portals, master.crawl_runs,
-         intel.seller_contact_links, app.contacts CASCADE
+         intel.seller_contact_links, app.contacts, ops.job_requests, ops.heartbeats CASCADE
 """
 
 
@@ -64,6 +68,19 @@ def db():
     with pool.connection() as conn:
         conn.execute(TRUNCATE)
     yield pool
+
+
+@pytest.fixture
+def rds():
+    """Redis test database (15), emptied before each test."""
+    import redis
+    client = redis.Redis.from_url(os.environ["CELERY_BROKER_URL"])
+    try:
+        client.flushdb()
+    except Exception as e:  # noqa: BLE001
+        pytest.skip(f"test redis unavailable: {e}")
+    yield client
+    client.flushdb()
 
 
 def pytest_sessionfinish(session, exitstatus):

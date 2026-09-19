@@ -144,7 +144,7 @@ class GraanaSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-        if self.should_dispatch() and page < self.max_pages and len(seen_hrefs) >= self.PAGE_SIZE:
+        if self.keep_paging(len(seen_hrefs), page) and len(seen_hrefs) >= self.PAGE_SIZE:
             next_page = page + 1
             next_url = (
                 f"{self.BASE_URL}/{purpose_path}/"
@@ -181,6 +181,8 @@ class GraanaSpider(BaseSpider):
         except (ValueError, KeyError, TypeError) as e:
             self.logger.warning(f"[graana] no listing data ({e}): {response.url}")
             self.errors.append({"url": response.url, "error": f"no listing data: {e}"})
+            return
+        if not self.is_fresh(detail.get("createdAt")):
             return
         yield self.raw_item(
             {"detail": detail, "source_url": response.url},

@@ -32,6 +32,9 @@ class IlaanSpider(BaseSpider):
         self.auth_token = None
         self.csrf_token = None
         self.paywalled = 0
+        self.revealed = 0
+        self.rate_limited = 0
+        self.reveal_paused = False  # set when Ilaan answers 429: no more reveal calls this run
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -124,19 +127,32 @@ class IlaanSpider(BaseSpider):
         self.logger.info(f"[ilaan] {len(items)} listings — page {page} — {response.url}")
 
         self.pages_fetched += 1
+        # Ilaan gives no date for unverified listings, but the feed is ordered by id, newest
+        # first. Inside a window run, "fresh" = verified inside the window, or not stored yet.
+        known, with_phone = (self._known_ids([str(e.get("propertyId")) for e in items])
+                             if self.cutoff else (set(), set()))
+        fresh = 0
         for entry in items:
             if not self.should_dispatch():
                 return
+            pid = str(entry.get("propertyId"))
+            revealable = self._revealable(entry)
+            if self.cutoff:
+                if entry.get("verifiedDate"):
+                    if not self.is_fresh(entry["verifiedDate"]):
+                        continue
+                elif pid in known:
+                    # Already stored. Come back only for a number we could not get last time
+                    # (reveal rate limit), and only while reveals are still allowed.
+                    if not (revealable and pid not in with_phone and not self.reveal_paused):
+                        self.skipped_old += 1
+                        continue
+            fresh += 1
             ctx = {"category": canonical_category, "purpose": purpose_name,
                    "city": entry.get("cityName"), "url": None}
             search = {"type": api_type, "status": status}  # needed to build the listing URL
             self.dispatched += 1
-            # Verified and gold-verified sellers' numbers are paid to reveal; only unverified ones are free.
-            # The feed shows a masked number (0304-XXXXXXX) when one exists; if it is blank,
-            # reveal-contact returns an empty phone, so the call is skipped.
-            has_number = bool(entry.get("agentPhone") or entry.get("agentWhatsApp"))
-            if (not self.auth_token or entry.get("isVerified") or entry.get("isGoldVerified")
-                    or not has_number):
+            if not revealable or self.reveal_paused:
                 yield self.raw_item({"listing": entry, "reveal_contact": None, "search": search}, **ctx)
                 continue
             yield scrapy.Request(
@@ -151,15 +167,39 @@ class IlaanSpider(BaseSpider):
                 cookies={"auth_token": self.auth_token},
                 body=b"",
                 errback=self.handle_error,
-                meta={"handle_httpstatus_list": [401, 403]},
+                # 429 is handled in reveal_contact (stop revealing), never retried
+                meta={"handle_httpstatus_list": [401, 403, 429], "dont_retry": True},
                 dont_filter=True,
             )
 
         pagination = outer.get("pagination", {})
-        if self.should_dispatch() and pagination.get("hasMore") and pagination.get("nextPage"):
+        if self.keep_paging(fresh, page) and pagination.get("hasMore") and pagination.get("nextPage"):
             yield self._listing_request(
                 canonical_category, purpose_name, api_type, status, page=pagination["nextPage"], city_id=city_id
             )
+
+    def _revealable(self, entry: dict) -> bool:
+        """Free to reveal: logged in, unverified seller, and the feed shows a masked number.
+
+        Verified and gold-verified sellers' numbers are paid. If the masked number
+        (0304-XXXXXXX) is blank, reveal-contact returns an empty phone, so it is not called.
+        """
+        has_number = bool(entry.get("agentPhone") or entry.get("agentWhatsApp"))
+        return bool(self.auth_token) and has_number and not (
+            entry.get("isVerified") or entry.get("isGoldVerified"))
+
+    def _known_ids(self, ids: list[str]) -> tuple[set[str], set[str]]:
+        """(ids already stored, ids stored with a phone)."""
+        from leads.db import get_pool
+        try:
+            with get_pool().connection() as conn:
+                rows = conn.execute(
+                    "SELECT external_id, phone_hash IS NOT NULL FROM ilaan.listings "
+                    "WHERE external_id = ANY(%s)", (ids,)).fetchall()
+            return {r[0] for r in rows}, {r[0] for r in rows if r[1]}
+        except Exception as e:  # noqa: BLE001 - if the lookup fails, treat everything as new
+            self.logger.warning(f"[ilaan] known-id lookup failed: {e}")
+            return set(), set()
 
     # Reveal contact
 
@@ -169,6 +209,20 @@ class IlaanSpider(BaseSpider):
         except ValueError:
             body = None
         message = ((body or {}).get("error") or (body or {}).get("message") or "").lower()
+
+        if response.status == 429:
+            # Ilaan's reveal rate limit. Respect it: no more reveal calls in this run. Listings
+            # are saved without a phone and picked up again by a later run.
+            self.rate_limited += 1
+            if not self.reveal_paused:
+                self.reveal_paused = True
+                limits = {k.decode(): v[0].decode() for k, v in response.headers.items()
+                          if k.lower().startswith((b"x-rate-limit", b"retry-after"))}
+                self.logger.warning(
+                    f"[ilaan] reveal rate limit reached after {self.revealed} numbers "
+                    f"({limits or 'no limit headers'}); no more reveal calls in this run")
+            yield self.raw_item({"listing": entry, "reveal_contact": None, "search": search}, **ctx)
+            return
 
         if response.status in (401, 403):
             paywalled = any(w in message for w in ("subscribe", "unlock", "prime"))
@@ -187,10 +241,16 @@ class IlaanSpider(BaseSpider):
             return
         if body is None:
             self.logger.warning(f"[ilaan] reveal-contact not JSON (status {response.status})")
+        else:
+            self.revealed += 1
+        remaining = response.headers.get("X-Rate-Limit-Remaining")
+        if remaining is not None and remaining.strip().isdigit() and int(remaining) <= 0:
+            self.reveal_paused = True  # used the last allowed reveal: stop before a 429
         yield self.raw_item({"listing": entry, "reveal_contact": {"status": response.status, "body": body},
                              "search": search}, **ctx)
 
     def closed(self, reason):
         super().closed(reason)
-        if self.paywalled:
-            self.logger.info(f"[ilaan] {self.paywalled} listings need Prime or an unlock; saved without phone")
+        self.logger.info(
+            f"[ilaan] numbers revealed={self.revealed} paywalled={self.paywalled} "
+            f"rate_limited={self.rate_limited} reveals_paused={self.reveal_paused}")

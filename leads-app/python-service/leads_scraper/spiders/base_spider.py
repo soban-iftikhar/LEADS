@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
+import os
+from datetime import datetime, timedelta, timezone
 
 import scrapy
 
 from leads_scraper.items import RawListingItem
+from leads_scraper.parsing import parse_listed_at
 
 
 def _to_int(value):
@@ -44,7 +46,15 @@ class BaseSpider(scrapy.Spider):
         self.full_scrape = str(full_scrape).lower() == "true"
         self.max_records = _to_int(max_records)
         self.run_id = run_id or None  # master.crawl_runs.id when started by the scheduler
-        self.max_pages = 999 if self.full_scrape else 3
+        # Window: keep only listings newer than `since_hours` (SPEC_01 5.1). Pages per segment
+        # are capped so a portal with no usable date order cannot run forever.
+        self.started_at = datetime.now(timezone.utc)
+        self.cutoff = (self.started_at - timedelta(hours=self.since_hours)) if self.since_hours else None
+        if self.cutoff:
+            self.max_pages = int(os.getenv("DAILY_MAX_PAGES", "15"))
+        else:
+            self.max_pages = 999 if self.full_scrape else 3
+        self.skipped_old = 0
 
         # Written by the pipelines.
         self.records_collected = 0
@@ -94,6 +104,26 @@ class BaseSpider(scrapy.Spider):
             return False
         return self.dispatched < self.max_records * 10
 
+    # Window
+
+    def is_fresh(self, raw_date) -> bool:
+        """True if the listing is inside the crawl window. Unknown dates are kept."""
+        if self.cutoff is None or raw_date in (None, ""):
+            return True
+        listed, _, ok = parse_listed_at(raw_date, self.started_at)
+        if not ok:
+            return True
+        if listed < self.cutoff:
+            self.skipped_old += 1
+            return False
+        return True
+
+    def keep_paging(self, fresh_on_page: int, page: int) -> bool:
+        """Next page only while this one still had something inside the window."""
+        if not self.should_dispatch() or page >= self.max_pages:
+            return False
+        return self.cutoff is None or fresh_on_page > 0
+
     # Items
 
     def raw_item(self, payload: dict, *, category, purpose, city=None, url=None) -> RawListingItem:
@@ -117,9 +147,43 @@ class BaseSpider(scrapy.Spider):
         self.logger.error(f"[{self.platform_name}] Request failed: {url} — {msg}")
         self.errors.append({"url": url, "error": msg})
 
+    def blocked_reason(self) -> str | None:
+        """Why this run is degraded, for master.crawl_run_portals.error."""
+        if self.auth_failed:
+            return "token expired: login refused, listings saved without phone numbers"
+        if self.pages_fetched == 0 and self.errors:
+            return f"no listing page could be fetched ({len(self.errors)} errors, e.g. {self.errors[0].get('error', '')[:160]})"
+        if len(self.errors) > max(self.records_collected, 10):
+            # the portal answered, but refused most detail pages (blocked or challenged)
+            return f"mostly blocked: {len(self.errors)} requests failed, {self.records_collected} listings saved"
+        return None
+
     def closed(self, reason):
         self.logger.info(
             f"[{self.platform_name}] finished ({reason}): collected={self.records_collected} "
             f"new={self.items_new} updated={self.items_updated} rejected={self.records_rejected} "
-            f"pages={self.pages_fetched} errors={len(self.errors)} auth_failed={self.auth_failed}"
+            f"old_skipped={self.skipped_old} pages={self.pages_fetched} errors={len(self.errors)} "
+            f"auth_failed={self.auth_failed}"
         )
+        if self.run_id:
+            self._record_run()
+
+    def _record_run(self):
+        """Write this portal's result to master.crawl_run_portals (SPEC_01 3.6)."""
+        from leads.db import close_pool, get_pool
+        error = self.blocked_reason()
+        status = "failed" if (self.pages_fetched == 0 and self.errors) else "success"
+        try:
+            with get_pool().connection() as conn:
+                conn.execute(
+                    """UPDATE master.crawl_run_portals
+                       SET finished_at = now(), pages_fetched = %s, items_seen = %s, items_new = %s,
+                           items_updated = %s, items_rejected = %s, errors = %s, status = %s, error = %s
+                       WHERE run_id = %s AND platform = %s""",
+                    (self.pages_fetched, self.records_collected, self.items_new, self.items_updated,
+                     self.records_rejected, len(self.errors), status, error, self.run_id, self.platform_name),
+                )
+        except Exception as e:  # noqa: BLE001 - the scheduler marks the portal failed if this row stays `running`
+            self.logger.error(f"[{self.platform_name}] could not record run stats: {e}")
+        finally:
+            close_pool()
