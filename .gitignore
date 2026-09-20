@@ -2,3 +2,6 @@ Docx/
 
 # Internal docs (local only)
 docs/
+
+# Production secrets
+.env.prod
