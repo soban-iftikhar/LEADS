@@ -1,0 +1,14 @@
+# Lint rules for the Python service (run in CI: `ruff check .`).
+target-version = "py312"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+  "E501",   # long SQL strings read better unwrapped
+  "B008",
+]
+
+[lint.per-file-ignores]
+"scripts/*" = ["E402"]   # scripts put the service root on sys.path before importing
+"tests/*" = ["E402", "B011"]

@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/db";
 import { z } from "zod";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { rateLimit } from "@/lib/rate-limit";
+import { successResponse, errorResponse } from "@/server/http/response";
+import { rateLimit } from "@/server/http/rate-limit";
+import { clientIp } from "@/server/http/client-ip";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmail } from "@/server/integrations/email";
+import { env } from "@/server/env";
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
@@ -13,7 +15,7 @@ const forgotPasswordSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limit
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const ip = clientIp(request);
     const { allowed } = await rateLimit(`forgot-password:${ip}`, 3, 3600); // 3 per hour
 
     if (!allowed) {
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Build the reset URL with the RAW token
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}&email=${email}`;
+    const resetUrl = `${env().NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
     // Send email via Resend
     try {

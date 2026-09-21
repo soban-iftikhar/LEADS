@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/db";
 import { z } from "zod";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { verifyOtp } from "@/lib/auth/otp";
-import { signToken } from "@/lib/auth/jwt";
-import { rateLimit } from "@/lib/rate-limit";
+import { successResponse, errorResponse } from "@/server/http/response";
+import { verifyOtp } from "@/server/auth/otp";
+import { startSession } from "@/server/auth/session";
+import { rateLimit } from "@/server/http/rate-limit";
+import { clientIp } from "@/server/http/client-ip";
+import { env } from "@/server/env";
 
 const verifyEmailSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
@@ -14,7 +16,7 @@ const verifyEmailSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limi
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const ip = clientIp(request);
     const { allowed } = await rateLimit(`verify-email:${ip}`, 10, 900);
 
     if (!allowed) {
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Lock account after too many wrong attempts
-      if (user.otpAttempts + 1 >= Number(process.env.OTP_MAX_ATTEMPTS ?? 5)) {
+      if (user.otpAttempts + 1 >= env().OTP_MAX_ATTEMPTS) {
         await prisma.legacyUser.update({
           where: { email },
           data: {
@@ -102,26 +104,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Issue JWT so user is immediately logged in after verification
-    const token = signToken({
-      userId: updatedUser.id,
-      email: updatedUser.email,
-      role: updatedUser.role,
-    });
-
     const response = successResponse({
       message: "Email verified successfully.",
       user: updatedUser,
-      token,
     });
 
-    // Set token as httpOnly cookie
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-      path: "/",
+    // Signed in straight after verification; the token lives only in the httpOnly cookie.
+    startSession(response, {
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
     });
 
     return response;

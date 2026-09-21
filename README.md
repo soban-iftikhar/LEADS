@@ -129,5 +129,5 @@ not one.
 - **Application:** Next.js
 - **Database:** PostgreSQL, managed with Prisma
 - **Caching / background jobs:** Redis
-- **Scraping:** Python, Scrapy, and Playwright, run as a dedicated service
+- **Scraping:** Python and Scrapy over plain HTTP, run as a dedicated Celery service
 - **Messaging:** Meta's WhatsApp Cloud API

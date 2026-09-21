@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { enhanceListingWithAi } from "@/lib/gemini";
+import { prisma } from "@/server/db";
+import { getCurrentUser } from "@/server/auth/session";
+import { enhanceListingWithAi } from "@/server/integrations/gemini";
 
 export async function POST(
   request: NextRequest,

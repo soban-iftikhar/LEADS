@@ -18,7 +18,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
@@ -99,7 +99,7 @@ def redact(obj, key: str = ""):
 def save(portal: str, external_id: str, payload: dict):
     out = SAMPLES / portal
     out.mkdir(parents=True, exist_ok=True)
-    payload = {"captured_at": datetime.now(timezone.utc).isoformat(), **redact(payload)}
+    payload = {"captured_at": datetime.now(UTC).isoformat(), **redact(payload)}
     (out / f"{external_id}.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -115,7 +115,7 @@ def links_round_robin(searches, pattern, prefix):
     per = []
     for search in searches:
         html = get(search).text
-        per.append([(search, prefix + l) for l in dict.fromkeys(re.findall(pattern, html))])
+        per.append([(search, prefix + link) for link in dict.fromkeys(re.findall(pattern, html))])
     out, seen = [], set()
     for i in range(max(map(len, per), default=0)):
         for lst in per:

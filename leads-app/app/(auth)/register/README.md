@@ -1,1 +1,0 @@
-# Register\nRegister page.

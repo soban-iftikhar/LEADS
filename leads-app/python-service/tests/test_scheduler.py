@@ -1,14 +1,14 @@
-from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from celery.schedules import crontab
 
-import tasks
 from celery_app import app
-from leads import runs
+from leads.crawl import runs, tasks
+from leads.jobs import tasks as job_tasks
+from leads.ops import tasks as ops_tasks
 
-PKT_2AM_UTC = datetime(2026, 11, 10, 21, 0, 0, tzinfo=timezone.utc)  # 11 Nov 02:00 Asia/Karachi
+PKT_2AM_UTC = datetime(2026, 11, 10, 21, 0, 0, tzinfo=UTC)  # 11 Nov 02:00 Asia/Karachi
 
 
 class Dispatched:
@@ -31,7 +31,7 @@ def test_beat_entry_is_2am_karachi_with_utc_enabled():
 @pytest.mark.parametrize("now, due", [
     (PKT_2AM_UTC, True),                              # 21:00 UTC = 02:00 PKT next day
     (PKT_2AM_UTC - timedelta(minutes=1), False),      # 01:59 PKT
-    (datetime(2026, 11, 10, 2, 0, tzinfo=timezone.utc), False),  # 02:00 UTC is 07:00 PKT
+    (datetime(2026, 11, 10, 2, 0, tzinfo=UTC), False),  # 02:00 UTC is 07:00 PKT
 ])
 def test_beat_fires_daily_refresh_at_0200_pkt(now, due):
     # Beat evaluates the crontab against app.now(), which is in the app timezone.
@@ -198,12 +198,12 @@ def test_portal_left_running_by_a_dead_spider_is_failed_with_a_reason(db, rds):
 
 def test_manual_crawl_request_is_claimed_once_and_marked_done(db, monkeypatch):
     started = []
-    monkeypatch.setattr(tasks, "start_run", lambda trigger: started.append(trigger) or "run-123")
+    monkeypatch.setattr(job_tasks, "start_run", lambda trigger: started.append(trigger) or "run-123")
     with db.connection() as conn:
         conn.execute("INSERT INTO ops.job_requests (type, payload) VALUES ('CRAWL_MANUAL', '{}')")
         conn.execute("INSERT INTO ops.job_requests (type, payload, run_after) VALUES ('CRAWL_MANUAL', '{}', now() + interval '1 hour')")
-    assert tasks.dispatch_requests() == 1 and started == ["manual"]
-    assert tasks.dispatch_requests() == 0                             # nothing left that is due
+    assert job_tasks.dispatch_requests() == 1 and started == ["manual"]
+    assert job_tasks.dispatch_requests() == 0                             # nothing left that is due
     with db.connection() as conn:
         rows = conn.execute("SELECT status::text, attempts, payload->>'run_id' FROM ops.job_requests ORDER BY run_after").fetchall()
     assert rows == [("DONE", 1, "run-123"), ("PENDING", 0, None)]
@@ -212,21 +212,21 @@ def test_manual_crawl_request_is_claimed_once_and_marked_done(db, monkeypatch):
 def test_failed_job_request_is_retried_with_backoff_then_failed(db, monkeypatch):
     def boom(trigger):
         raise RuntimeError("redis down")
-    monkeypatch.setattr(tasks, "start_run", boom)
+    monkeypatch.setattr(job_tasks, "start_run", boom)
     with db.connection() as conn:
         conn.execute("INSERT INTO ops.job_requests (type, payload, max_attempts) VALUES ('CRAWL_MANUAL', '{}', 2)")
-    tasks.dispatch_requests()
+    job_tasks.dispatch_requests()
     with db.connection() as conn:
         assert conn.execute("SELECT status::text, attempts, run_after > now(), error FROM ops.job_requests").fetchone() == ("PENDING", 1, True, "redis down")
         conn.execute("UPDATE ops.job_requests SET run_after = now()")
-    tasks.dispatch_requests()
+    job_tasks.dispatch_requests()
     with db.connection() as conn:
         assert conn.execute("SELECT status::text, attempts FROM ops.job_requests").fetchone() == ("FAILED", 2)
 
 
 def test_heartbeat_upserts_one_row(db):
-    tasks.heartbeat()
-    tasks.heartbeat()
+    ops_tasks.heartbeat()
+    ops_tasks.heartbeat()
     with db.connection() as conn:
         assert conn.execute("SELECT count(*), max(service) FROM ops.heartbeats").fetchone() == (1, "beat")
 
@@ -287,7 +287,7 @@ def test_search_hit_dates_map_external_id_to_newest_date():
 
 
 def test_spider_child_killed_when_runner_is_stopped(db, rds, monkeypatch, tmp_path):
-    import subprocess, sys
+    import sys
     monkeypatch.setattr(runs, "LOG_DIR", tmp_path)
     monkeypatch.setattr(runs, "spider_command", lambda *a: [sys.executable, "-c", "import time; time.sleep(60)"])
     run_id = tasks.start_run("manual", pool=db, rds=rds, dispatch=Dispatched())

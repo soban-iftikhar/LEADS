@@ -22,7 +22,8 @@ def _b64_bytes(value: str, name: str, min_len: int, exact: bool = False) -> str:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(SERVICE_DIR / ".env",), env_file_encoding="utf-8", extra="ignore"
+        # .env.local (developer overrides) wins over .env; real environment variables win over both.
+        env_file=(SERVICE_DIR / ".env", SERVICE_DIR / ".env.local"), env_file_encoding="utf-8", extra="ignore"
     )
 
     database_url: str = Field(validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_DSN"))
@@ -30,19 +31,33 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://127.0.0.1:6379/1"
     celery_timezone: str = "Asia/Karachi"
 
+    # Daily crawl (Asia/Karachi) and its window (SPEC_01 5.1)
+    daily_scrape_hour: int = Field(default=2, ge=0, le=23)
+    daily_scrape_minute: int = Field(default=0, ge=0, le=59)
+    crawl_window_hours: int = Field(default=26, ge=1, le=24 * 14)
+    daily_max_pages: int = Field(default=15, ge=1)
+    crawl_log_dir: Path = SERVICE_DIR / "logs"
+
+    # How the spiders identify themselves. One fixed identity per deployment;
+    # rotating identities from one address looks like evasion and gets blocked.
+    scraper_user_agent: str = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+    robotstxt_obey: bool = True
+
     phone_hash_pepper: str
     phone_enc_key: str
 
     olx_access_token: str | None = None
     olx_id_token: str | None = None
+    olx_refresh_token: str | None = None
     ilaan_auth_token: str | None = None
     ilaan_csrf_token: str | None = None
 
     resend_api_key: str | None = None
     email_from: str | None = None
     admin_alert_email: str | None = None
-
-    playwright_headless: bool = True
 
     # Area conversion lives in config, not code (SPEC_01 3.1).
     marla_sqft: float = 225.0

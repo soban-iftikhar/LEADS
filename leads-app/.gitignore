@@ -70,3 +70,5 @@ uploads/
 
 # Test Data File
 python-service/test_output.json
+# TypeScript incremental build cache
+*.tsbuildinfo

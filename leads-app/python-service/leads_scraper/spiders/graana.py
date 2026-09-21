@@ -1,7 +1,8 @@
-import json
 import re
-import scrapy
 from itertools import product
+
+import scrapy
+
 from leads_scraper.extract import next_data
 from leads_scraper.spiders.base_spider import BaseSpider
 

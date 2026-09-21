@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { createListingSchema } from "@/lib/validations/listing.schema";
-import { verifyToken } from "@/lib/auth/jwt";
+import { prisma } from "@/server/db";
+import { createListingSchema } from "@/server/modules/listings/schema";
+import { requireUser } from "@/server/auth/guards";
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get("token")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = requireUser(request);
+    if (!auth.ok) return auth.response;
 
     const body = await request.json();
     const parsed = createListingSchema.safeParse(body);
@@ -45,7 +38,7 @@ export async function POST(request: NextRequest) {
         description: data.description,
         originalDesc: data.description,
         images: data.images,
-        sellerId: payload.userId,
+        sellerId: auth.user.userId,
       },
     });
 
