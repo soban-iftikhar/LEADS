@@ -1,6 +1,5 @@
 import "server-only";
 import { env } from "@/server/env";
-import { TEMPLATE_NAME, LANGUAGE_CODE, buildComponents } from "./template";
 
 export class WhatsAppSendError extends Error {
   constructor(message: string, readonly detail?: string) {
@@ -9,13 +8,12 @@ export class WhatsAppSendError extends Error {
   }
 }
 
-/** True when no Cloud API credentials are configured: sends are faked, nothing leaves the server. */
-function isMockMode(): boolean {
-  const { WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID } = env();
-  return !(WHATSAPP_TOKEN && WHATSAPP_PHONE_NUMBER_ID);
-}
-
-/** The single place that talks to the WhatsApp Cloud API. Returns the message id. */
+/**
+ * The web app only sends verification codes. Outreach and campaign messages are sent by
+ * the Python messaging worker through its MessageChannel (SPEC_00 4.4).
+ *
+ * Returns the WhatsApp message id.
+ */
 async function send(message: Record<string, unknown>): Promise<string> {
   const { WHATSAPP_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_TOKEN } = env();
   const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
@@ -37,21 +35,6 @@ async function send(message: Record<string, unknown>): Promise<string> {
   const id = data?.messages?.[0]?.id;
   if (!id) throw new WhatsAppSendError("Unexpected WhatsApp API response", JSON.stringify(data));
   return id;
-}
-
-/** First-contact message to a seller, using the approved template. */
-export async function sendTemplateMessage(to: string, sellerName: string): Promise<string> {
-  if (isMockMode()) return `mock.${crypto.randomUUID()}`;
-
-  return send({
-    to,
-    type: "template",
-    template: {
-      name: TEMPLATE_NAME,
-      language: { code: LANGUAGE_CODE },
-      components: buildComponents(sellerName),
-    },
-  });
 }
 
 /** Phone verification code. Returns false instead of throwing: signup continues by email. */
