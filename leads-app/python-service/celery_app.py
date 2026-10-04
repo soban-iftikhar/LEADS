@@ -6,31 +6,28 @@ Run (from this directory):
     celery -A celery_app beat --schedule /data/celerybeat-schedule --loglevel=info  # exactly one
 """
 
-import os
-
 from celery import Celery
 from celery.schedules import crontab
-from dotenv import load_dotenv
 from kombu import Queue
 
-load_dotenv(".env.local")
-load_dotenv()
+from leads.settings import get_settings
 
-BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
-RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
-TIMEZONE = os.getenv("CELERY_TIMEZONE", "Asia/Karachi")
-
-DAILY_SCRAPE_HOUR = int(os.getenv("DAILY_SCRAPE_HOUR", "2"))
-DAILY_SCRAPE_MINUTE = int(os.getenv("DAILY_SCRAPE_MINUTE", "0"))
+# All configuration comes from leads.settings (one validated source for every process).
+settings = get_settings()
 
 # A crawl task may run 2.5 h. Redis re-delivers any task not acknowledged within the
 # visibility timeout, so it must be longer than the longest task or crawls start twice.
 VISIBILITY_TIMEOUT = 4 * 3600
 
-app = Celery("leads", broker=BROKER_URL, backend=RESULT_BACKEND, include=["tasks"])
+app = Celery(
+    "leads",
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
+    include=["leads.crawl.tasks", "leads.jobs.tasks", "leads.ops.tasks"],
+)
 
 app.conf.update(
-    timezone=TIMEZONE,
+    timezone=settings.celery_timezone,
     enable_utc=True,  # stored and compared in UTC; beat converts the 02:00 PKT schedule
     task_queues=[Queue(name) for name in ("default", "crawl", "intel", "agents", "messaging")],
     task_default_queue="default",
@@ -50,7 +47,7 @@ app.conf.update(
 app.conf.beat_schedule = {
     "crawl-daily-refresh": {
         "task": "crawl.daily_refresh",
-        "schedule": crontab(hour=DAILY_SCRAPE_HOUR, minute=DAILY_SCRAPE_MINUTE),
+        "schedule": crontab(hour=settings.daily_scrape_hour, minute=settings.daily_scrape_minute),
     },
     "crawl-catchup-check": {
         "task": "crawl.catchup_check",

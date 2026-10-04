@@ -1,1 +1,0 @@
-# Charts\nRecharts wrapper components.

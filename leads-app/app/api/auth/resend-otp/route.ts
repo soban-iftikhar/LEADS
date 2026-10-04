@@ -1,11 +1,14 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/db";
 import { z } from "zod";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { generateOtp, hashOtp } from "@/lib/auth/otp";
-import { sendOtpEmail } from "@/lib/email";
-import { sendWhatsAppOTP, formatPakistaniPhone } from "@/lib/whatsapp";
-import { rateLimit } from "@/lib/rate-limit";
+import { successResponse, errorResponse } from "@/server/http/response";
+import { generateOtp, hashOtp } from "@/server/auth/otp";
+import { sendOtpEmail } from "@/server/integrations/email";
+import { sendWhatsAppOTP } from "@/server/modules/messaging/whatsapp/client";
+import { formatPakistaniPhone } from "@/server/modules/messaging/whatsapp/phone";
+import { rateLimit } from "@/server/http/rate-limit";
+import { clientIp } from "@/server/http/client-ip";
+import { env } from "@/server/env";
 
 const resendOtpSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
@@ -16,7 +19,7 @@ const resendOtpSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const ip = clientIp(request);
     const { allowed } = await rateLimit(`resend-otp:${ip}`, 100, 3600);
 
     if (!allowed) {
@@ -58,7 +61,7 @@ export async function POST(request: NextRequest) {
     const otp = generateOtp();
     const otpHash = await hashOtp(otp);
     const otpExpiresAt = new Date(
-      Date.now() + Number(process.env.OTP_EXPIRY_MINUTES ?? 10) * 60 * 1000
+      Date.now() + env().OTP_EXPIRY_MINUTES * 60 * 1000
     );
 
     if (type === "email") {

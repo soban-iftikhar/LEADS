@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/db";
 import { z } from "zod";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { hashPassword } from "@/lib/auth/hash";
-import { rateLimit } from "@/lib/rate-limit";
+import { successResponse, errorResponse } from "@/server/http/response";
+import { hashPassword } from "@/server/auth/password";
+import { rateLimit } from "@/server/http/rate-limit";
+import { clientIp } from "@/server/http/client-ip";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
@@ -28,7 +29,7 @@ const resetPasswordSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limit
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const ip = clientIp(request);
     const { allowed } = await rateLimit(`reset-password:${ip}`, 10, 1800);
 
     if (!allowed) {

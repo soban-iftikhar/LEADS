@@ -1,11 +1,13 @@
 import json
-import scrapy
 from itertools import product
+
+import scrapy
+
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
 class IlaanSpider(BaseSpider):
-  
+
     name = "ilaan"
     platform_name = "ilaan"
     allowed_domains = ["ilaan.com", "npi.ilaan.com"]
@@ -13,16 +15,16 @@ class IlaanSpider(BaseSpider):
     REVEAL_URL = "https://npi.ilaan.com/api/properties-new/{property_id}/reveal-contact?channel=call"
 
     CATEGORY_MAP = {
-        "house": "House",                
-        "flat": "Flat",                  
-        "residential_plot": "Plot",      
-        "commercial_plot": "Plot",       
-        "farmhouse": "Farmhouse",        
+        "house": "House",
+        "flat": "Flat",
+        "residential_plot": "Plot",
+        "commercial_plot": "Plot",
+        "farmhouse": "Farmhouse",
     }
 
     STATUS_MAP = {
-        "sale": "ForSale",  
-        "rent": "ForRent",   
+        "sale": "ForSale",
+        "rent": "ForRent",
     }
 
     PAGE_SIZE = 20
@@ -78,7 +80,7 @@ class IlaanSpider(BaseSpider):
             return
 
         cities = self.cities()
-        for (city, city_id), (canon_cat, api_type), (purpose_name, status) in product(
+        for (_city, city_id), (canon_cat, api_type), (purpose_name, status) in product(
             cities, categories.items(), purposes.items()
         ):
             yield self._listing_request(canon_cat, purpose_name, api_type, status, page=1, city_id=city_id)

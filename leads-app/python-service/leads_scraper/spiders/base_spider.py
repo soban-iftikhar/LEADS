@@ -1,8 +1,8 @@
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import scrapy
 
+from leads.settings import get_settings
 from leads_scraper.items import RawListingItem
 from leads_scraper.parsing import parse_listed_at
 
@@ -48,10 +48,10 @@ class BaseSpider(scrapy.Spider):
         self.run_id = run_id or None  # master.crawl_runs.id when started by the scheduler
         # Window: keep only listings newer than `since_hours` (SPEC_01 5.1). Pages per segment
         # are capped so a portal with no usable date order cannot run forever.
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
         self.cutoff = (self.started_at - timedelta(hours=self.since_hours)) if self.since_hours else None
         if self.cutoff:
-            self.max_pages = int(os.getenv("DAILY_MAX_PAGES", "15"))
+            self.max_pages = get_settings().daily_max_pages
         else:
             self.max_pages = 999 if self.full_scrape else 3
         self.skipped_old = 0
@@ -131,7 +131,7 @@ class BaseSpider(scrapy.Spider):
             platform=self.platform_name,
             payload=payload,
             ctx={
-                "scraped_at": datetime.now(timezone.utc),
+                "scraped_at": datetime.now(UTC),
                 "category": category,
                 "purpose": purpose,
                 "city": city,

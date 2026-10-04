@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
 
 from leads_scraper import parsing as p
 
-NOW = datetime(2026, 11, 10, 21, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 11, 10, 21, 0, tzinfo=UTC)
 
 
 @pytest.mark.parametrize("raw, expected", [
@@ -61,11 +61,11 @@ def test_relative_dates_are_estimated():
 
 def test_iso_and_epoch_are_exact():
     dt, prec, ok = p.parse_listed_at("2026-06-19T11:42:41.008Z", NOW)
-    assert dt == datetime(2026, 6, 19, 11, 42, 41, 8000, tzinfo=timezone.utc) and prec == p.EXACT and ok
+    assert dt == datetime(2026, 6, 19, 11, 42, 41, 8000, tzinfo=UTC) and prec == p.EXACT and ok
     dt, prec, _ = p.parse_listed_at("2026-07-13T05:49:32.9734791", NOW)  # Ilaan: 7 digits, no tz
-    assert dt == datetime(2026, 7, 13, 5, 49, 32, 973479, tzinfo=timezone.utc) and prec == p.EXACT
+    assert dt == datetime(2026, 7, 13, 5, 49, 32, 973479, tzinfo=UTC) and prec == p.EXACT
     dt, prec, _ = p.parse_listed_at(1794200595, NOW)
-    assert dt == datetime.fromtimestamp(1794200595, tz=timezone.utc) and prec == p.EXACT
+    assert dt == datetime.fromtimestamp(1794200595, tz=UTC) and prec == p.EXACT
 
 
 @pytest.mark.parametrize("raw", [None, "", "sometime last spring"])

@@ -1,15 +1,20 @@
-import os
-from dotenv import load_dotenv
+# Scrapy settings. Values that differ per deployment come from leads.settings
+# (environment variables, validated), never from os.getenv here.
+from leads.settings import get_settings
 
-load_dotenv(".env.local")
-load_dotenv()
+_s = get_settings()
 
 BOT_NAME = "leads_scraper"
 
 SPIDER_MODULES = ["leads_scraper.spiders"]
 NEWSPIDER_MODULE = "leads_scraper.spiders"
 
-ROBOTSTXT_OBEY = False
+# Respect each portal's published crawling rules. Requests a portal's robots.txt
+# disallows are dropped and logged ("Forbidden by robots.txt"), not retried.
+ROBOTSTXT_OBEY = _s.robotstxt_obey
+
+# One fixed identity for every request (see leads.settings.scraper_user_agent).
+USER_AGENT = _s.scraper_user_agent
 
 # Throttling
 DOWNLOAD_DELAY = 4
@@ -34,9 +39,7 @@ COOKIES_ENABLED = True
 
 # Middlewares
 DOWNLOADER_MIDDLEWARES = {
-    "leads_scraper.middlewares.RotatingUserAgentMiddleware": 400,
     "leads_scraper.middlewares.PlatformCookieMiddleware": 410,
-    "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
 }
 
 # Pipelines
@@ -44,10 +47,6 @@ ITEM_PIPELINES = {
     "leads_scraper.pipelines.CleaningPipeline": 200,
     "leads_scraper.pipelines.PortalPipeline": 300,
 }
-
-# Postgres
-
-
 
 # Retry
 RETRY_ENABLED = True
@@ -66,16 +65,12 @@ MEMUSAGE_WARNING_MB = 384
 LOG_LEVEL = "INFO"
 TELNETCONSOLE_ENABLED = False
 
-# Playwright
-# Plain HTTP is enough for all four portals (FIELD_INVENTORY section 1). To render a page
-# with a browser, add scrapy-playwright to DOWNLOAD_HANDLERS and set meta={"playwright": True}.
-PLAYWRIGHT_BROWSER_TYPE = "chromium"
-PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
+# All four portals work over plain HTTP (FIELD_INVENTORY section 1); no browser is bundled.
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
 # OLX API tokens
-OLX_ACCESS_TOKEN = os.getenv("OLX_ACCESS_TOKEN")
-OLX_ID_TOKEN = os.getenv("OLX_ID_TOKEN")
-OLX_REFRESH_TOKEN = os.getenv("OLX_REFRESH_TOKEN")
-ILAAN_AUTH_TOKEN = os.getenv("ILAAN_AUTH_TOKEN")
-ILAAN_CSRF_TOKEN = os.getenv("ILAAN_CSRF_TOKEN")
+OLX_ACCESS_TOKEN = _s.olx_access_token
+OLX_ID_TOKEN = _s.olx_id_token
+OLX_REFRESH_TOKEN = _s.olx_refresh_token
+ILAAN_AUTH_TOKEN = _s.ilaan_auth_token
+ILAAN_CSRF_TOKEN = _s.ilaan_csrf_token

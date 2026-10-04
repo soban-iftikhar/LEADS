@@ -1,3 +1,0 @@
-# Launch Campaign API
-
-TODO

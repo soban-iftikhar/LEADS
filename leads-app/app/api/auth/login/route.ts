@@ -1,15 +1,16 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { loginSchema } from "@/lib/validations/auth.schema";
-import { verifyPassword } from "@/lib/auth/hash";
-import { signToken } from "@/lib/auth/jwt";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { rateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/server/db";
+import { loginSchema } from "@/server/modules/auth/schema";
+import { verifyPassword } from "@/server/auth/password";
+import { startSession } from "@/server/auth/session";
+import { successResponse, errorResponse } from "@/server/http/response";
+import { rateLimit } from "@/server/http/rate-limit";
+import { clientIp } from "@/server/http/client-ip";
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Rate limit login attempts — brute force protection
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    const ip = clientIp(request);
     const { allowed } = await rateLimit(`login:${ip}`, 10, 900); // 10 per 15 min
 
     if (!allowed) {
@@ -32,6 +33,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = parsed.data;
+
+    // Second limit keyed on the account, so rotating addresses cannot brute-force one user.
+    const perAccount = await rateLimit(`login:email:${email}`, 10, 900);
+    if (!perAccount.allowed) {
+      return errorResponse(
+        "Too many login attempts. Please try again in a few minutes.",
+        429
+      );
+    }
 
     // 3. Find user
     const user = await prisma.legacyUser.findUnique({ where: { email } });
@@ -66,16 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. Issue JWT
-    const token = signToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
-    // 8. Return user data (never include passwordHash or OTP fields)
-    return successResponse({
-      token,
+    // 7. Return user data (never include passwordHash or OTP fields)
+    const response = successResponse({
       user: {
         id: user.id,
         fullName: user.fullName,
@@ -86,6 +88,15 @@ export async function POST(request: NextRequest) {
         isPhoneVerified: user.isPhoneVerified,
       },
     });
+
+    // 8. Sign in: the token lives only in an httpOnly cookie, never in the response body,
+    // so page scripts (and anything injected into them) cannot read it.
+    startSession(response, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return errorResponse("Something went wrong. Please try again.", 500);
