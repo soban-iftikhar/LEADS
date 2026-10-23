@@ -1,0 +1,148 @@
+@startuml
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 9
+skinparam defaultTextAlignment center
+skinparam roundCorner 8
+skinparam shadowing false
+skinparam padding 6
+skinparam wrapWidth 150
+skinparam nodesep 12
+skinparam ranksep 24
+skinparam linetype ortho
+
+' Node Styles
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    BorderThickness 1.5
+    FontColor #000000
+}
+
+skinparam rectangle<<critical>> {
+    BackgroundColor #FFFFFF
+    BorderColor #B91C1C
+    BorderThickness 2.5
+    FontColor #000000
+}
+
+skinparam rectangle<<milestone>> {
+    BackgroundColor #FFFFFF
+    BorderColor #B91C1C
+    BorderThickness 2.5
+    BorderStyle dashed
+    FontColor #000000
+}
+
+skinparam rectangle<<noncritical>> {
+    BackgroundColor #FFFFFF
+    BorderColor #4B5563
+    BorderThickness 1.2
+    FontColor #000000
+}
+
+skinparam arrow {
+    Color #B91C1C
+    Thickness 2
+    FontColor #000000
+}
+
+skinparam arrow<<noncrit_arrow>> {
+    Color #4B5563
+    Thickness 1.2
+    FontColor #000000
+}
+
+package "Phase 1 - 3: Scope, System Design & Specs (Weeks 1 - 17)" as ROW1 {
+    rectangle "<b>ES: 0</b>  |  <b>DUR: 0d</b>  |  <b>EF: 0</b>\n====\n<b>START: Project Kickoff</b>\n====\n<b>LS: 0</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 0</b>" as N_START <<milestone>>
+    rectangle "<b>ES: 0</b>  |  <b>DUR: 3d</b>  |  <b>EF: 3</b>\n====\n<b>1.1: Competitor Analysis</b>\n====\n<b>LS: 0</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 3</b>" as N_1_1 <<critical>>
+    rectangle "<b>ES: 3</b>  |  <b>DUR: 6d</b>  |  <b>EF: 9</b>\n====\n<b>1.2: Requirements Gathering</b>\n====\n<b>LS: 3</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 9</b>" as N_1_2 <<critical>>
+    rectangle "<b>ES: 9</b>  |  <b>DUR: 4d</b>  |  <b>EF: 13</b>\n====\n<b>1.3: Scope Doc Writing</b>\n====\n<b>LS: 9</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 13</b>" as N_1_3 <<critical>>
+    rectangle "<b>ES: 13</b>  |  <b>DUR: 0d</b>  |  <b>EF: 13</b>\n====\n<b>M1: Scope Approved</b>\n====\n<b>LS: 13</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 13</b>" as N_M1 <<milestone>>
+    rectangle "<b>ES: 13</b>  |  <b>DUR: 7d</b>  |  <b>EF: 20</b>\n====\n<b>2.1: DB Schema Design</b>\n====\n<b>LS: 13</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 20</b>" as N_2_1 <<critical>>
+    rectangle "<b>ES: 20</b>  |  <b>DUR: 7d</b>  |  <b>EF: 27</b>\n====\n<b>2.2: System Arch & API Design</b>\n====\n<b>LS: 20</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 27</b>" as N_2_2 <<critical>>
+    rectangle "<b>ES: 27</b>  |  <b>DUR: 5d</b>  |  <b>EF: 32</b>\n====\n<b>2.3: NLP Model Arch Plan</b>\n====\n<b>LS: 32</b>  |  <b>FLOAT: 5d</b>  |  <b>LF: 37</b>" as N_2_3 <<noncritical>>
+    rectangle "<b>ES: 27</b>  |  <b>DUR: 10d</b>  |  <b>EF: 37</b>\n====\n<b>2.4: UI/UX Wireframes</b>\n====\n<b>LS: 27</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 37</b>" as N_2_4 <<critical>>
+    rectangle "<b>ES: 37</b>  |  <b>DUR: 0d</b>  |  <b>EF: 37</b>\n====\n<b>M_DES: Design Complete</b>\n====\n<b>LS: 37</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 37</b>" as N_M_DES <<milestone>>
+    rectangle "<b>ES: 37</b>  |  <b>DUR: 24d</b>  |  <b>EF: 61</b>\n====\n<b>3.0: SRS Specs & Use Cases</b>\n====\n<b>LS: 37</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 61</b>" as N_3_0 <<critical>>
+    rectangle "<b>ES: 61</b>  |  <b>DUR: 18d</b>  |  <b>EF: 79</b>\n====\n<b>4.0: SDS Specs & UML Design</b>\n====\n<b>LS: 61</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 79</b>" as N_4_0 <<critical>>
+    rectangle "<b>ES: 79</b>  |  <b>DUR: 0d</b>  |  <b>EF: 79</b>\n====\n<b>M2: SDS Complete</b>\n====\n<b>LS: 79</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 79</b>" as N_M2 <<milestone>>
+}
+
+package "Phase 4 - 6: Scraping, AI Pipelines & Outreach (Weeks 17 - 40)" as ROW2 {
+    rectangle "<b>ES: 79</b>  |  <b>DUR: 2d</b>  |  <b>EF: 81</b>\n====\n<b>5.1: Dev Env Setup</b>\n====\n<b>LS: 79</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 81</b>" as N_5_1 <<critical>>
+    rectangle "<b>ES: 81</b>  |  <b>DUR: 7d</b>  |  <b>EF: 88</b>\n====\n<b>5.2: M01 User Auth & Dual OTP</b>\n====\n<b>LS: 81</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 88</b>" as N_5_2 <<critical>>
+    rectangle "<b>ES: 88</b>  |  <b>DUR: 8d</b>  |  <b>EF: 96</b>\n====\n<b>5.3: M02 Market Intelligence</b>\n====\n<b>LS: 88</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 96</b>" as N_5_3 <<critical>>
+    rectangle "<b>ES: 96</b>  |  <b>DUR: 8d</b>  |  <b>EF: 104</b>\n====\n<b>5.4: M03 Scrapy Spiders</b>\n====\n<b>LS: 96</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 104</b>" as N_5_4 <<critical>>
+    rectangle "<b>ES: 104</b>  |  <b>DUR: 8d</b>  |  <b>EF: 112</b>\n====\n<b>5.5: M03 Playwright Spiders</b>\n====\n<b>LS: 104</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 112</b>" as N_5_5 <<critical>>
+    rectangle "<b>ES: 112</b>  |  <b>DUR: 0d</b>  |  <b>EF: 112</b>\n====\n<b>M3: Scraping Operational</b>\n====\n<b>LS: 112</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 112</b>" as N_M3 <<milestone>>
+    rectangle "<b>ES: 112</b>  |  <b>DUR: 7d</b>  |  <b>EF: 119</b>\n====\n<b>5.7: M04 Seller Outreach</b>\n====\n<b>LS: 112</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 119</b>" as N_5_7 <<critical>>
+    rectangle "<b>ES: 119</b>  |  <b>DUR: 7d</b>  |  <b>EF: 126</b>\n====\n<b>5.8: M05 Seller Forms</b>\n====\n<b>LS: 119</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 126</b>" as N_5_8 <<critical>>
+    rectangle "<b>ES: 126</b>  |  <b>DUR: 8d</b>  |  <b>EF: 134</b>\n====\n<b>5.9: M06 AI Property Analyser</b>\n====\n<b>LS: 126</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 134</b>" as N_5_9 <<critical>>
+    rectangle "<b>ES: 134</b>  |  <b>DUR: 10d</b>  |  <b>EF: 144</b>\n====\n<b>5.10: M07 Lead Scoring Model</b>\n====\n<b>LS: 134</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 144</b>" as N_5_10 <<critical>>
+    rectangle "<b>ES: 144</b>  |  <b>DUR: 10d</b>  |  <b>EF: 154</b>\n====\n<b>5.11: M07 WhatsApp Campaign NLP</b>\n====\n<b>LS: 144</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 154</b>" as N_5_11 <<critical>>
+    rectangle "<b>ES: 154</b>  |  <b>DUR: 0d</b>  |  <b>EF: 154</b>\n====\n<b>M4: Seller Pipeline Complete</b>\n====\n<b>LS: 154</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 154</b>" as N_M4 <<milestone>>
+}
+
+package "Phase 6 - 8: Integration, Testing, UAT & Delivery (Weeks 40 - 52)" as ROW3 {
+    rectangle "<b>ES: 154</b>  |  <b>DUR: 14d</b>  |  <b>EF: 168</b>\n====\n<b>5.13-14: M08 Listing Hub & UI</b>\n====\n<b>LS: 154</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 168</b>" as N_5_13_14 <<critical>>
+    rectangle "<b>ES: 168</b>  |  <b>DUR: 25d</b>  |  <b>EF: 193</b>\n====\n<b>5.15-18: M09-M12 Dashboards</b>\n====\n<b>LS: 168</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 193</b>" as N_5_15_18 <<critical>>
+    rectangle "<b>ES: 193</b>  |  <b>DUR: 11d</b>  |  <b>EF: 204</b>\n====\n<b>5.20-21: Integration & E2E Pipeline</b>\n====\n<b>LS: 193</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 204</b>" as N_5_20_21 <<critical>>
+    rectangle "<b>ES: 204</b>  |  <b>DUR: 0d</b>  |  <b>EF: 204</b>\n====\n<b>M5: 100% Product Complete</b>\n====\n<b>LS: 204</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 204</b>" as N_M5 <<milestone>>
+    rectangle "<b>ES: 204</b>  |  <b>DUR: 11d</b>  |  <b>EF: 215</b>\n====\n<b>6.1-6.3: Testing Plan & Traceability</b>\n====\n<b>LS: 204</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 215</b>" as N_6_1_6_3 <<critical>>
+    rectangle "<b>ES: 215</b>  |  <b>DUR: 0d</b>  |  <b>EF: 215</b>\n====\n<b>M_TEST: Testing Complete</b>\n====\n<b>LS: 215</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 215</b>" as N_M_TEST <<milestone>>
+    rectangle "<b>ES: 215</b>  |  <b>DUR: 5d</b>  |  <b>EF: 220</b>\n====\n<b>7.1: ML Tuning on Live Data</b>\n====\n<b>LS: 215</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 220</b>" as N_7_1 <<critical>>
+    rectangle "<b>ES: 220</b>  |  <b>DUR: 10d</b>  |  <b>EF: 230</b>\n====\n<b>7.2-7.3: Performance & Security Audit</b>\n====\n<b>LS: 220</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 230</b>" as N_7_2_7_3 <<critical>>
+    rectangle "<b>ES: 230</b>  |  <b>DUR: 10d</b>  |  <b>EF: 240</b>\n====\n<b>7.4-7.5: UAT with Agents & Polish</b>\n====\n<b>LS: 230</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 240</b>" as N_7_4_7_5 <<critical>>
+    rectangle "<b>ES: 240</b>  |  <b>DUR: 15d</b>  |  <b>EF: 255</b>\n====\n<b>7.6-7.8: Final Report & Plagiarism</b>\n====\n<b>LS: 240</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 255</b>" as N_7_6_7_8 <<critical>>
+    rectangle "<b>ES: 255</b>  |  <b>DUR: 1d</b>  |  <b>EF: 256</b>\n====\n<b>7.9: Final FYP Defense</b>\n====\n<b>LS: 255</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 256</b>" as N_7_9 <<critical>>
+    rectangle "<b>ES: 256</b>  |  <b>DUR: 0d</b>  |  <b>EF: 256</b>\n====\n<b>M6: Project Complete & Handover</b>\n====\n<b>LS: 256</b>  |  <b>FLOAT: 0d</b>  |  <b>LF: 256</b>" as N_M6 <<milestone>>
+}
+
+' Row 1 Connections
+N_START -right-> N_1_1
+N_1_1 -right-> N_1_2
+N_1_2 -right-> N_1_3
+N_1_3 -right-> N_M1
+N_M1 -right-> N_2_1
+N_2_1 -right-> N_2_2
+N_2_2 -down-> N_2_3 <<noncrit_arrow>>
+N_2_2 -right-> N_2_4
+N_2_3 -right-> N_M_DES <<noncrit_arrow>>
+N_2_4 -right-> N_M_DES
+N_M_DES -right-> N_3_0
+N_3_0 -right-> N_4_0
+N_4_0 -right-> N_M2
+
+' Row 1 to Row 2 Transition
+N_M2 -down-> N_5_1
+
+' Row 2 Connections
+N_5_1 -right-> N_5_2
+N_5_2 -right-> N_5_3
+N_5_3 -right-> N_5_4
+N_5_4 -right-> N_5_5
+N_5_5 -right-> N_M3
+N_M3 -right-> N_5_7
+N_5_7 -right-> N_5_8
+N_5_8 -right-> N_5_9
+N_5_9 -right-> N_5_10
+N_5_10 -right-> N_5_11
+N_5_11 -right-> N_M4
+
+' Row 2 to Row 3 Transition
+N_M4 -down-> N_5_13_14
+
+' Row 3 Connections
+N_5_13_14 -right-> N_5_15_18
+N_5_15_18 -right-> N_5_20_21
+N_5_20_21 -right-> N_M5
+N_M5 -right-> N_6_1_6_3
+N_6_1_6_3 -right-> N_M_TEST
+N_M_TEST -right-> N_7_1
+N_7_1 -right-> N_7_2_7_3
+N_7_2_7_3 -right-> N_7_4_7_5
+N_7_4_7_5 -right-> N_7_6_7_8
+N_7_6_7_8 -right-> N_7_9
+N_7_9 -right-> N_M6
+
+@enduml
