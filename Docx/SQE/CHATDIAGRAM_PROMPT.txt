@@ -1,0 +1,85 @@
+Generate a professional Activity On Node (AON) Network Diagram for a 1-year Software Engineering project titled "LEADS (Lead generation Engine for Automated Discovery System)".
+
+DIAGRAM REQUIREMENTS:
+1. Diagram Type: Activity On Node (AON) / Critical Path Method (CPM) Network Diagram.
+2. Flow: Left-to-Right (LR) or structured multi-tier sequential workflow from "START: Project Kickoff" to "FINISH: Final Evaluation & Handover".
+3. Visual Styling:
+   - Node Boxes: Rectangular blocks divided into 2 sections:
+     * Top header: Activity ID and Duration (e.g., "ID: 1.1 | Dur: 3d").
+     * Bottom body: Activity Title (e.g., "Competitor Analysis").
+   - Critical Path: Highlight all critical path nodes with a bold red border or high-contrast accent color and thick red connector arrows.
+   - Non-Critical Nodes: Standard black/gray borders with standard arrows (e.g., Activity 2.3).
+   - Milestones: Diamond or dashed-border node shape (Duration = 0d).
+   - Clean professional layout with clear arrow directions, no overlapping text.
+
+ACTIVITY DATA, DURATIONS & PREDECESSORS:
+
+Phase 1: Initiation (Weeks 1-3)
+- START: Project Kickoff | Dur: 0d | Pred: None | Critical
+- 1.1: Competitor Analysis | Dur: 3d | Pred: START | Critical
+- 1.2: Requirements Gathering | Dur: 6d | Pred: 1.1 | Critical
+- 1.3: Scope Document Writing | Dur: 4d | Pred: 1.2 | Critical
+- M1: Scope Approved Milestone | Dur: 0d | Pred: 1.3 | Critical
+
+Phase 2: Planning & System Design (Weeks 4-9)
+- 2.1: Database Schema Design (PostgreSQL + MongoDB) | Dur: 7d | Pred: M1 | Critical
+- 2.2: System Architecture & API Design | Dur: 7d | Pred: 2.1 | Critical
+- 2.3: NLP & Scoring Model Arch Planning | Dur: 5d | Pred: 2.2 | Non-Critical (Parallel)
+- 2.4: UI/UX Wireframes & Mockups | Dur: 10d | Pred: 2.2 | Critical
+- M_DES: Design Phase Complete Milestone | Dur: 0d | Pred: 2.3, 2.4 | Critical
+
+Phase 3: Formal Specifications (Weeks 9-17)
+- 3.0: SRS Documentation & Use Cases | Dur: 24d | Pred: M_DES | Critical
+- 4.0: SDS Architecture & UML Diagrams | Dur: 18d | Pred: 3.0 | Critical
+- M2: SDS Complete Milestone | Dur: 0d | Pred: 4.0 | Critical
+
+Phase 4: Core Development Setup & Scraping (Weeks 17-24)
+- 5.1: Dev Environment & Toolchain Setup | Dur: 2d | Pred: M2 | Critical
+- 5.2: M01 User Auth & Dual OTP Service | Dur: 7d | Pred: 5.1 | Critical
+- 5.3: M02 Market Intelligence Engine | Dur: 8d | Pred: 5.2 | Critical
+- 5.4: M03 Scraping Engine (Scrapy Spiders) | Dur: 8d | Pred: 5.3 | Critical
+- 5.5: M03 Scraping Engine (Playwright Spiders) | Dur: 8d | Pred: 5.4 | Critical
+- M3: Scraping Operational Milestone | Dur: 0d | Pred: 5.5 | Critical
+
+Phase 5: Seller & Buyer AI Outreach Pipeline (Weeks 24-32)
+- 5.7: M04 Seller Outreach Agent (WhatsApp Templates) | Dur: 7d | Pred: M3 | Critical
+- 5.8: M05 Dynamic Seller Form System | Dur: 7d | Pred: 5.7 | Critical
+- 5.9: M06 AI Property Analyser (Two-Stage LLM) | Dur: 8d | Pred: 5.8 | Critical
+- 5.10: M07 Buyer Lead Scoring Model (scikit-learn) | Dur: 10d | Pred: 5.9 | Critical
+- 5.11: M07 WhatsApp Campaign & Webhook NLP | Dur: 10d | Pred: 5.10 | Critical
+- M4: Seller & Buyer Pipeline Milestone | Dur: 0d | Pred: 5.11 | Critical
+
+Phase 6: Portals & Dashboards Development (Weeks 32-40)
+- 5.13: M08 Listing Management System & SSR | Dur: 7d | Pred: M4 | Critical
+- 5.14: M08 Buyer Discovery UI & Maps | Dur: 7d | Pred: 5.13 | Critical
+- 5.15: M09 Seller Dashboard & Analytics | Dur: 6d | Pred: 5.14 | Critical
+- 5.16: M10 Admin Control Panel & Proxies | Dur: 8d | Pred: 5.15 | Critical
+- 5.17: M11 Campaign Dashboard | Dur: 6d | Pred: 5.16 | Critical
+- 5.18: M12 User Profile & Settings | Dur: 5d | Pred: 5.17 | Critical
+- M_DEV: Core Development Complete Milestone | Dur: 0d | Pred: 5.18 | Critical
+
+Phase 7: Integration & Testing (Weeks 40-44)
+- 5.20: Module Integration of All 12 Modules | Dur: 7d | Pred: M_DEV | Critical
+- 5.21: End-to-End Pipeline Testing | Dur: 4d | Pred: 5.20 | Critical
+- M5: 100% Working Product Milestone | Dur: 0d | Pred: 5.21 | Critical
+- 6.1: Unit Test Cases Implementation | Dur: 4d | Pred: M5 | Critical
+- 6.2: Integration Test Execution | Dur: 4d | Pred: 6.1 | Critical
+- 6.3: Test Matrix & Documentation | Dur: 3d | Pred: 6.2 | Critical
+- M_TEST: Testing Sign-off Milestone | Dur: 0d | Pred: 6.3 | Critical
+
+Phase 8: Model Tuning, UAT & Project Delivery (Weeks 44-52)
+- 7.1: Model Retraining on Live Scraped Data | Dur: 5d | Pred: M_TEST | Critical
+- 7.2: Performance & Caching Optimization | Dur: 5d | Pred: 7.1 | Critical
+- 7.3: Security Review & Audit | Dur: 5d | Pred: 7.2 | Critical
+- 7.4: User Acceptance Testing (UAT) with Agents | Dur: 6d | Pred: 7.3 | Critical
+- 7.5: Bug Fixing & UAT Polish | Dur: 4d | Pred: 7.4 | Critical
+- 7.6: Final Academic FYP Report Writing | Dur: 7d | Pred: 7.5 | Critical
+- 7.7: Defense Presentation & Slides Preparation | Dur: 7d | Pred: 7.6 | Critical
+- 7.8: Turnitin Plagiarism Check | Dur: 1d | Pred: 7.7 | Critical
+- 7.9: Final FYP Committee Evaluation & Defense | Dur: 1d | Pred: 7.8 | Critical
+- M6 / FINISH: Project Complete & Handover | Dur: 0d | Pred: 7.9 | Critical
+
+SUMMARY:
+- Total Project Duration: 260 Working Days (52 Weeks / 1 Year).
+- Critical Path Sequence: START -> 1.1 -> 1.2 -> 1.3 -> M1 -> 2.1 -> 2.2 -> 2.4 -> M_DES -> 3.0 -> 4.0 -> M2 -> 5.1 -> 5.2 -> 5.3 -> 5.4 -> 5.5 -> M3 -> 5.7 -> 5.8 -> 5.9 -> 5.10 -> 5.11 -> M4 -> 5.13 -> 5.14 -> 5.15 -> 5.16 -> 5.17 -> 5.18 -> M_DEV -> 5.20 -> 5.21 -> M5 -> 6.1 -> 6.2 -> 6.3 -> M_TEST -> 7.1 -> 7.2 -> 7.3 -> 7.4 -> 7.5 -> 7.6 -> 7.7 -> 7.8 -> 7.9 -> M6/FINISH.
+- Parallel Subpath: 2.2 -> 2.3 (5 days) -> M_DES (Float = 5 days).

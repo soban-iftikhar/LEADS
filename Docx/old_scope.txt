@@ -1,0 +1,1819 @@
+COMSATS University Islamabad (CUI)
+
+Project Proposal
+for
+LEADS
+(Lead generation Engine for Automated Discovery System)
+
+Version 1.0
+
+By
+Mamoon Tahir CIIT/FA23-BSE-051/ISB
+Muhammad Soban CIIT/FA23-BSE-056/ISB
+
+Supervisor
+Dr. Tehseen Riaz Abbasi
+
+Bachelor of Science in Computer Science (2023-2027)
+
+Scope Document for LEADS
+
+Table of Contents
+Abstract ................................................................................................................................................. 1
+1. Introduction ......................................................................................................................................... 2
+2. Problem Statement .............................................................................................................................. 2
+3. Problem Solution/Objectives of the Proposed System ..................................................................... 3
+3.1
+
+Objectives ...................................................................................................................................... 3
+
+4. Related System Analysis/Literature Review ..................................................................................... 4
+5. Vision Statement ................................................................................................................................. 5
+6. Scope .................................................................................................................................................... 6
+7. Modules ............................................................................................................................................... 6
+8. System Limitations/Constraints ....................................................................................................... 12
+9. Data Gathering Approach ................................................................................................................. 13
+10. Project Contribution .......................................................................................................................... 13
+11. Relevance to Course Modules .......................................................................................................... 14
+12. Tools and Technologies .................................................................................................................... 15
+13. Project Stakeholders and Roles ........................................................................................................ 17
+14. Module based Work Division .......................................................................................................... 17
+15. WBS and Gantt Chart ....................................................................................................................... 18
+16. Mockups ............................................................................................................................................ 23
+17. References ......................................................................................................................................... 26
+18. Plagiarism Report.............................................................................................................................. 27
+
+Scope Document for LEADS
+
+Project Category:
+ Web Application
+ Problem Solving and Artificial Intelligence
+
+Abstract
+LEADS is a web-based real estate intelligence and outreach platform built for the Pakistani property
+market. The platform operates as an active business tool rather than a passive listing board. Its primary
+function is to help real estate professionals and investors identify high-demand property categories
+using AI-driven market trend analysis, find matching seller leads through targeted on-demand
+scraping of four competing platforms, engage those sellers through structured WhatsApp outreach,
+collect property details through category-specific digital forms, analyse the collected data using large
+language models to generate valuations and AI-enhanced listing descriptions and manage the
+resulting warm leads through a structured campaign and seller dashboard.
+Unlike every major Pakistani property platform today, including Zameen.com, OLX Pakistan,
+Graana.com, Ilaan.com which function as passive listing boards where sellers post and wait
+indefinitely, LEADS actively works the market on behalf of its users. The system scrapes publicly
+available listing data from all four platforms continuously, builds a market intelligence layer that
+computes listing velocity, average days on market and price movement per category and city and uses
+this computed intelligence to surface what is currently trending. Users then trigger on-demand
+targeted scrapers with specific filters, review AI-generated seller outreach messages before sending,
+collect structured property data through WhatsApp-delivered forms and receive warm lead
+notifications when sellers respond. The platform also includes a listing management system where
+confirmed properties can be published for buyers to browse and discover. To the best of our
+knowledge, LEADS is the first platform in Pakistan to combine real-time market intelligence
+computed from multi-platform scraped data, AI-powered seller outreach drafting, structured property
+data collection, warm lead detection via WhatsApp webhook and an integrated listing management
+system in one connected pipeline. It does not just publish a listing and walk away it actively works
+for both the seller and the buyer from the moment a listing goes live.
+
+1
+
+Scope Document for LEADS
+
+1. Introduction
+This document presents the complete project scope for LEADS, a web-based real estate platform
+developed for the Pakistani market as a Final Year Project submission and its purpose is to formally
+define the system's background, objectives, modules, technical decisions and development plan in a
+structured and reviewable format. Pakistan's real estate sector is one of the largest industries in the
+country yet the technology supporting buyers and sellers remains stuck in a passive model where a
+seller posts a listing and waits indefinitely for a buyer to discover it, with no active outreach, no
+intelligent matching and no quality control. Platforms like Zameen.com, OLX Pakistan, Graana.com,
+Ilaan.com and all follow this same pattern and none of them verify user identities, enforce listing
+quality or do anything to actively connect the right buyer to the right seller. This gap in the market is
+what LEADS is built to address, by embedding automated lead generation, AI-assisted listing review,
+identity verification, lead scoring and direct buyer-seller communication into a single platform
+purpose-built for Pakistani real estate. The document begins by defining the problem in detail and
+presenting the proposed solution and system objectives, followed by a review of existing platforms
+and how LEADS differs from each of them. It then defines the full scope of the system, the t welve
+modules it is composed of and the specific functional requirements each module must deliver. The
+tools and technologies selected for development are listed and justified, the system's limitations and
+constraints are documented and the data gathering approach used to validate the problem is described.
+Project stakeholders and their roles are identified, the work is divided between team members and a
+work breakdown structure and project timeline are provided. Mockups of the key screens across all
+three user portals are included to illustrate the intended user experience. The document concludes
+with a references section and a plagiarism report.
+
+2. Problem Statement
+Real estate agents and sellers in Pakistan currently have no platform that actively helps them to find
+serious buyers, they are completely dependent on buyers finding them first. On every major property
+platform in Pakistan, including Zameen.com, OLX Pakistan, Graana.com and Ilaan.com, the process
+is the same, a seller posts a listing and keep waiting, sometimes for weeks or even months, without
+receiving a single genuine inquiry. These platforms do nothing after a listing goes live as there is no
+outreach, no follow-up and no system that matches the listing to buyers who are looking for that type
+of property. Sellers also have no way of knowing whether their asking price is too high or too low
+compared to what similar properties are currently listed for on other platforms. On top of this, there
+is no identity verification on most platforms that means anyone can post a list anonymously and fake
+listings are very common. OLX Pakistan, for example, publishes listings immediately with no review
+at all, making it easy for unverified sellers to mislead buyers. Even the platforms that review listings
+before publishing, the quality of descriptions is often poor, with missing details, misleading categories
+and prices that do not reflect the actual market trends. Buyers waste a significant amount of time
+visiting properties that do not match their need. Sellers with legitimate properties get buried under
+low-quality and fake listings, making it much harder for the right buyers to find them. Real estate
+agents face the same problems and spend a large part of their working day manually searching for
+leads, sending messages one by one and posting listings across multiple platforms with no automation
+or intelligence to support them.
+
+2
+
+Scope Document for LEADS
+
+3. Problem Solution/Objectives of the Proposed System
+LEADS replaces the passive, manual and fragmented process of Pakistani real estate with a
+connected, AI-powered and automated pipeline. The system operates across five distinct stages:
+market intelligence, targeted scraping, seller outreach and data collection, buyer outreach and warm
+lead detection and listing management. Each stage is implemented as one or more dedicated modules
+with clearly defined inputs, outputs and technical implementation. In the first stage, LEADS computes
+what is trending in the property market by continuously analysing scraped listing data from four
+platforms. For each category and city combination, the system tracks listing velocity, average days
+on market and price movement. These three signals are combined into a demand score per category
+per city and passed to a large language model to generate a human-readable trend recommendation.
+This gives users, including those with no prior real estate experience, a data-driven starting point for
+their investment decisions. In the second stage, once a user selects a category, city and price range,
+LEADS launches a targeted multi-agent scraping run. Rather than one scraper trying to collect
+everything, the system launches one Celery worker per platform, each assigned a different proxy IP,
+each collecting a fixed maximum of records in parallel. The four workers run simultaneously, their
+results are cleaned, deduplicated and merged and the top matching listings are surfaced to the user for
+review. In the third stage, the user selects a listing they want to pursue. The system drafts a
+personalised WhatsApp outreach message and a terms-and-conditions summary for the user to review
+and approve before sending. When the seller responds, the system sends them a category-specific
+property data collection form via WhatsApp. The seller fills the form once, providing all required
+property details, which the system then passes to a large language model to generate a fair market
+valuation, identify the property's hot selling features, flag any issues, confirm the correct category
+and produce an AI-enhanced listing description. In the fourth stage, the system uses the confirmed
+property details to run a second targeted scraping pass to identify potential buyers: people who are
+active on the same platforms in the same category and price range. The system drafts a WhatsApp
+campaign for user review and approval, sends it and monitors all replies through a WhatsApp Cloud
+API webhook. Any reply, including a thumbs up or a short acknowledgement, is classified as a warm
+lead, routed to the seller dashboard and triggers an automated follow-up message draft for user review.
+After the follow-up is sent, the system's automated role ends and the agent takes over manually. In
+the fifth stage, once a property is confirmed and its AI-enhanced listing is ready, it is published in
+LEADS' integrated listing management system where buyers can browse, filter and contact sellers
+directly. Any buyer inquiry from this system is also surfaced on the seller dashboard.
+
+3.1 Objectives
+The following objectives define the specific goals that LEADS is built to achieve in order to solve
+the problems identified above.
+BO-1: Compute market demand scores per property category and city from continuously scraped
+listing data by tracking listing velocity, average days on market and price movement and surface
+this intelligence to users as AI-generated trend recommendations.
+BO-2: Run on-demand, filter-driven, multi-agent scraping across five platforms simultaneously
+with each agent on a separate proxy IP and a configurable maximum record count per agent, so
+targeted data collection completes in minutes rather than hours.
+
+3
+
+Scope Document for LEADS
+
+BO-3: Draft personalised WhatsApp outreach messages and terms-and-condition summaries for
+user review and approval before any message is sent to a seller, ensuring no automated
+communication goes out without human confirmation.
+BO-4: Deliver category-specific property data collection forms to sellers via WhatsApp, with
+different mandatory and optional fields per property type including house, flat, shop, plot and plaza,
+so all required property details are collected in a single structured submission.
+BO-5: Analyse submitted form data using a large language model to generate a fair market
+valuation with minimum, maximum and recommended price, identify hot selling features, flag
+issues, verify the property category and produce an AI-enhanced listing description.
+BO-6: Run a second targeted scraping pass using the confirmed property details as filters to identify
+potential buyers on all five platforms, draft a WhatsApp campaign for user review and approval,
+dispatch it and track delivery and engagement status per message.
+BO-7: Monitor all incoming WhatsApp replies via webhook, classify each reply as hot, warm or
+cold based on response content, route warm and hot leads to the seller dashboard with a notification
+and auto-draft a follow-up message for user review and approval.
+BO-8: Publish confirmed, AI-enhanced property listings in the integrated LEADS listing
+management system where verified buyers can browse, filter, save and contact sellers directly
+through the platform.
+BO-9: Provide administrators with full control over scraper scheduling and health monitoring,
+proxy pool management, LLM API credentials, WhatsApp API configuration, scoring weights and
+platform-wide analytics through a dedicated admin control panel.
+BO-10: Require all registered users to verify both their email address and phone number through
+time-limited OTP before accessing any platform feature, ensuring no anonymous participation.
+
+4. Related System Analysis/Literature Review
+The following section reviews the existing platforms and systems related to LEADS, identifies their
+weaknesses and explains how LEADS addresses each of those gaps through its proposed features and
+design.
+Zameen.com is the biggest real estate portal in Pakistan and it operates like a listing board where the
+sellers post their properties and hope that someone from the other side contact them. It doesn’t have
+any mechanism for generating leads, nor does it have an AI listing review or a marketing system that
+acts once the listing goes live. Buyers must search for listings on their own and sellers have no control
+over who contacts them.
+OLX Pakistan is a general classifieds platform that covers many categories including property.
+Anyone can post a listing without identity verification or any quality review which makes fake and
+misleading property listings very common. There is no lead generation, no AI assistance and no
+matching between buyer needs and seller listings. The platform is free and open which lowers the
+overall quality of listings buyers see.
+Graana.com is an example of a Pakistani online marketplace that provides more structured features
+than OLX, including agents and a listing value estimator feature. Yet, it too functions as a passive
+marketplace because once buyers make a search, no further help from the platform is provided to
+them. In fact, sellers receive absolutely no assistance even after posting their listing. There is no
+automated lead generation nor any listing optimization using artificial intelligence.
+Ilaan.com is one of the popular Pakistani websites for buying and selling property. It has interesting
+features like viewing count and market valuation of listings. Even then, it is also a passive marketplace
+lacking intelligent listing services such as lead generation and outreach. The sellers can neither
+4
+
+Scope Document for LEADS
+
+determine which buyers are really interested in their listings, nor can they contact the interested buyers
+proactively. No AI-based listing review and listing marketing via social networks are available.
+Table 1 Related System Analysis with LEADS solution
+
+Application Name
+Zameen.com
+
+OLX Pakistan
+
+Graana.com
+
+Ilaan.com
+
+Weakness
+
+LEADS Solution
+
+Passive listing board with no
+automated outreach, no lead
+scoring and no AI listing
+review. Sellers post and wait
+with no active support.
+No identity verification and
+no listing quality check.
+Anyone can post
+anonymously, making fake
+and misleading listings very
+common.
+Still a passive platform
+despite having a Wanted
+section. Sellers cannot access
+or act on buyer intent signals
+in any automated way.
+Has useful features like view
+counts and valuations but
+offers no automated buyer
+outreach, no lead scoring and
+no external listing marketing.
+
+LEADS actively finds and
+contacts buyer leads and
+reviews every listing with AI
+before publication.es.
+LEADS requires dual OTP
+verification from every user and
+enforces mandatory listing
+quality standards before any
+listing goes live.
+LEADS collects and scores
+publicly available data including
+buyer intent signals and
+automatically contacts matched
+leads on the seller's behalf.
+LEADS uses Ilaan's publicly
+available listing data as a market
+intelligence input and goes
+further by actively contacting
+
+5. Vision Statement
+For real estate sellers and agents in Pakistan who struggle to find genuine buyers in a market flooded
+with fake inquiries, unverified users and platforms that do nothing after a listing goes live, LEADS is
+an AI-powered web-based real estate platform that automatically verifies every user through dual
+OTP authentication, reviews and improves every listing through Google Gemini before publication,
+collects and scores publicly available data from four competing platforms to identify high-intent
+buyer leads and contacts those leads through WhatsApp on the seller's behalf without any manual
+effort required. Unlike Zameen.com, OLX Pakistan, Graana.com, Ilaan.com and , which simply post
+listings and leave sellers waiting with no outreach, no matching and no quality control, our product
+LEADS transforms the seller's experience from passive waiting to active results putting verified,
+scored and contacted buyer leads directly in the seller's hands so that the right buyer finds the right
+property faster, with less effort and through a platform both sides can actually trust.
+
+5
+
+Scope Document for LEADS
+
+6. Scope
+LEADS is a web-based real estate platform built for the Pakistani market that covers everything
+happening in the pre-transaction phase, from market intelligence to active lead generation and listing
+management. The platform serves real estate agents, investors and internal administrators, while
+external buyers interact with properties through a centralized listing hub where every user must first
+verify their identity via a two-step OTP process. The market intelligence system continuously scrapes
+Zameen.com, OLX Pakistan, Graana.com and Ilaan.com using Scrapy, Playwright and parallel proxyassigned Celery workers, cleaning raw records to calculate listing velocity, days on market and price
+movements before sending a computed demand score to GPT -4o mini to generate actionable trend
+recommendations. When a target property is selected, the platform handles seller outreach via user approved WhatsApp messages, collects structured property details through automated forms and
+passes the input to an LLM to generate fair market valuations, highlight hot features, correct
+categories and write enhanced listing descriptions. To connect with potential buyers, LEADS
+executes a second targeted scraping pass, drafts approved WhatsApp outreach campaigns, monitors
+replies through webhooks, automatically classifies positive responses as warm leads and generates
+follow-up drafts for agent handover. Once approved, listings publish to LEADS' verified listing
+management hub, enabling buyers to filter properties, save favorites, set alerts and contact sellers
+directly. LEADS operates strictly as a pre-transaction tool, avoiding payment processing, legal
+documentation or financial intermediation and launches exclusively in Pakistan in English.
+
+7. Modules
+Module-01 User Authentication
+
+This module controls identity verification and access for all users. It is implemented as a set of Next.js API
+routes backed by Prisma ORM on PostgreSQL. OTPs are hashed using bcrypt before storage never stored as
+plain text. JWTs are issued in HttpOnly cookies on successful login. Phone OTP is delivered via WhatsApp
+Cloud API rather than SMS, as WhatsApp penetration in Pakistan significantly exceeds SMS reliability for
+this use case.
+FE1: Accept a registration request collecting full name, email address, phone number and role selection.
+Validate all fields with Zod before any database operation.
+FE2: Generate a 6-digit OTP, hash it with bcrypt, store it with a 10-minute expiry in the emailOtpHash
+and emailOtpExpiresAt fields of the User model and deliver it to the user's email via SendGrid.
+FE3: Generate a second 6-digit OTP, hash and store it in phoneOtpHash and phoneOtpExpiresAt and
+deliver it to the user's phone via WhatsApp Cloud API after email OTP is successfully verified.
+FE4:Activate the account only after both OTP hashes are verified within their expiry windows. Phone
+OTP is optional at registration but required before the user can initiate any outreach action.
+FE5: Enforce a rate-limited OTP resend mechanism using the otpAttempts counter in the User model.
+Block resend after the configured maximum attempt count is reached.
+FE6: Authenticate returning users via email and password, verify the bcrypt hash, check isEmailVerified
+before granting access and issue a signed JWT stored in an HttpOnly cookie.
+FE7: Apply role-based access control at the middleware layer, routing ADMIN users to the admin panel,
+SELLER users to the seller pipeline and BUYER users to the listing discovery interface.
+FE8: Support a secure password reset flow via a time-limited signed reset token delivered by email.
+FE9:Verify that the new password does not match the existing bcrypt hash before updating.
+FE10: Invalidate the session and clear the JWT cookie on user-initiated logout.
+6
+
+Scope Document for LEADS
+
+Module-02 Market Intelligence Engine
+This module is the analytics brain of LEADS. It runs as a scheduled Celery Beat task that processes
+the continuously accumulated MongoDB collection of scraped listing records. For each property
+category and city combination, it computes three demand signals and passes the results to a large
+language model to generate a human-readable recommendation.
+FE1: For each category and city combination present in the MongoDB scraped records, compute listing
+velocity: count the number of new records with a scraped_at timestamp in the last 7 days versus the 7
+days before that, expressed as a percentage change.
+FE2: Compute average days on market as a proxy for sell-through speed: for each category and city,
+calculate the mean age in days of all active listings (difference between scraped_at and current date),
+where a lower average indicates faster turnover and higher demand.
+FE3:Compute price movement: calculate the mean price_numeric of records scraped in the last 14 days
+versus the prior 14-day window for each category and city and express the change as a percentage.
+FE4: Combine the three signals into a composite demand score using configurable weights stored in the
+admin settings table in PostgreSQL. Store the computed demand scores per category per city in a
+dedicated analytics collection in MongoDB with a timestamp.
+FE5: Pass the top-ranked category and city combinations with their demand scores, velocity figures and
+price movement percentages to Google Gemini 2.0 Flash via a structured prompt instructing the model to
+generate a concise, plain-language investment recommendation based on this data.
+FE6: Store the LLM-generated recommendation text alongside the computed scores in MongoDB.
+Surface the recommendation and the underlying score breakdown on the user dashboard, refreshed after
+each analytics cycle.
+FE7: Run the full analytics and recommendation pipeline on an admin-configurable Celery Beat
+schedule, defaulting to once every 24 hours and log job outcomes to the admin audit log.
+
+Module-03 Targeted Scraping Engine:
+This module performs on-demand, targeted, multi-agent scraping triggered when a user selects a
+property category, city and price range to pursue. Rather than running a single scraper across all pages
+of all platforms, the system launches one independent Celery worker per platform, each assigned a
+unique IP address from the proxy pool, each configured with a maximum record count. All five
+workers run concurrently. This architecture distributes request load across IPs and platforms,
+significantly reducing detection risk while completing the full data collection in a fraction of the time
+a sequential approach would require.
+FE1:Accept a scraping request from the user dashboard containing category, city, minimum price and
+maximum price as parameters. Validate these parameters and pass them as arguments to the multi-agent
+launcher.
+FE2: Launch one Celery task per platform (Zameen.com, OLX Pakistan, Graana.com, Ilaan.com)
+simultaneously. Each task is assigned a unique proxy IP from the Redis-backed proxy pool and a
+configurable maximum record count, defaulting to 2,500 records per agent.
+FE3: Each agent runs a custom Scrapy spider with the category, city and price range passed as search
+parameters. Scrapy handles Zameen, OLX .
+
+7
+
+Scope Document for LEADS
+
+FE4: Playwright handles Graana and Ilaan. Each spider applies randomized request delays between 3
+and 7 seconds, rotates user-agent strings from a pool of 13+ modern browser signatures and respects the
+max_records limit by counting items yielded and closing after the limit is reached.
+FE5: Clean raw records through the shared cleaning pipeline: strip HTML artifacts, normalize price to
+integer PKR, normalize size to square feet with unit stored separately, standardize city names to a
+canonical list and reject any record with a null price after normalization.
+FE6: Deduplicate across all five agents' outputs by hashing (platform, listing_id) combinations and
+checking against the MongoDB unique index. Use fuzzy matching on title, price and locality for crossplatform deduplication where listing IDs differ.
+FE7: Store all cleaned, deduplicated records in MongoDB with fields: source_platform, listing_id, title,
+price_numeric, size_sqft, city, locality, seller_name, seller_phone, listing_url, scraped_at,
+listing_age_days, price_per_sqft, scraped_week and the session_id linking the records to the user's
+scraping request.
+FE8: On completion of all five agents, merge results, rank by relevance to the user's filters (exact
+category match, price within range, recency) and surface the top 10 to 15 records on the user dashboard
+for review.
+FE9: Log each agent's outcome (records fetched, records rejected, records deduplicated, errors,
+execution time) to the admin audit log and update the scraper health status on the admin dashboard.
+
+Module-04 Seller Outreach Agent:
+This module handles all WhatsApp communication directed at sellers identified through the targeted
+scraping engine. Every message that goes out requires explicit user review and approval. No outreach
+is sent automatically. The module uses the WhatsApp Cloud API for dispatch and tracks delivery
+status per message.
+FE1: When the user selects a listing to pursue, retrieve the seller's phone number, name and listing
+details from MongoDB. Use these to populate a structured prompt sent to GPT-4o mini, which returns a
+personalized outreach message draft and a terms-and-conditions summary including the commission
+structure.
+FE2: Display the AI-drafted message and T&C summary to the user in a review interface showing the
+original seller data alongside the drafted content. The user can edit any part of the draft before approving.
+FE3: On user approval, format the phone number to WhatsApp-compatible international format (adding
+92 prefix, removing leading zero) and dispatch the message via WhatsApp Cloud API v21+ using the
+configured WABA-approved message template.
+FE4: Log the dispatch event to PostgreSQL: seller_id, listing_id, message_type, dispatch_timestamp,
+delivery_status (SENT, DELIVERED, READ, FAILED). Update the delivery status in real time via
+WhatsApp webhook callbacks.
+FE5: When the seller replies to the outreach message, detect the reply via the WhatsApp Cloud API
+webhook (M-07 handles reply classification for buyer outreach; seller replies are handled here), record
+the reply content and trigger M-05 to generate and send the property data collection form.
+FE6: If message delivery fails, retry once via WhatsApp after 30 minutes and mark the lead as
+UNDELIVERED after the retry fails. Display the undelivered status on the seller dashboard.
+
+Module-05 Seller Form System:
+This module generates and delivers category-specific property data collection forms to sellers who
+have responded to the initial outreach. Forms are delivered as links via WhatsApp. Each property
+type has a different set of mandatory and optional fields reflecting what is relevant for that type. The
+8
+
+Scope Document for LEADS
+
+goal is to replace the back-and-forth messaging that currently consumes most of an agent's time with
+a single structured submission that captures all required data at once.
+FE1: Generate a unique form URL for each seller-listing pair. The URL is tied to the seller's phone
+number and the listing session ID to prevent form submissions from other parties.
+FE2: Dispatch the form link via WhatsApp Cloud API alongside a brief explanatory message. The
+message is drafted by the system and reviewed by the user before sending.
+FE3: Render the appropriate form based on property category: House/Apartment form (bedrooms,
+bathrooms, floors, kitchen, lounge, dining, gas, electricity, wiring condition, water supply, servant
+quarter, boundary wall, parking, documents available, registry status, asking price, final price);
+Shop/Office form (floor, area, frontage, mezzanine, storage, commercial zone, utilities, documents); Plot
+form (dimensions, corner or non-corner, utility connections, society, plot number, file or ground);
+Plaza/Building form (total floors, commercial units, residential units, lifts, utilities, rental income,
+documents).
+FE4: Validate all mandatory fields on submission using Zod on the FastAPI backend. Return field-level
+validation errors to the form for correction before accepting the submission.
+FE5: On successful submission, store the form data in PostgreSQL linked to the seller record and the
+listing session. Immediately trigger M-06 to begin LLM analysis of the submitted data.
+FE6: Notify the user on the dashboard that the seller's form has been submitted and that AI analysis is in
+progress.
+
+Module-06 AI Property Analyzer:
+This module processes the structured property data submitted through M-05 using large language
+model to generate actionable intelligence. It produces a market valuation, identifies selling points and
+issues, verifies the property category and generates an AI-enhanced listing description. All outputs
+are shown to the user before any further action is taken.
+FE1: Retrieve the submitted form data for a property from PostgreSQL and combine it with the relevant
+market intelligence data from MongoDB: comparable listings in the same category, city and size range
+with their prices and listing ages.
+FE2: Construct a structured prompt containing the full form data and market context and send it to
+Google Gemini 2.0 Flash or GPT-4o mini (configurable per admin settings) requesting: (a) fair market
+price estimate with minimum, maximum and recommended values, (b) three to five key selling features
+of the property, (c) any issues or weaknesses that could affect the sale, (d) the most appropriate property
+category based on the submitted details.
+FE3: Construct a second prompt using the form data and the LLM's analysis output and send it to the
+LLM requesting an AI-enhanced listing description of minimum 150 words, written in professional
+English, structured to highlight the property's selling features and location, suitable for direct publication.
+FE4: Store all LLM outputs (valuation range, selling features, issues, category recommendation,
+enhanced description) in PostgreSQL linked to the seller and listing records.
+FE5: Display all LLM outputs to the user in a structured review interface. The user can accept the
+outputs, edit any section or request a regeneration before proceeding.
+FE6: On user approval, mark the property as analysis-complete in the database and make it available for
+the next stage: buyer outreach via M-07 and listing publication via M-08.
+FE7: Handle LLM API errors gracefully by logging the error, notifying the user with a retry option and
+never blocking the pipeline on API unavailability.
+
+9
+
+Scope Document for LEADS
+
+Module-07
+Buyer Outreach and Warm Lead Detection:
+This module handles the buyer side of the outreach pipeline. It triggers a second targeted scraping
+pass using the confirmed property's details as filters, drafts a WhatsApp campaign for user review,
+dispatches it via the WhatsApp Cloud API, monitors all replies through the webhook, classifies each
+reply, routes warm and hot leads to the seller dashboard and auto-drafts a follow-up message for user
+review. After the follow-up is sent, the system's automated responsibility ends.
+FE1: On user initiation of a buyer outreach campaign, call M-03's multi-agent scraper with the
+confirmed property's category, city and price range as filters, requesting records that represent active
+buyers (people listing properties in the same segment, indicating they are active market participants).
+FE2: After the scraping run completes, apply the lead scoring model: score each record on buyer intent
+signal strength (NLP analysis of listing text using Hugging Face Transformers), budget alignment (price
+of their listing relative to the property's asking price), category compatibility (category match score) and
+recency (decay-weighted score based on listing age). Combine scores into a composite using adminconfigurable weights.
+FE3: Filter records below the minimum composite score threshold (admin-configurable, default 50/100)
+and archive them. Present the passing records to the user ranked by composite score with score
+breakdown visible.
+FE4: Use the property details and the top-ranked lead records to generate a WhatsApp campaign
+message draft via GPT-4o mini. Display the draft to the user for review and editing before any send
+action.
+FE5: On user approval, dispatch the campaign messages to all approved leads via WhatsApp Cloud API.
+Log dispatch status (SENT, DELIVERED, READ, FAILED) per lead in PostgreSQL. Display live
+campaign stats on the Campaign Dashboard (M-11).
+FE6: Monitor all incoming WhatsApp replies via the WhatsApp Cloud API webhook. For each reply,
+identify which campaign message it corresponds to and classify it: HOT (contains 'interested', 'yes', 'tell
+me more', 'price?' or similar positive intent keywords), WARM (any other reply including thumbs up,
+'ok', 'thanks', short acknowledgement), COLD ('not interested', 'wrong number', 'remove me').
+FE7: For HOT and WARM classified replies, create a warm lead record in PostgreSQL linked to the
+lead, the campaign and the property. Send a real-time notification to the user dashboard and campaign
+dashboard.
+FE8: Auto-draft a follow-up WhatsApp message for each warm lead using the property details and the
+content of the lead's reply. Display the draft to the user for review and approval. On approval, dispatch
+the follow-up via WhatsApp Cloud API. After the follow-up is sent, mark the lead as
+FOLLOW_UP_SENT and the system's automated involvement with this lead ends.
+
+Module-08 Listing Management System:
+This module is the buyer-facing listing platform integrated within LEADS. When a property has been
+confirmed, analysed by AI and approved by the user, it is published here. Buyers browse, filter, save
+and contact sellers through this system. It is built on the same Next.js frontend as the rest of LEADS
+but serves a separate buyer audience. All buyers must complete OTP verification before accessing
+any listing.
+FE1: Receive confirmed, AI-analysed property listings from M-06, combine them with the AI-enhanced
+description, valuation context and seller-verified details and create a fully structured listing record in
+PostgreSQL ready for publication.
+
+10
+
+Scope Document for LEADS
+
+FE2: Serve all active listings to authenticated buyers via server-side rendered Next.js pages, indexed by
+Google through Schema.org PropertyListing structured data markup on each listing detail page.
+FE3: Provide multi-criteria filtering on the listing index page: property category, city, locality, price
+range, size range, transaction type (sale or rent) and publication date.
+FE4: Display a listing summary card showing the primary image, category, city, price and a 2-sentence
+excerpt from the AI-enhanced description. Display a full detail page showing all property attributes, the
+complete AI-enhanced description, all images and an AI-generated valuation context snippet.
+FE5: Allow authenticated buyers to save listings to a personal bookmarks collection and configure saved
+search preferences with email alerts when new listings matching their criteria are published.
+FE6: Allow buyers to contact the seller through a contact request form. Route the contact request to the
+seller's notification feed on the seller dashboard. Log the contact event as a listing-sourced warm lead in
+PostgreSQL.
+FE7: Allow administrators to publish, pause or permanently remove any listing from the admin control
+panel.
+
+Module-09 Seller Dashboard:
+This module provides the primary interface for sellers and agents to monitor their active deals, lead
+pipeline, campaign performance, AI analysis results and revenue tracking.
+FE1: Display a summary of all active scraping sessions, showing the top matching listings retrieved,
+their scores and the current outreach status for each.
+FE2: Display all warm leads received across all campaigns, ranked by classification (HOT first, then
+WARM), with the original reply content, the property they are interested in and the follow-up status.
+FE3: Display the AI analysis results for each confirmed property: valuation range, selling features, issues
+and the AI-enhanced listing description, with options to edit and re-submit for AI regeneration.
+FE4: Allow the user to mark a deal as closed, enter the final agreed sale price and record the commission
+earned. Display cumulative revenue and deal count in a summary panel.
+FE5: Show a 30-day activity chart covering warm leads received, campaign messages sent and deals
+closed.
+
+Module-10 Admin Control Panel:
+This module gives system administrators full operational control over every component of LEADS.
+FE1: Display a platform-wide analytics panel: total registered users by role, total scraping sessions run,
+total leads identified, total campaign messages sent, total warm leads detected, total deals closed, total
+revenue recorded and system uptime.
+FE2: Provide a scraper management panel showing each platform scraper's status, last run time, records
+collected in the last 24 hours, success rate and error log. Allow manual trigger, pause and reconfiguration
+of any scraper.
+FE3: Provide a proxy pool management panel showing active proxies, their current assignment status
+and any blocked IPs. Allow adding, removing or pausing individual proxies.
+FE4: Provide an API credentials panel for secure storage and rotation of: Google Gemini API key,
+OpenAI API key, Hugging Face API key, WhatsApp Cloud API token and Phone Number ID, SendGrid
+API key, Google Maps API key.
+FE5: Provide a scoring configuration panel to adjust the weights used in the composite lead score (intent,
+budget, category, recency) and set the minimum score threshold for outreach eligibility.
+FE6: Provide a user management panel to search, filter by role, view, approve, suspend or soft-delete
+any registered user account.
+11
+
+Scope Document for LEADS
+
+FE7: Provide a full audit log of all admin actions, scraper job outcomes, API call events and system
+errors with timestamps.
+
+Module-11 Campaign Dashboard:
+This module provides real-time visibility into the performance of every outreach campaign sent
+through LEADS.
+FE1: Display a list of all campaigns (seller outreach and buyer outreach) with campaign name, property,
+date sent and current overall status.
+FE2: For each campaign, display per-message stats updated in real time via WhatsApp webhook
+callbacks: total sent, delivered, read, replied, failed, duplicate numbers rejected.
+FE3: Display a reply feed showing all incoming replies for a campaign with the reply content, sender
+phone number, classification (HOT/WARM/COLD) and timestamp.
+FE4: Allow the user to filter campaigns by date range, property, classification outcome and delivery
+status.
+
+Module-12 User Profiling and Settings:
+This module allows all users to manage their account details and preferences.
+FE1: Allow users to update their full name, email address and phone number. Require OTP reverification through the relevant channel if email or phone is changed.
+FE2: Allow users to change their password through a flow requiring current password confirmation.
+Verify that the new password does not match the existing hash.
+FE3: Allow buyers to configure property preferences (categories, cities, price range) used for saved
+search alerts.
+FE4: Allow sellers to configure notification preferences controlling which events trigger in-platform and
+WhatsApp alerts.
+FE5: Allow any user to request account deletion, confirm through a two-step confirmation flow and
+trigger anonymity of all personal data in compliance with the platform's data retention policy.
+
+8. System Limitations/Constraints
+The following section outlines the boundaries and constraints of LEADS that define what the platform does
+not cover in this release.
+1. LEADS is a pre-transaction platform only. It does not process property payments, handle rental
+agreements, manage legal documents or act in any financial or legal intermediary capacity.
+2. The platform is limited to Pakistan in this release. Multi-currency and multi-language support are not
+included.
+3. The platform is in English only. AI listing enhancement and form processing work correctly for
+English-language inputs. Urdu submissions may not be processed accurately.
+4. The scraping pipeline only collects data publicly visible without authentication. Private messages,
+hidden contact details and data behind login walls on any target platform are never accessed.
+Facebook Marketplace is excluded because it requires login to view listings.
+5. The multi-agent scraping strategy requires a pool of rotating proxy IPs. Without proxy rotation,
+concurrent requests from the same IP will be blocked by target platforms. The quality and
+availability of the proxy pool directly affects scraping reliability.
+6. WhatsApp Cloud API outreach requires WABA-approved message templates. Template approval
+can take 24 to 72 hours. Unapproved templates cannot be sent to users who have not previously
+messaged the LEADS WhatsApp number. This limits cold outreach to template messages only.
+12
+
+Scope Document for LEADS
+
+7. The warm lead detection webhook relies on the WhatsApp Cloud API receiving and forwarding all
+replies. Message delivery and reply detection are subject to WhatsApp's platform reliability and rate
+limits.
+8. The LLM analysis pipeline depends on Google Gemini API and OpenAI API availability. Service
+outages, rate limit enforcement or pricing changes may temporarily interrupt the AI property analysis
+and trend recommendation features.
+9. The lead scoring model is trained on Pakistani real estate listing data available at development time.
+Its accuracy will degrade as market conditions change and will require periodic retraining.
+10. The system does not verify that a seller legally owns the property they are selling. Sellers are fully
+responsible for the accuracy and legal compliance of the information they submit through the
+property form.
+11. Deal closure and revenue tracking are recorded manually by the user. LEADS does not verify that a
+deal actually closed or that the recorded commission amount is accurate.
+
+9. Data Gathering Approach
+Requirements for LEADS were gathered through four approaches. A structured technical analysis of
+four existing Pakistani real estate platforms Zameen.com, OLX Pakistan, Graana.com, Ilaan.com and
+was conducted to map their publicly accessible data fields, confirm scraping feasibility using Scrapy
+and Playwright, verify the absence of public comment sections or buyer behavior data and document
+each platform's anti-scraping measures, with findings directly shaping the scraper architecture and
+the decision to use on-platform buyer behavior rather than externally scraped intent signals.
+Unstructured interviews were conducted with real estate agents and property investors from
+Islamabad and Rawalpindi, focusing on how they currently identify investment opportunities, how
+long it takes to collect complete property details from sellers, how many messages they send before
+receiving a serious response and whether an AI-drafted outreach tool would be adopted in their
+workflow, with responses consistently identifying manual data collection and the inability to identify
+trending categories as their biggest time costs. A questionnaire was distributed among property buyers
+asking how they discover properties, what information is most frequently missing from listings they
+encounter and whether a platform with AI-enhanced verified listings would be preferred over existing
+options, with the majority citing incomplete listing information and fake listings as their primary
+frustrations. A technical feasibility study was conducted for each of the five scraping targets to
+confirm that category, price, location and seller contact data is publicly accessible, to identify which
+platforms require Playwright versus Scrapy and to validate the multi-agent parallel architecture as
+both technically sound and practically achievable within the project timeline..
+
+10. Project Contribution
+LEADS introduces several technical and conceptual contributions which do not exist in any current
+Pakistani real estate platform:
+ Computed Multi-Platform Market Intelligence: LEADS is the first Pakistani platform to
+compute real-time market demand scores for property categories and cities by continuously
+analysing listing velocity, average days on market and price movement across five competing
+platforms simultaneously. No existing platform provides this intelligence to users.
+
+
+Multi-Agent Parallel Scraping Architecture: Rather than running a single scraper that can
+be blocked and takes hours to complete, LEADS launches one independent Celery worker per
+platform, each on a separate proxy IP, each with a configurable record limit, all running in
+
+13
+
+Scope Document for LEADS
+
+parallel. This multi-agent architecture collects targeted, filtered data from five platforms in
+minutes and is far more resilient to IP blocking than any single-agent approach.
+
+
+Human-in-the-Loop AI Outreach Drafting: LEADS uses LLM APIs to draft WhatsApp
+outreach messages, terms-and-conditions summaries and buyer campaign messages, all
+subject to mandatory user review before dispatch. This human-in-the-loop approach to AIassisted outreach is not present in any Pakistani real estate tool.
+
+
+
+Category-Specific Structured Property Data Collection: LEADS delivers categoryspecific property data collection forms to sellers via WhatsApp, with different mandatory
+fields per property type. This replaces the back-and-forth messaging that currently dominates
+an agent's working day with a single structured submission that captures all required data at
+once.
+
+
+
+LLM-Driven Property Valuation and Description Generation: Submitted form data is
+passed to LLM APIs to generate a fair market valuation with minimum, maximum and
+recommended prices, identify hot selling features, flag issues, verify property category and
+produce an AI-enhanced listing description. This end-to-end property intelligence generation
+from structured seller input is novel in the Pakistani real estate context.
+
+
+
+Webhook-Based Warm Lead Detection and Classification: LEADS monitors all
+WhatsApp replies via the Cloud API webhook, classifies each reply as HOT, WARM or
+COLD based on content analysis and routes warm leads to the dashboard with an auto-drafted
+follow-up for user review. This automated warm lead detection from WhatsApp campaign
+replies is not available in any existing Pakistani real estate tool.
+
+
+
+Dual-Channel OTP via WhatsApp: All users must verify both email address and phone
+number via OTP before accessing any platform feature. Phone OTP is delivered via WhatsApp
+rather than SMS, reflecting the reality that WhatsApp penetration in Pakistan is significantly
+higher than SMS reliability.
+
+
+
+Role-Based Three-Portal Architecture: LEADS is constructed on the basis of three portals
+Seller and Agent Portal, Buyer Portal and Admin Portal. All three portals have completely
+different interface, feature set and view of data tailored exactly to the user using that portal.
+
+Contribution Impact
+Through integration of AI-driven listing enhancement and enrichment, lead scoring by means of
+NLP techniques, automation of multi-channel lead outreach, verification of user identities,
+gathering of live intelligence about the market and role-based portal architecture, LEADS changes
+the game in Pakistani real estate sector significantly. LEADS will allow sellers to leverage a real
+estate platform to their full potential. Rather than relying on traditional platforms where sellers
+just list their property and wait to sell it, LEADS will become a complete active seller-centric
+platform. With these contributions made, LEADS will be an innovative product indeed.
+
+11. Relevance to Course Modules
+LEADS is designed on the academic knowledge and technical skills gained throughout the Computer
+Science degree program at COMSATS University Islamabad. The following course modules are
+directly reflected in the design and development of the system:
+ Software Engineering: Applied SDLC phases, requirement gathering via platform analysis
+and system design through architecture diagrams and module based WBS.
+
+14
+
+Scope Document for LEADS
+
+
+
+
+
+
+
+
+
+Object Oriented Programming (OOP): Backend modules like scrapers, scoring algorithm,
+AI enhancer etc. all created in form of different classes in compliance with OOP standards of
+modularity and reusability.
+Data Structures & Algorithms (DSA): This is used in the lead scoring pipeline where the
+scraped information is sorted, ranked and filtered by applying weighted ranking algorithm.
+Artificial Intelligence (AI): Google Gemini is used for automatic listings enhancement and
+NLP-based classification of properties into categories before being posted.
+Machine Learning (ML): Development of supervised ML model for lead scoring through
+feature engineering, model selection and cross-validation on Pakistani real estate dataset.
+Information Security: Dual OTP authentication is used for all users along with secure
+credentials storage and rate limiting on login and OTP attempts to block brute force attacks.
+Database Systems: Dual database schema consisting of PostgreSQL for relational data and
+PostgreSQL for non-relational scraped data. Indexing and query optimization would be done.
+Advanced Web Technologies: Frontend development with React.js and Next.js,
+incorporation of RESTful API and server-side rendering for better search engine indexing.
+
+12. Tools and Technologies
+This section lists all the tools, technologies, programming languages and APIs that will be used to build and
+run LEADS. Each item is selected based on what it does best for that specific part of the system.
+Table 2: Tools and Technologies for LEADS
+
+Tools
+And
+Technologies
+
+Tool / Technologies
+VS Code
+
+Version
+Latest
+
+Postman
+
+Latest
+
+Docker
+
+27+
+
+pgAdmin
+
+Latest
+
+Git
+
+Latest
+
+React.js
+
+19.2
+
+Next.js
+
+16+
+
+Tailwind CSS
+
+4+
+
+Python
+
+3.13+
+
+Rationale
+Primary code editor for both
+frontend and backend
+development
+API testing and endpoint
+validation during development
+Keeps development and
+deployment environments
+consistent across machines
+Visual interface for managing
+PostgreSQL database
+Version control and team
+collaboration throughout
+development
+Component-based structure
+for building a modular and
+maintainable user interface
+Server-side rendering so
+listing pages can be indexed
+by Google search
+Fast and consistent styling
+across all pages without
+writing custom CSS
+Primary language for scraping
+pipeline, ML model and AI
+integrations
+
+15
+
+Scope Document for LEADS
+
+FastAPI
+
+0.155+
+
+Django + DRF
+
+5.1+ / 3.15+
+
+PostgreSQL
+
+17+
+
+Scrapy
+
+2.12+
+
+Playwright
+
+1.50+
+
+Celery
+
+5.4+
+
+Redis
+
+7.4+
+
+Google Gemini API
+
+2.0 Flash
+
+OpenAI API
+
+GPT-4o mini
+
+Hugging Face
+Transformers
+
+4.47+
+
+scikit-learn
+
+1.6+
+
+Meilisearch
+
+1.5+
+
+WhatsApp Cloud API
+
+v21+
+
+Resend
+
+Latest
+
+SMS Gateway
+Google Maps API
+
+Latest
+
+JavaScript / TypeScript
+
+EES2025 /
+5.7+
+
+Handles concurrent scraping
+and AI tasks efficiently due to
+its async design
+Provides built-in admin
+interface and clean
+management of relational data
+Stores users, listings, leads,
+chat history and analytics with
+full reliability
+Production-grade scraping
+framework with built-in proxy
+and rate limiting support
+Handles JavaScript-rendered
+pages that Scrapy alone
+cannot process
+Manages scraping jobs and
+outreach tasks as background
+processes
+Message broker for Celery
+task queue and applicationlevel caching
+Generates improved listing
+descriptions through
+structured prompts before
+publication
+Used for complex NLP tasks
+and buyer intent analysis in
+the scoring pipeline
+Pre-trained models for buyer
+intent scoring and property
+category classification
+Building, training and running
+the composite lead scoring
+model
+Fast open-source search
+engine for buyer listing
+discovery and filtering
+Sending OTP verification
+messages and automated lead
+outreach via WhatsApp
+Transactional email delivery
+for OTP verification and lead
+outreach emails
+Fallback outreach channel for
+leads who do not have
+WhatsApp
+Location selection during
+listing creation and map
+display on listing detail pages
+Frontend development and
+Next.js API routes
+16
+
+Scope Document for LEADS
+
+13. Project Stakeholders and Roles
+This section identifies all the people and groups who are involved in or affected by LEADS, along with their
+roles and responsibilities in the project.
+Table 3 Project Stakeholders for LEADS
+
+Role
+
+Details
+
+Project
+Sponsor
+
+COMSATS University Islamabad, Islamabad Campus
+
+Development
+Team
+
+Mamoon Tahir (FA23-BSE-051)
+Muhammad Soban (FA23-BSE-056)
+
+Project
+Supervisor
+
+Dr. Tehseen Riaz Abbasi
+
+FYP
+Committee
+
+COMSATS FYP Evaluation Committee
+
+14. Module based Work Division
+The following table outlines how the project modules and development responsibilities are divided
+between the two team members of this project.
+Table 4 Team Member Work Division for LEADS
+
+Student Name
+Mamoon Tahir
+
+Student Registration Number
+FA23-BSE-051
+
+Muhammad Soban FA23-BSE-056
+
+Responsibility/ Module / Feature
+Module 4
+Module 5
+Module 6
+Module 8
+Module 9
+Module 12
+Module 1
+Module 2
+Module 3
+Module 7
+Module 10
+Module 11
+
+17
+
+Scope Document for LEADS
+
+15. WBS and Gantt Chart
+The Work Breakdown Structure (WBS) and Gantt Chart below provide a detailed timeline for the development
+of LEADS, covering all phases from scope and planning through to final delivery. All tasks are expanded to
+level 2, with estimated start and end dates, assigned resources and dependencies clearly identified for each
+task.
+
+WBS
+Table 5 WBS for LEADS
+
+ID
+1
+
+Task Name
+
+Start
+
+Finish
+
+Resource Names
+
+SCOPE AND PLANNING
+
+1.1
+
+Competitor Analysis
+
+Mon 4/27/26
+
+Wed 4/29/26
+
+Mamoon Tahir, Muhammad Soban
+
+1.2
+
+Requirements Gathering
+
+Thu 4/30/26
+
+Thu 5/7/26
+
+Mamoon Tahir, Muhammad Soban
+
+1.3
+
+Scope Document Writing
+
+Fri 5/8/26
+
+Wed 5/13/26
+
+Mamoon Tahir, Muhammad Soban
+
+1.4
+
+Scope Submitted
+
+Wed 5/13/26
+
+Wed 5/13/26
+
+Dr. Tehseen Riaz Abbasi, Mamoon
+Tahir, Muhammad Soban
+
+2
+
+SYSTEM DESIGN
+
+2.1
+
+Database Schema Design
+
+Thu 5/14/26
+
+Fri 5/22/26
+
+Muhammad Soban
+
+2.2
+
+System Architecture and API
+design
+
+Mon 5/25/26
+
+Tue 6/2/26
+
+Mamoon Tahir, Muhammad Soban
+
+2.3
+
+Lead-scoring model and NLP
+reply-classification architecture
+planning
+
+Wed 6/3/26
+
+Tue 6/9/26
+
+Mamoon Tahir
+
+2.4
+
+UI/UX wireframes
+
+Wed 6/10/26
+
+Tue 6/23/26
+
+Mamoon Tahir, Muhammad Soban
+
+2.5
+
+Design Phase Complete
+
+Tue 6/23/26
+
+Tue 6/23/26
+
+Dr. Tehseen Riaz Abbasi, Mamoon
+Tahir, Muhammad Soban
+
+3
+
+SOFTWARE REQUIREMENT SPECIFICATION (SRS)
+
+3.1
+
+Functional Requirements
+Documentation
+
+Wed 6/24/26
+
+Tue 6/30/26
+
+Mamoon Tahir, Muhammad Soban
+
+3.2
+
+Non Functional Requirements
+Documentation
+
+Wed 7/1/26
+
+Fri 7/3/26
+
+Mamoon Tahir, Muhammad Soban
+
+3.3
+
+Usecase Diagrams and
+Descriptions
+
+Mon 7/6/26
+
+Tue 7/14/26
+
+Mamoon Tahir, Muhammad Soban
+
+3.4
+
+UML Diagrams
+
+Wed 7/15/26
+
+Thu 7/23/26
+
+Mamoon Tahir, Muhammad Soban
+
+3.5
+
+SRS Review and Finalization
+
+Fri 7/24/26
+
+Mon 7/27/26
+
+Dr. Tehseen Riaz Abbasi, Mamoon
+Tahir, Muhammad Soban
+
+3.6
+
+SRS Complete
+
+Mon 7/27/26
+
+Mon 7/27/26
+
+Dr. Tehseen Riaz Abbasi
+
+18
+
+Scope Document for LEADS
+
+ID
+4
+
+Task Name
+
+Start
+
+Finish
+
+Resource Names
+
+SOFTWARE DESIGN SPECIFICATION (SDS)
+
+4.1
+
+Architecture and Component
+Design Documentation
+
+Tue 7/28/26
+
+Thu 7/30/26
+
+Mamoon Tahir, Muhammad Soban
+
+4.2
+
+ER Diagram and Design
+Documentation
+
+Fri 7/31/26
+
+Wed 8/11/26
+
+Mamoon Tahir, Muhammad Soban
+
+4.3
+
+UML Diagrams
+
+Wed 8/12/26
+
+Wed 8/18/26
+
+Mamoon Tahir, Muhammad Soban
+
+4.4
+
+SDS Review and Finalization
+
+Wed 8/19/26
+
+Thu 8/20/26
+
+Dr. Tehseen Riaz Abbasi,
+Mamoon Tahir, Muhammad Soban
+
+4.5
+
+SDS Complete
+
+Thu 8/20/26
+
+Thu 8/20/26
+
+Dr. Tehseen Riaz Abbasi
+
+5
+
+DEVELOPMENT
+
+5.1
+
+Environment Setup
+
+Fri 8/21/26
+
+Mon 8/24/26
+
+Muhammad Soban
+
+5.2
+
+M01 - User Authentication
+
+Tue 8/25/26
+
+Wed 9/2/26
+
+Muhammad Soban
+
+5.3
+
+M02 - Market Intelligence
+Engine
+
+Thu 9/3/26
+
+Mon 9/14/26
+
+Muhammad Soban
+
+5.4
+
+M03 - Scraping Engine Scrapy Spiders
+
+Tue 9/15/26
+
+Thu 9/24/26
+
+Muhammad Soban
+
+5.5
+
+M03 - Scraping Engine Playwright Spiders
+
+Fri 9/25/26
+
+Tue 10/6/26
+
+Muhammad Soban
+
+5.6
+
+Scraping and Market
+Intelligence Complete
+
+Tue 10/6/26
+
+Tue 10/6/26
+
+Dr. Tehseen Riaz Abbasi
+
+5.7
+
+M04 - Seller Outreach Agent
+
+Wed 10/7/26
+
+Thu 10/15/26
+
+Mamoon Tahir
+
+5.8
+
+M05 - Seller Form System
+
+Fri 10/16/26
+
+Mon
+10/26/26
+
+Mamoon Tahir
+
+5.9
+
+M06 - AI Property Analyser
+(two stage LLM chain)
+
+Tue 10/27/26
+
+Thu 11/5/26
+
+Mamoon Tahir
+
+5.10
+
+M07 Buyer Outreach - Lead
+Scoring model (feature
+engineering, scikit-learn
+training, cross validation)
+
+Fri 11/6/26
+
+Thu 11/19/26
+
+Mamoon Tahir
+
+5.11
+
+M07 Buyer Outreach Campaign dispatch + webhook
+reply NLP classification
+
+Fri 11/20/26
+
+Thu 12/3/26
+
+Mamoon Tahir
+
+5.12
+
+Seller Side Pipeline Complete
+
+Thu 12/3/26
+
+Thu 12/3/26
+
+Dr. Tehseen Riaz Abbasi
+
+5.13
+
+M08 - Listing Management
+System - publish pipeline, SSR
+listing pages, Meilisearch
+indexing
+
+Fri 12/4/26
+
+Mon
+12/14/26
+
+Muhammad Soban
+
+5.14
+
+M08 - Listing Management
+System - Buyer Discovery UI
+
+Tue 12/15/26
+
+Wed
+12/23/26
+
+Muhammad Soban
+19
+
+Scope Document for LEADS
+
+ID
+
+Task Name
+
+Start
+
+Finish
+
+Resource Names
+
+(filters, bookmarks, saved
+searches, contact routing)
+5.15
+
+M09 - Seller Dashboard
+(deal/lead summary, activity
+chart, revenue tracking)
+
+Thu 12/24/26 Thu 12/31/26
+
+Mamoon Tahir
+
+5.16
+
+M10 - Admin Control Panel
+(scrapers, proxies, API keys,
+scoring weights, user
+management, audit log)
+
+Fri 1/1/27
+
+Tue 1/12/27
+
+Muhammad Soban
+
+5.17
+
+M11 - Campaign Dashboard
+
+Wed 1/13/27
+
+Wed 1/20/27
+
+Muhammad Soban
+
+5.18
+
+M12 - Profile and Settings
+
+Thu 1/21/27
+
+Wed 1/27/27
+
+Mamoon Tahir
+
+5.19
+
+Core Modules Development
+Complete
+
+Wed 1/27/27
+
+Wed 1/27/27
+
+Dr. Tehseen Riaz Abbasi
+
+5.20
+
+Integration of all 12 modules
+into a unified system
+
+Thu 1/28/27
+
+Fri 2/5/27
+
+Mamoon Tahir, Muhammad Soban
+
+5.21
+
+End-to-end pipeline testing
+
+Mon 2/8/27
+
+Thu 2/11/27
+
+Mamoon Tahir, Muhammad Soban
+
+5.22
+
+100% Working Product
+Complete
+
+Thu 2/11/27
+
+Thu 2/11/27
+
+Dr. Tehseen Riaz Abbasi
+
+6
+
+TESTING
+
+6.1
+
+Unit test cases for all modules
+
+Fri 2/12/27
+
+Wed 2/17/27
+
+Mamoon Tahir, Muhammad Soban
+
+6.2
+
+Integration test plan (end-toend pipeline)
+
+Thu 2/18/27
+
+Tue 2/23/27
+
+Mamoon Tahir, Muhammad Soban
+
+6.3
+
+Test results documentation and
+traceability matrix
+
+Wed 2/24/27
+
+Fri 2/26/27
+
+Mamoon Tahir, Muhammad Soban
+
+6.4
+
+Testing Document Complete
+
+Fri 2/26/27
+
+Fri 2/26/27
+
+Dr. Tehseen Riaz Abbasi
+
+7
+
+FINAL REVIEW AND DELIVERY
+
+7.1
+
+Lead Scoring and replyclassification model evaluation
+and retraining on live scraped
+data
+
+Mon 3/1/27
+
+Fri 3/5/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.2
+
+Performance optimization
+
+Mon 3/8/27
+
+Fri 3/12/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.3
+
+Security Review
+
+Mon 3/15/27
+
+Fri 3/19/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.4
+
+User Acceptance Testing
+
+Mon 3/22/27
+
+Mon 3/29/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.5
+
+Bug fixing and final polishing
+based on UAT feedback
+
+Tue 3/30/27
+
+Fri 4/2/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.6
+
+Final Report Writing
+
+Mon 4/5/27
+
+Tue 4/13/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.7
+
+Final Presentation Preparation
+
+Wed 4/14/27
+
+Thu 4/22/27
+
+Dr. Tehseen Riaz Abbasi,
+Mamoon Tahir, Muhammad Soban
+20
+
+Scope Document for LEADS
+
+ID
+
+Task Name
+
+Start
+
+Finish
+
+Resource Names
+
+7.8
+
+Plagiarism Check
+
+Fri 4/23/27
+
+Fri 4/23/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.9
+
+Final Evaluation and
+Presentation
+
+Mon 4/26/27
+
+Mon 4/26/27
+
+Mamoon Tahir, Muhammad Soban
+
+7.10
+
+Project Complete
+
+Mon 4/26/27
+
+Mon 4/26/27
+
+Dr. Tehseen Riaz Abbasi,
+Mamoon Tahir, Muhammad Soban
+
+Gantt Chart
+The Gantt chart below provides a detailed timeline for the development of LEADS, covering all phases from scope and planning
+through to final delivery. It is broken into three separate parts for better visibility.
+
+Figure 15.1: Gantt Chart part 1 (Scope, Planning and System Design)
+
+21
+
+Scope Document for LEADS
+
+Figure 15.2: Gantt Chart part 2 (Development)
+
+Figure 15.3: Gantt Chart part 3 (Testing, Final Review and Delivery
+
+22
+
+Scope Document for LEADS
+
+16. Mockups
+The following mockups represent the major modules of LEADS across all three actor’s UI.
+Seller / Agent Dashboard
+This screen displays the seller's active listings, lead count, outreach performance and recent buyer
+messages in one place.
+
+Figure 16.1: Seller / Agent Dashboard
+
+Leads Management
+This screen shows the seller a ranked list of scored buyer leads with outreach status across WhatsApp,
+SMS and email for a specific listing.
+
+Figure 16.2: Lead Management
+
+23
+
+Scope Document for LEADS
+
+Market Intelligence
+This screen shows the seller a live price comparison against competitor platforms and a demand
+indicator for their property type and city.
+
+Figure 16.3: Market Intelligence
+
+Buyer Browse Listings
+This screen allows buyers to browse, filter and save verified AI-reviewed property listings across
+Pakistan.
+
+Figure 16.4: Buyer Browse Listings
+
+24
+
+Scope Document for LEADS
+
+Admin Dashboard
+This screen displays platform-wide statistics including total users, active listings, leads generated,
+scraper health and system uptime in one place.
+
+Figure 16.5: Admin Dashboard
+
+Scraper Management
+This screen gives the administrator full control and visibility over all five platform scrapers including
+status, records collected and error logs.
+
+Figure 16.6: Scraper Management
+
+25
+
+Scope Document for LEADS
+
+17. References
+The following books, research papers and web sources were used during the analysis, design and planning
+phases of LEADS.
+[1] X. Zhang, Y. Liu and H. Wang, "Predicting Buyer Intent in Digital Marketplaces Using Machine
+Learning Models, " Journal of Electronic Commerce Research, vol. 22, no. 3, pp. 45-62, 2021.
+[2] R. Patel and S. Kumar, "AI-Generated Property Descriptions and Their Impact on Click-Through Rates:
+A Controlled Study, " International Journal of Real Estate Technology, vol. 5, no. 1, pp. 12-28, 2022.
+[3] A. Hassan, F. Mirza and I. Khan, "Web Scraping as a Tool for Real Estate Market Intelligence in
+Developing Economies, " in Proc. International Conference on Data Engineering and Applications, 2023, pp.
+230-244.
+[4] U. Mehmood, Z. Ali and S. Iqbal, "Automated Data Extraction from Pakistani Real Estate Portals:
+Feasibility and Challenges, " in Proc. IEEE International Conference on Emerging Technologies, 2022, pp.
+112-118.
+[5] Scrapy Project. "Scrapy: A Fast and Powerful Scraping and Web Crawling Framework." Internet:
+https://scrapy.org, 2024.
+[6] Microsoft. Playwright Documentation. Internet: https://playwright.dev, 2024.
+[7] Google. Gemini API Documentation. Internet: https://ai.google.dev/docs, 2024.
+
+26
+
+Scope Document for LEADS
+
+18. Plagiarism Report
+
+27
+
+

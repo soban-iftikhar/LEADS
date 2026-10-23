@@ -1,0 +1,244 @@
+[toc 1] 1	Chapter 1: Introduction and Problem Definition	1
+[toc 2] 1.1	Overview of the Project	1
+[toc 2] 1.2	Vision Statement	1
+[toc 2] 1.3	Problem Statement	2
+[toc 2] 1.4	Problem Solution	2
+[toc 2] 1.5	Objectives of the Proposed System	2
+[toc 2] 1.6	Scope	2
+[toc 3] 1.6.1	Limitations/Constraints	2
+[toc 2] 1.7	Modules	3
+[toc 3] 1.7.1	Module 1: Module Name	3
+[toc 2] 1.8	Related System Analysis/Literature Review	3
+[toc 3] 1.8.1	Literature Review	3
+[toc 3] 1.8.2	Related System Analysis	4
+[toc 2] 1.9	Tools and Technologies	4
+[toc 2] 1.10	Project Contribution	4
+[toc 2] 1.11	Relevance to Course Modules	5
+[toc 1] 2	Chapter 2: Requirement Analysis	6
+[toc 2] 2.1	User Classes and Characteristics	6
+[toc 2] 2.2	Operating Environment	6
+[toc 2] 2.3	Design and Implementation Constraints	6
+[toc 3] 2.4	Use case Diagram	6
+[toc 3] 2.5	Requirement Identifying Technique	7
+[toc 3] 2.6	Functional Requirements	8
+[toc 3] 2.6.1	Recommended Format:	8
+[toc 2] 2.7	Non-Functional Requirements	9
+[toc 3] 2.7.1	Reliability	9
+[toc 3] 2.7.2	Usability	9
+[toc 3] 2.7.3	Performance	9
+[toc 3] 2.7.4	Security	10
+[toc 2] 2.8	External Interface Requirements	10
+[toc 3] 2.8.1	User Interfaces Requirements	10
+[toc 3] 2.8.2	Software interfaces	11
+[toc 3] 2.8.3	Hardware interfaces	11
+[toc 3] 2.8.4	Communications interfaces	11
+[Heading 1] Chapter 1: Introduction and Problem Definition
+[Normal] This chapter provides an overview of the project. The first paragraph of every chapter should provide the chapter summary.
+[Heading 2] Overview of the Project
+[Normal] Briefly introduce the project and its context. Mention the domain, users, problem scope, and the need for automation or improvement.
+[Normal] 
+[Normal] Example: The Cafeteria Automation System is an intelligent, mobile-based application designed to digitize and streamline the food ordering and management process in university and institutional cafeterias. The system bridges the gap between users (students and faculty) and the cafeteria staff by enabling online ordering, real-time availability tracking, and administrative control, reducing queues and manual order handling. The proposed solution offers a scalable and user-friendly interface while improving transparency, hygiene, and efficiency in daily operations.
+[Heading 2] Vision Statement
+[Normal] Write a concise statement that summarizes the long-term purpose, intent and significance of the product. The vision statement should reflect a balanced view that will satisfy the expectations of diverse stakeholders. It can be somewhat idealistic but should be grounded in the realities of existing or anticipated markets. The following keyword template works well for crafting a product vision statement:
+[Normal] 
+[Normal] For [target customer]
+[Normal] Who [statement of the need or opportunity]
+[Normal] The [product name]
+[Normal] Is [product category]
+[Normal] That [major capabilities, key benefit, compelling reason to buy or use]
+[Normal] Unlike [primary competitive alternative, current system, current business process]
+[Normal] Our product [statement of primary differentiation and advantages of new product]
+[Normal] 
+[Normal] Here’s a sample vision statement for the Chemical Tracking System, with the keywords in boldface:
+[Normal] 
+[Normal] Example: For employees who want to order meals from the company cafeteria or from local restaurants online, the Cafeteria Ordering System is an Internet-based and smartphone-enabled application that will accept individual or group meal orders, process payments, and trigger delivery of the prepared meals to a designated location on the Process Impact campus. Unlike the current telephone and manual ordering processes, employees who use our product (the Cafeteria Ordering System) will not have to go to the cafeteria to get their meals, which will save them time and will increase the food choices available to them.
+[Heading 2] Problem Statement
+[Normal] Explain how your project will solve the problems mentioned above. List specific objectives of the system 
+[Normal] will accomplish.
+[Normal] 
+[Normal] Example: Employees at the company Process Impact presently spend an average of 65 minutes per day going to the cafeteria to select, purchase, and eat lunch. About 20 minutes of this time is spent walking to and from the cafeteria, selecting their meals, and paying by cash or with credit card. When employees go out for lunch, they spend an average of 90 minutes off-site. Some employees phone the cafeteria in advance to order a meal to be ready for them to pick up. Employees don‘t always pet the selections they want because the cafeteria runs out of certain items. The cafeteria wastes a significant quantity of food that is not purchased and must be thrown away. These same issues apply to breakfast and supper, although far fewer employees use the cafeteria for those meals than for lunch.
+[Heading 2] Problem Solution
+[Normal] Explain how your project will solve the problems mentioned above. List specific objectives the system will accomplish.
+[Normal] 
+[Normal] Example: Many employees have requested a system that would permit a cafeteria user to order meals (defined as a set of one or more food items selected from the cafeteria menu) online, to be picked up at the cafeteria or delivered to a company location at a specified time and date. Such a system would save employees time, and it would increase their chance of getting the items they prefer. Knowing what food items customers want in advance would reduce waste in the cafeteria and would improve the efficiency of cafeteria staff. The future ability for employees to order meals for delivery from local restaurants would make a wide range of choices available to employees and provide the possibility of cost savings through volume discount agreements with the restaurants.
+[Heading 2] Objectives of the Proposed System
+[Normal] Example:
+[Normal] BO-1: Reduce the cost of cafeteria food wastage by 40%.
+[Normal] BO-2: Reduce cafeteria operating costs by 15%.
+[Normal] BO-3: Increase average effective work time by 15 minutes per cafeteria-using employee per day.
+[Heading 2] Scope
+[Normal] Write down the scope of your project in a paragraph. Briefly define the main functionalities of the proposed project. Scope defines the boundaries and range of the proposed solution, that what would be the part of your project. Write down in logical flow with consistency. 
+[Normal] (Usually in 14-18 sentences)
+[List Paragraph] 
+[List Paragraph] 
+[List Paragraph] 
+[List Paragraph] 
+[List Paragraph] 
+[List Paragraph] 
+[Heading 3] Limitations/Constraints
+[Header] Write down the limitations and constraints of the proposed project. 
+[Header] 
+[Normal] Example: LI-1: Some food items that are available from the cafeteria will not be suitable for delivery, so the delivery menus available to patrons of the COS must be a subset of the full cafeteria menus.
+[Normal] LI-2: The COS shall be used only for the cafeteria at the Process Impact campus in Clackamas, Oregon.
+[Heading 2] Modules
+[Normal] Write down the modules of the proposed project.   
+[Normal] Each module should highlight features, using bulleted/numbered notation. 
+[Normal] When developing both a mobile app and a web app, group the modules according to the system types, such as Client Web App, Client Mobile App, Admin Web App etc.
+[List Paragraph] 
+[List Paragraph] 
+[Heading 3] Module 1: Module Name
+[Normal] [List of features]
+[Normal] 
+[Normal] Example:
+[Normal] 
+[Normal] Module 1: Order Meal
+[Normal] FE-1: Order and pay for meals from the cafeteria menu to be picked up or delivered. 
+[Normal] FE-2: Order and pay for meals from local restaurants to be delivered.
+[Normal] 
+[Normal] Module 2: Menu Operations
+[Normal] FE-1: Create, view, modify, and cancel meal subscriptions for standing or recurring meal orders, or for daily special meals.
+[Normal] FE-2: Create, view, modify, delete, and archive cafeteria menus.
+[Normal] FE-3: View ingredient lists and nutritional information for cafeteria menu items.
+[Heading 2] Related System Analysis/Literature Review
+[List Paragraph] 
+[Heading 3] Literature Review
+[Normal] If the system includes advanced techniques such as artificial intelligence, machine learning, simulation, complex data analytics, or applies data and information security techniques, a literature review becomes essential. This section should explore prior academic or industry research relevant to the chosen domain. Highlight key findings, strengths and weaknesses of previous systems, and clearly outline how your project addresses any identified gaps.
+[Normal] 
+[Normal] Example: Previous research in smart cafeteria systems and digital ordering platforms (e.g., Singh et al., 2022; Zhao et al., 2021) emphasizes the role of real-time data analytics in reducing waiting times and enhancing customer experience. However, many existing systems still rely on manual inventory checks and lack predictive features. Our project addresses this gap by integrating IoT-enabled inventory management with AI-driven demand forecasting to ensure accurate, real-time availability of meals.
+[Normal] Similar approaches have been explored by Ahmed et al. (2023), who applied machine learning for predictive demand management, and Lee et al. (2022), who experimented with dynamic pricing to minimize food waste. While these studies highlight the potential of AI in cafeteria operations, they often neglect secure transaction handling and personalized meal recommendations. Our system extends the literature by combining blockchain-based transaction security with AI-powered recommendation algorithms, offering a holistic cafeteria management solution.
+[Heading 3] Related System Analysis
+[Normal] Write about the existing/similar systems related to your proposed project. 
+[Normal] Don’t use more than 4 sentences for explaining a single system/application.
+[Normal] 
+[Normal] Briefly provide an analysis of the related system which may help you to specify the contribution of the proposed project. 
+[Normal] 
+[Caption] Table 1.1   Related System Analysis with proposed project solution
+[Normal] 
+[Heading 2] Tools and Technologies
+[Header] Identify the tools, frameworks, and technologies used. Explain why each was selected.
+[Normal] 
+[Normal] Example:  
+[Caption] Table 1.2 Tools and Technologies for Proposed Project
+[Normal] 
+[Heading 2] Project Contribution
+[Normal] Write a detailed description of the technical and conceptual contributions introduced through the proposed system. The purpose of this section is to clearly identify the original value added through the project — whether through innovation, improvement, or unique implementation.
+[Normal] You may write this in paragraph or bullet point form. The contribution should be highlighted:
+[Normal] Innovations or improvements over existing solutions
+[Normal] Unique design or technical decisions
+[Normal] New features introduced
+[Normal] Efficiency, usability, or performance enhancements
+[Normal] Integration of technologies or tools in a novel way
+[Normal] Avoid generic descriptions like “we implemented the system.” Focus on what is new, better, different, or done in a novel way in the project.
+[Normal] 
+[Normal] Example:
+[Normal (Web)] The Advanced Cafeteria Ordering System introduces several technical and conceptual contributions compared to existing manual and digital solutions:
+[Normal (Web)] AI-Powered Demand Forecasting: Uses machine learning models to predict peak demand, helping kitchen staff plan resources effectively.
+[Normal (Web)] IoT-Enabled Inventory Management: Smart sensors automatically track stock levels and update menu availability in real-time.
+[Normal (Web)] Dynamic Pricing for Waste Reduction: Predictive analytics adjusts prices for perishable items nearing expiration, reducing waste while boosting sales.
+[Normal (Web)] Blockchain-Based Transaction Logging: Secure and transparent order/payment records prevent manipulation and improve financial accountability.
+[Normal (Web)] Personalized Meal Recommendations: Recommendation algorithms suggest meals tailored to user preferences, improving satisfaction and engagement.
+[Normal (Web)] Analytics Dashboard for Managers: Provides real-time insights into sales patterns, food waste, and customer behavior for data-driven decision-making.
+[Normal (Web)] Contribution Impact:
+By integrating AI, IoT, blockchain, and data analytics, the system transforms a simple ordering platform into a smart, adaptive cafeteria ecosystem. These contributions significantly improve efficiency, transparency, customer satisfaction, and sustainability compared to conventional cafeteria solutions.
+[Heading 2] Relevance to Course Modules
+[Normal] Explain how your project is aligned with your coursework and academic knowledge.
+[Normal] Example:
+[Normal] Software Engineering: Applied SDLC phases, requirement gathering, design modeling.
+[Normal] Database Systems: Structured data storage and queries using Firebase.
+[Normal] Mobile App Development: Implemented with Flutter for Android support.
+[Normal] Web Technologies: Developed Admin Panel using React.
+[Normal] Cybersecurity: Integrated secure authentication and payment encryption.
+[Heading 1] Chapter 2: Requirement Analysis
+[Normal] Provide an introduction to the chapter in a few lines. Write details in each of the sections provided ahead.
+[List Paragraph] 
+[Heading 2] User Classes and Characteristics
+[InfoBlue] Identify the various user classes that you anticipate will use this product and describe their pertinent characteristics. See Appendix A for an example of how to present user classes and characteristics.
+[Heading 2] Operating Environment
+[InfoBlue] Describe the environment in which the software will operate, which might include the hardware platform; operating systems and versions; geographical locations of users, servers, and databases; and organizations that host the related databases, servers, and websites. 
+[InfoBlue] Example:
+[Normal] 
+[InfoBlue] OE-1: The System shall operate correctly with the following web browsers: Windows Internet Explorer versions 7, 8, and 9; Firefox versions 12 through 26; Google Chrome (all versions); and Apple Safari versions 4.0 through 8.0.
+[Heading 2] Design and Implementation Constraints
+[InfoBlue] There are times when a certain programming language must be used, a code library that has already had time invested to develop it needs to be used, and so forth. Describe any factors that will restrict the options available to the developers and the rationale for each constraint. Constraints are described further in Chapter 14, “Beyond functionality.” 
+[InfoBlue] Example:
+[Normal] 
+[Normal] CON-1: The system shall use the current corporate standard Oracle database engine
+[Normal] CON-2: The application must use Microsoft .NET framework 4.5. 
+[Normal] CON-3: Online payments may be made only through PayPal. 
+[Normal] CON-3: All textual data used by the application shall be stored in the form of XML files. 
+[Heading 3] Use case Diagram
+[InfoBlue] Provide a Use Case Diagram to illustrate the interactions between identified user classes (actors) and the system. This diagram will establish the scope of user roles and access rights, and it will also serve as the basis for later modeling such as activity and sequence diagrams. See Appendix A for detailed guidelines on how to develop Use Case Diagrams.
+[Heading 3] Requirement Identifying Technique
+[InfoBlue] This section describes the technique used to identify and document the functional requirements of the system.
+[Normal (Web)] For this project, Mockup-Based Requirement Analysis is used. In this approach, user interface mockups are created using UI/UX tools such as Figma, Adobe XD, or Balsamiq. These mockups visually represent how users will interact with the system. Functional requirements are then derived from each screen’s elements and behaviors.
+[Heading 4] Steps to Follow:
+[Normal (Web)] Identify key features and break them down into individual screens.
+[Normal (Web)] Assign a Mockup ID to each screen (e.g., M1 for Login Page, M2 for Dashboard).
+[Normal (Web)] Create mockups of the screens using any UI/UX design tool.
+[Normal (Web)] Identify interactive elements on each screen (buttons, forms, menus, etc.).
+[Normal (Web)] Derive a functional requirement from each element, describing what the system should do in response.
+[Normal (Web)] Organize all functional requirements using the table format provided in Section 2.2.1.
+[Normal (Web)] Backend Process Requirements
+[Normal (Web)] While mockups are effective for capturing frontend interactions, some system functionalities take place entirely at the backend (e.g., order processing, payment gateway callbacks, email/SMS notifications, scheduled jobs, data validation, account security, and real-time tracking in ride-hailing apps). In addition, there are systems that operate almost entirely at the backend with minimal or no user interface, such as traffic signal control systems or industrial monitoring systems.”.
+[Normal (Web)] To capture these processes, the Event–Response Table technique is used.
+[Normal (Web)] It is effective for modelling backend or real-time system behaviours where user interface interactions are not directly involved.
+[Normal (Web)] It describes the system’s response to specific events, often including conditions under which different actions occur.
+[Normal (Web)] This ensures backend workflows are captured in the requirements phase without going into design-level details.
+[Normal (Web)] For detailed guidelines and examples of both Mockup-Based Requirement Analysis and Event–Response Tables, please see Appendix A.
+[Heading 3] Functional Requirements
+[Normal (Web)] This section describes the functional requirements of the system derived from user interactions and mockups. To ensure clarity and maintain a stable specification, each requirement should be documented at the feature level (e.g., User Sign-In, Product Checkout), with optional reference to the specific UI element(s) from which the feature is derived. Each functional requirement must include:
+[Normal (Web)] A unique identifier (e.g., FR1.1, FR1.2).
+[Normal (Web)] A clear and testable requirement statement written at the feature level.
+[Normal (Web)] A reference to the originating mockup screen and (if needed) the UI element that demonstrates the feature.
+[Normal (Web)] An optional Business Rule, if the behavior is governed by a domain-specific policy, condition, or constraint.
+[Normal (Web)] Where applicable, Business Rules help clarify why a requirement must behave in a certain way and ensure that system behavior aligns with organizational rules, legal constraints, or client policies.
+[Heading 3] Recommended Format:
+[Normal (Web)] Use the following table structure to document mockup-based, feature-level functional requirements:
+[Caption] Table 2.1: Mockup-Based Functional Requirement Template
+[Normal (Web)] Examples of this technique are provided in Appendix A.
+[Heading 2] Non-Functional Requirements
+[Normal] This section specifies non-functional requirements (NFRs) other than constraints (recorded in Section 2.3) and external interface requirements (described in Section 7). Non-functional requirements define the quality attributes of the system, such as reliability, usability, performance, and security. To avoid vague statements, these requirements must be written in specific, quantitative, and verifiable terms (e.g., using percentages, thresholds, or time limits).
+[Normal] 
+[Normal] To learn how to write non-functional requirements in measurable ways, students should refer to Chapter 14 “Beyond Functionality”, which provides practical guidelines and examples of quality attribute requirements.
+[Heading 3] Reliability 
+[Header] Requirements about how often the software fails. The measurement is often expressed in MTBF (mean time between failures). The definition of failure must be clear. Also, don't confuse reliability with availability, which is quite a different kind of requirement.  Be sure to specify the consequences of software failure, how to protect from failure, a strategy for error detection, and a strategy for correction.
+[Heading 3] Usability
+[Header] Usability requirements deal with ease of learning, ease of use, error avoidance and recovery, the efficiency of interactions, and accessibility. The usability requirements specified here will help the user interface designer create the optimum user experience.
+[Header] Example:
+[Normal] 
+[Header] USE-1: The COS shall allow a user to retrieve the previous meal ordered with a single interaction.
+[Heading 3] Performance
+[Pa1] State specific performance requirements for various system operations. If different functional requirements or features have different performance requirements, it’s appropriate to specify those performance goals right with the corresponding functional requirements, rather than collecting them in this section. 
+[Normal] Example:
+[Normal] 
+[Normal] PER-1:	 95% of webpages generated by the COS shall download completely within 4 seconds from the time the user requests the page over a 20 Mbps or faster Internet connection.
+[Heading 3] Security 
+[Header] One or more requirements about protection of your system and its data. The measurement can be expressed in a variety of ways (effort, skill level, and time) to break into the system.  Do not discuss solutions (e.g. passwords) in the requirements document.
+[Heading 2] External Interface Requirements
+[Pa1] This section provides information to ensure that the system will communicate properly with users and with external hardware or software elements. A complex system with multiple subcomponents should create a separate interface specification or system architecture specification. The interface documentation could incorporate material from other documents by reference. For instance, it could point to a hardware device manual that lists the error codes that the device could send to the software. 
+[Heading 3] User Interfaces Requirements
+[Normal] Describe the logical characteristics of each user interface that the system needs. Some possible items to include are
+[List Paragraph] References to GUI standards or product family style guides that are to be followed.
+[List Paragraph] Standards for fonts, icons, button labels, images, color schemes, field tabbing sequences, commonly used controls, and the like.
+[List Paragraph] Screen layout or resolution constraints.
+[List Paragraph] Standard buttons, functions, or navigation links that will appear on every screen, such as a help button.
+[List Paragraph] Shortcut keys.
+[List Paragraph] Message display conventions.
+[List Paragraph] Layout standards to facilitate software localization.
+[List Paragraph] Accommodation for visually impaired users.
+[Normal] 
+Document the user interface design details, such as specific dialog box layouts, in a separate user interface specification, not in the SRS. Including screen mock-ups in the SRS to communicate another view of the requirements is helpful but making it clear that the mock-ups are not the committed screen designs. If the SRS is specifying an enhancement to an existing system, it sometimes makes sense to include screen displays exactly as they are to be implemented. The developers are already constrained by the current reality of the existing system, so it's possible to know up front just what the modified, and perhaps the new, screens should look like.  
+[Heading 3] Software interfaces
+[Pa1] Describe the connections between this product and other software components (identified by name and version), including other applications, databases, operating systems, tools, libraries, websites, and integrated commercial components (If any).
+[Normal] Example:
+[Normal] 
+[Normal] SI-1: Cafeteria Inventory System
+[Normal] SI-1.1:	The COS shall transmit the quantities of food items ordered to the Cafeteria Inventory System through a programmatic interface.
+[Heading 3] Hardware interfaces
+[Pa1] Describe the characteristics of each interface between the software components and hardware components, if any, of the system. This description might include the supported device types, the data and control interactions between the software and the hardware, and the communication protocols to be used. For more about specifying requirements for systems containing hardware, see Chapter 26, “Embedded and other real-time systems projects.”
+[Heading 3] Communications interfaces
+[Normal] State the requirements for any communication functions the product will use, including email, web browser, network protocols, and electronic forms.
+[Normal] 
+[Normal] Example:
+[Normal] 
+[Normal] CI-1:	The COS shall send an email or text message (based on user account settings) to the Patron to confirm acceptance of an order, price, and delivery instructions.

@@ -1,0 +1,226 @@
+[toc 1] Appendix A	30
+[toc 2] Example: Context Diagram	30
+[toc 2] Example: User Classes and Characteristics	31
+[toc 2] Example: Use case Diagram	32
+[toc 3] Syntax for Use case Diagram	33
+[toc 2] Example: Mockup-Based Requirement Analysis	34
+[toc 2] Mockup M1 – Login Page	34
+[toc 3] Functional Requirements Derived from Mockup M1 – Login Page	34
+[toc 2] Mockup M2 – Dashboard Page	35
+[toc 3] Functional Requirements Derived from Mockup M2– Dashboard Page	35
+[InfoBlue] Identify the various user classes that you anticipate will use this product and describe their pertinent characteristics. See Appendix A for an example of how to present user classes and characteristics.
+[Heading 2] Operating Environment
+[InfoBlue] Describe the environment in which the software will operate, which might include the hardware platform; operating systems and versions; geographical locations of users, servers, and databases; and organizations that host the related databases, servers, and websites. 
+[InfoBlue] Example:
+[Normal] 
+[InfoBlue] OE-1: The System shall operate correctly with the following web browsers: Windows Internet Explorer versions 7, 8, and 9; Firefox versions 12 through 26; Google Chrome (all versions); and Apple Safari versions 4.0 through 8.0.
+[Heading 2] Design and Implementation Constraints
+[InfoBlue] There are times when a certain programming language must be used, a code library that has already had time invested to develop it needs to be used, and so forth. Describe any factors that will restrict the options available to the developers and the rationale for each constraint. Constraints are described further in Chapter 14, “Beyond functionality.” 
+[InfoBlue] Example:
+[Normal] 
+[Normal] CON-1: The system shall use the current corporate standard Oracle database engine
+[Normal] CON-2: The application must use Microsoft .NET framework 4.5. 
+[Normal] CON-3: Online payments may be made only through PayPal. 
+[Normal] CON-3: All textual data used by the application shall be stored in the form of XML files. 
+[Heading 3] Use case Diagram
+[InfoBlue] Provide a Use Case Diagram to illustrate the interactions between identified user classes (actors) and the system. This diagram will establish the scope of user roles and access rights, and it will also serve as the basis for later modeling such as activity and sequence diagrams. See Appendix A for detailed guidelines on how to develop Use Case Diagrams.
+[Heading 3] Requirement Identifying Technique
+[InfoBlue] This section describes the technique used to identify and document the functional requirements of the system.
+[Normal (Web)] For this project, Mockup-Based Requirement Analysis is used. In this approach, user interface mockups are created using UI/UX tools such as Figma, Adobe XD, or Balsamiq. These mockups visually represent how users will interact with the system. Functional requirements are then derived from each screen’s elements and behaviors.
+[Heading 4] Steps to Follow:
+[Normal (Web)] Identify key features and break them down into individual screens.
+[Normal (Web)] Assign a Mockup ID to each screen (e.g., M1 for Login Page, M2 for Dashboard).
+[Normal (Web)] Create mockups of the screens using any UI/UX design tool.
+[Normal (Web)] Identify interactive elements on each screen (buttons, forms, menus, etc.).
+[Normal (Web)] Derive a functional requirement from each element, describing what the system should do in response.
+[Normal (Web)] Organize all functional requirements using the table format provided in Section 2.2.1.
+[Normal (Web)] Backend Process Requirements
+[Normal (Web)] While mockups are effective for capturing frontend interactions, some system functionalities take place entirely at the backend (e.g., order processing, payment gateway callbacks, email/SMS notifications, scheduled jobs, data validation, account security, and real-time tracking in ride-hailing apps). In addition, there are systems that operate almost entirely at the backend with minimal or no user interface, such as traffic signal control systems or industrial monitoring systems.”.
+[Normal (Web)] To capture these processes, the Event–Response Table technique is used.
+[Normal (Web)] It is effective for modelling backend or real-time system behaviours where user interface interactions are not directly involved.
+[Normal (Web)] It describes the system’s response to specific events, often including conditions under which different actions occur.
+[Normal (Web)] This ensures backend workflows are captured in the requirements phase without going into design-level details.
+[Normal (Web)] For detailed guidelines and examples of both Mockup-Based Requirement Analysis and Event–Response Tables, please see Appendix A.
+[Heading 3] Functional Requirements
+[Normal (Web)] This section describes the functional requirements of the system derived from user interactions and mockups. To ensure clarity and maintain a stable specification, each requirement should be documented at the feature level (e.g., User Sign-In, Product Checkout), with optional reference to the specific UI element(s) from which the feature is derived. Each functional requirement must include:
+[Normal (Web)] A unique identifier (e.g., FR1.1, FR1.2).
+[Normal (Web)] A clear and testable requirement statement written at the feature level.
+[Normal (Web)] A reference to the originating mockup screen and (if needed) the UI element that demonstrates the feature.
+[Normal (Web)] An optional Business Rule, if the behavior is governed by a domain-specific policy, condition, or constraint.
+[Normal (Web)] Where applicable, Business Rules help clarify why a requirement must behave in a certain way and ensure that system behavior aligns with organizational rules, legal constraints, or client policies.
+[Heading 3] Recommended Format:
+[Normal (Web)] Use the following table structure to document mockup-based, feature-level functional requirements:
+[Caption] Table 2.1: Mockup-Based Functional Requirement Template
+[Normal (Web)] Examples of this technique are provided in Appendix A.
+[Heading 2] Non-Functional Requirements
+[Normal] This section specifies non-functional requirements (NFRs) other than constraints (recorded in Section 2.3) and external interface requirements (described in Section 7). Non-functional requirements define the quality attributes of the system, such as reliability, usability, performance, and security. To avoid vague statements, these requirements must be written in specific, quantitative, and verifiable terms (e.g., using percentages, thresholds, or time limits).
+[Normal] 
+[Normal] To learn how to write non-functional requirements in measurable ways, students should refer to Chapter 14 “Beyond Functionality”, which provides practical guidelines and examples of quality attribute requirements.
+[Heading 3] Reliability 
+[Header] Requirements about how often the software fails. The measurement is often expressed in MTBF (mean time between failures). The definition of failure must be clear. Also, don't confuse reliability with availability, which is quite a different kind of requirement.  Be sure to specify the consequences of software failure, how to protect from failure, a strategy for error detection, and a strategy for correction.
+[Heading 3] Usability
+[Header] Usability requirements deal with ease of learning, ease of use, error avoidance and recovery, the efficiency of interactions, and accessibility. The usability requirements specified here will help the user interface designer create the optimum user experience.
+[Header] Example:
+[Normal] 
+[Header] USE-1: The COS shall allow a user to retrieve the previous meal ordered with a single interaction.
+[Heading 3] Performance
+[Pa1] State specific performance requirements for various system operations. If different functional requirements or features have different performance requirements, it’s appropriate to specify those performance goals right with the corresponding functional requirements, rather than collecting them in this section. 
+[Normal] Example:
+[Normal] 
+[Normal] PER-1:	 95% of webpages generated by the COS shall download completely within 4 seconds from the time the user requests the page over a 20 Mbps or faster Internet connection.
+[Heading 3] Security 
+[Header] One or more requirements about protection of your system and its data. The measurement can be expressed in a variety of ways (effort, skill level, and time) to break into the system.  Do not discuss solutions (e.g. passwords) in the requirements document.
+[Heading 2] External Interface Requirements
+[Pa1] This section provides information to ensure that the system will communicate properly with users and with external hardware or software elements. A complex system with multiple subcomponents should create a separate interface specification or system architecture specification. The interface documentation could incorporate material from other documents by reference. For instance, it could point to a hardware device manual that lists the error codes that the device could send to the software. 
+[Heading 3] User Interfaces Requirements
+[Normal] Describe the logical characteristics of each user interface that the system needs. Some possible items to include are
+[List Paragraph] References to GUI standards or product family style guides that are to be followed.
+[List Paragraph] Standards for fonts, icons, button labels, images, color schemes, field tabbing sequences, commonly used controls, and the like.
+[List Paragraph] Screen layout or resolution constraints.
+[List Paragraph] Standard buttons, functions, or navigation links that will appear on every screen, such as a help button.
+[List Paragraph] Shortcut keys.
+[List Paragraph] Message display conventions.
+[List Paragraph] Layout standards to facilitate software localization.
+[List Paragraph] Accommodation for visually impaired users.
+[Normal] 
+Document the user interface design details, such as specific dialog box layouts, in a separate user interface specification, not in the SRS. Including screen mock-ups in the SRS to communicate another view of the requirements is helpful but making it clear that the mock-ups are not the committed screen designs. If the SRS is specifying an enhancement to an existing system, it sometimes makes sense to include screen displays exactly as they are to be implemented. The developers are already constrained by the current reality of the existing system, so it's possible to know up front just what the modified, and perhaps the new, screens should look like.  
+[Heading 3] Software interfaces
+[Pa1] Describe the connections between this product and other software components (identified by name and version), including other applications, databases, operating systems, tools, libraries, websites, and integrated commercial components (If any).
+[Normal] Example:
+[Normal] 
+[Normal] SI-1: Cafeteria Inventory System
+[Normal] SI-1.1:	The COS shall transmit the quantities of food items ordered to the Cafeteria Inventory System through a programmatic interface.
+[Heading 3] Hardware interfaces
+[Pa1] Describe the characteristics of each interface between the software components and hardware components, if any, of the system. This description might include the supported device types, the data and control interactions between the software and the hardware, and the communication protocols to be used. For more about specifying requirements for systems containing hardware, see Chapter 26, “Embedded and other real-time systems projects.”
+[Heading 3] Communications interfaces
+[Normal] State the requirements for any communication functions the product will use, including email, web browser, network protocols, and electronic forms.
+[Normal] 
+[Normal] Example:
+[Normal] 
+[Normal] CI-1:	The COS shall send an email or text message (based on user account settings) to the Patron to confirm acceptance of an order, price, and delivery instructions.
+[Heading 1] Chapter 3: Design and Architecture
+[Normal] This chapter presents the high-level architectural design of the proposed system. It integrates the conceptual system architecture, architectural design patterns, and design models to provide a comprehensive understanding of how the system is structured and implemented. It also includes data design and a data dictionary for full system clarity.
+[List Paragraph] 
+[List Paragraph] 
+[List Paragraph] 
+[Heading 2] System Architecture Overview
+[Normal] This section describes the overall external architecture of the software system, which reflects the system's conceptual design, major components, services, technologies, and security considerations. Unlike internal architectural styles (e.g., Layered, MVC), this section focuses on helping stakeholders understand how the entire system operates at a macro level.
+[Heading 3] Purpose
+[Normal] To provide a conceptual view of the system that illustrates the big-picture design, showing where each module resides, what technologies are used, and how data and control flow between system components.
+[Heading 2]  Guidelines for Students
+[List Paragraph] Create a conceptual architecture diagram using tools like Draw.io or Lucidchart.
+[List Paragraph] Represent modules such as:
+[List Paragraph] Frontend (Web/Mobile App)
+[List Paragraph] Backend Services/API
+[List Paragraph] Database Layer
+[List Paragraph] Authentication and Authorization Services
+[List Paragraph] Admin Panel
+[List Paragraph] External APIs / Integrations
+[List Paragraph] Security Services (e.g., Role-Based Access Control, Firewall)
+[List Paragraph] Label each module clearly.
+[List Paragraph] Show flow of control/data using arrows.
+[List Paragraph] Provide explanations about:
+[List Paragraph] The responsibility of each module
+[List Paragraph] Communication between components
+[List Paragraph] Technologies and security mechanisms used
+[Heading 3] Technologies and Services
+[Caption] Table 3.1 Technologies, Components, and Security Mechanisms Used in the System Architecture
+[Normal] 
+[Heading 1] Appendix A
+[Heading 2] Example: Context Diagram
+[Heading 1] 
+[Normal] The Cafeteria Ordering System is a new software system that replaces the current manual and telephone processes for ordering and picking up meals in the Process Impact cafeteria. The context diagram in Figure 1 illustrates the external entities and system interfaces. 
+[Normal] 
+[Caption] 
+[Caption] Figure A-1: Context diagram of the Cafeteria Ordering System.
+[Normal] 
+[Heading 2] Example: User Classes and Characteristics
+[Caption] Table A-1 Shows user classes and character
+[Normal] 
+[Normal] 
+[Normal] 
+[Heading 2] Example: Use case Diagram
+[Normal] 
+[Normal] Following use case diagram is of an appointment system in which all the use case diagram relationships are presented. In further in Table A-2 to the detail of use case diagram syntax is provided.
+[Normal] 
+[Normal] 
+[Caption] 
+[Caption] Figure A-2: Use Case Diagram of an Appointment System
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Heading 3] Syntax for Use case Diagram
+[Caption] Table A-2 Syntax for Use case Diagram
+[Heading 2] Example: Mockup-Based Requirement Analysis 
+[Normal] This appendix presents a sample application of Mockup-Based Requirement Analysis, demonstrating how functional requirements can be systematically derived from UI mockups. This approach replaces traditional use case descriptions with a more visual, interaction-driven technique suitable for modern, user-centric applications.
+[Normal] 
+The example includes:
+[List Paragraph] Annotated UI mockups
+[List Paragraph] Functional requirements identified from screen elements
+[List Paragraph] A structured tabular format using Mockup IDs for traceability
+[Heading 2] Mockup M1 – Login Page
+[Normal] 
+[Caption] Figure A-3: Mockup M1 for Login Page
+[Heading 3] Functional Requirements Derived from Mockup M1 – Login Page
+[Caption] Table A-3: Functional Requirements Derive from Mockup M1
+[Heading 2] Mockup M2 – Dashboard Page
+[Normal] 
+[Normal] 
+[Caption] Figure A-4: Mockup M2 for Dashboard Page
+[Heading 3] Functional Requirements Derived from Mockup M2– Dashboard Page
+[Caption] Table A-4: Functional Requirements Derive from Mockup M2
+[Normal] 
+[Caption] Event-Response Tables
+[Normal] Example System: “Buy a Product” Feature in an E-Commerce System
+[Normal] To develop an Event–Response Table, it is first required to identify all possible events that may occur in the system. The following example presents an event list and event–response table for the Buy a Product feature of an E-Commerce System.
+[Normal] The “Buy a Product” feature must handle various operational and exceptional events, including the following:
+[List Paragraph] A user attempts to log in to the system.
+[List Paragraph] The payment gateway confirms the transaction.
+[List Paragraph] The warehouse updates order shipment status.
+[List Paragraph] The delivery carrier reports delivery failure.
+[List Paragraph] The system detects that product stock has reached zero.
+[Normal] 
+[Normal] Identified Events for “Buy a Product” Feature
+[Normal] User Authentication Success – triggered when the authentication server confirms valid credentials.
+[Normal] User Authentication Failure – triggered when the authentication server rejects credentials.
+[Normal] Payment Confirmation Received – triggered when the payment gateway confirms successful transaction.
+[Normal] Order Shipped – triggered when warehouse updates order status to shipped.
+[Normal] Delivery Failed – triggered when shipping carrier reports unsuccessful delivery.
+[Normal] Stock Depleted Notification – triggered when product inventory reaches zero.
+[Normal] 
+[Normal] Note for Students: When preparing an Event–Response Table, additional attributes may be included for detailed requirement analysis, such as:
+[List Paragraph] Required input data elements
+[List Paragraph] Preconditions
+[List Paragraph] System state before the event
+[List Paragraph] System state after the response
+[List Paragraph] Exception handling mechanisms
+[Normal] These details improve completeness, traceability, and clarity in requirement specification.
+[Normal] 
+[Caption] Table A-5: Event–Response Table for “Buy a Product” Feature
+[Normal] 
+[Normal] Derived Functional Requirements from Events
+[Normal] Event analysis supports the derivation of clear functional requirements as follows:
+[Normal] 
+[Caption] Table A-6: Functional Requirements Derived from Event–Response Table for “Buy a Product” Feature
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
+[Normal] 
