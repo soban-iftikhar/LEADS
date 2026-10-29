@@ -112,8 +112,10 @@ def catchup_check():
     if stale:
         log.warning("closed %s stale run(s) as failed", stale)
     if runs.needs_catchup(pool):
-        log.info("last good crawl is older than %s h: starting a catch-up run", runs.CATCHUP_AFTER_HOURS)
-        return start_run("catchup")
+        window = runs.catchup_window_hours(pool)
+        log.info("last good crawl is older than %s h: starting a catch-up run (%s h window)",
+                 runs.CATCHUP_AFTER_HOURS, window)
+        return start_run("catchup", window)
     return None
 
 

@@ -96,3 +96,12 @@ def test_ilaan_url_needs_type_and_id():
     from leads_scraper.normalize import ilaan_url
     assert ilaan_url({"propertyId": 1}, None, "ForSale") is None
     assert ilaan_url({"propertyId": None}, "House", "ForSale") is None
+
+
+def test_missing_address_falls_back_to_locality_and_city(settings):
+    _, payload = load_fixtures("ilaan")[0]
+    payload = json.loads(json.dumps(payload))
+    payload["listing"]["address"] = None
+    rec = normalize("ilaan", payload, ctx_for("ilaan", payload), settings)
+    assert rec["location_text"] == ", ".join(x for x in (rec["locality"], rec["city"]) if x)
+    assert rec["location_text"]
