@@ -1,4 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "../src/styles/tokens.css";
+@import "../src/styles/marketing.css";
+@import "../src/styles/auth.css";
+@import "../src/styles/app.css";
+@import "../src/styles/extras.css";
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-m: var(--m);
+  --color-m-h: var(--m-h);
+  --color-m-str: var(--m-str);
+  --color-m-ink: var(--m-ink);
+  --color-m-soft: var(--m-soft);
+  --color-m-tint: var(--m-tint);
+  --color-on-m: var(--on-m);
+  --color-err: var(--err);
+  --color-err-soft: var(--err-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+}
+
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  transition: background-color 350ms, color 350ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}
