@@ -15,7 +15,10 @@ export function proxy(request: NextRequest) {
     url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
-  return NextResponse.next();
+  // the (app) layout reads this to build its own ?next= when it has to send someone away
+  const headers = new Headers(request.headers);
+  headers.set("x-leads-path", request.nextUrl.pathname + request.nextUrl.search);
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {

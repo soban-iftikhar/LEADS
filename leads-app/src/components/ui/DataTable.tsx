@@ -51,7 +51,7 @@ export function DataTable<T>({ columns, rows, rowKey, rowHref, selected, caption
           {rows.map((r) => {
             const href = rowHref?.(r);
             return (
-              <tr key={rowKey(r)} className={cx(href && "clk", selected?.(r) && "sel")} onClick={(e) => onRow(e, href)}>
+              <tr key={rowKey(r)} className={cx(href && "clk", selected?.(r) && "is-sel")} onClick={(e) => onRow(e, href)}>
                 {columns.map((c) => (
                   <td key={c.key} className={c.className}>
                     {c.cell(r)}

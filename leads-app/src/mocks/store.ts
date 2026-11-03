@@ -382,12 +382,12 @@ function titleOf(l: Listing): string {
 function qualityOf(l: Listing, u: User): QualityCheck[] {
   const descOk = (l.description ?? "").trim().length >= 40;
   return [
-    { key: "basics", label: "Type, size and location", passed: !!(l.category && l.sizeValue && l.localityId), hint: "Add the size and pick the area." },
+    { key: "basics", label: "Type, size, location", passed: !!(l.category && l.sizeValue && l.localityId), hint: "Add the size and pick the area." },
     { key: "price", label: "Price", passed: Number(l.pricePkr || 0) > 0, hint: "Add your asking price." },
     { key: "description", label: "Description", passed: descOk, hint: "Write at least 40 characters." },
     { key: "photos", label: "5 photos", passed: l.images.length >= 5, hint: `Add ${Math.max(0, 5 - l.images.length)} more photos.` },
     { key: "ownership_doc", label: "Ownership document", passed: l.documents.length > 0, hint: "Upload the registry, transfer or allotment letter." },
-    { key: "whatsapp", label: "WhatsApp verified", passed: u.phoneVerified, hint: "Verify your WhatsApp number." },
+    { key: "whatsapp", label: "WhatsApp number", passed: u.phoneVerified, hint: "Verify your WhatsApp number." },
   ];
 }
 function score(checks: QualityCheck[]) {
@@ -746,7 +746,7 @@ export function listMine(userId: string, q: { status?: string; page?: number; pa
   const c = (s: ListingStatus) => mine.filter((l) => l.status === s).length;
   const counts: ListingCounts = { all: mine.length, live: c("APPROVED"), review: c("UNDER_REVIEW"), info: c("NEEDS_INFO"), rejected: c("REJECTED"), draft: c("DRAFT"), paused: c("PAUSED"), sold: c("SOLD") };
   const st = q.status ? LISTING_FILTER[q.status] : undefined;
-  const rows = (st ? mine.filter((l) => l.status === st) : mine).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rows = (st ? mine.filter((l) => l.status === st) : mine).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const pageSize = Math.min(100, q.pageSize ?? 50);
   const page = Math.max(1, q.page ?? 1);
   return { items: rows.slice((page - 1) * pageSize, page * pageSize).map((l) => toCard(l, u)), total: rows.length, counts };
@@ -921,7 +921,7 @@ export function listOrders(userId: string, scope: "active" | "past") {
   const active = all.filter((o) => o.status === "ACTIVE");
   const items = scope === "active" ? active : all.filter((o) => ["COMPLETED", "EXPIRED", "CANCELLED"].includes(o.status));
   return {
-    items: items.sort((a, b) => (b.windowStartsAt ?? "").localeCompare(a.windowStartsAt ?? "")),
+    items: items.sort((a, b) => (scope === "active" ? 1 : -1) * (a.windowStartsAt ?? "").localeCompare(b.windowStartsAt ?? "")),
     totals: {
       activeOrders: active.length,
       delivered: active.reduce((s, o) => s + o.deliveredCount, 0),

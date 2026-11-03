@@ -60,3 +60,14 @@ describe("dates", () => {
     expect(dayBucket("2026-11-01T02:00:00Z", now)).toBe("Earlier");
   });
 });
+
+describe("local input round trip", async () => {
+  const { toLocalInput, fromLocalInput, formatStamp } = await import("./format");
+  it("converts Karachi wall time both ways", () => {
+    expect(toLocalInput("2026-11-15T11:00:00.000Z")).toBe("2026-11-15T16:00");
+    expect(fromLocalInput("2026-11-15T16:00")).toBe("2026-11-15T11:00:00.000Z");
+  });
+  it("stamps in 24 h", () => {
+    expect(formatStamp("2026-11-13T05:42:00Z", new Date("2026-11-13T12:00:00Z"))).toBe("13 Nov, 10:42");
+  });
+});
