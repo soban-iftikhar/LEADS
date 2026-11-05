@@ -49,9 +49,12 @@
 @media (prefers-reduced-motion:reduce){.app-ui .spin,.toast-i{animation:none}}
 
 /* /dev/ui only */
-.devgrid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.devgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+.devgrid>[data-theme]{min-width:0}
+.devhead{flex-wrap:wrap;row-gap:4px}
+@media (max-width:640px){.devhead .devsub{display:none}.devgrid>[data-theme]{padding:16px!important}}
 .devgrid>[data-theme]{background-color:var(--bg);color:var(--ink)}
-@media (max-width:1100px){.devgrid{grid-template-columns:1fr}}
+@media (max-width:1100px){.devgrid{grid-template-columns:minmax(0,1fr)}}
 
 /* landing */
 .mkt .plan-pop{background:var(--panel);color:var(--on-panel);border-color:var(--panel)}
@@ -156,3 +159,13 @@
 .app-ui .inp.ro{background:var(--surface-2)}
 .app-ui .inp.ro .ro-v{flex:1;padding:0 14px;font-size:15px;color:var(--ink-2)}
 .app-ui .inp.ro .ro-a{padding:0 14px}
+.devgrid .tok-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:8px}
+.devgrid .tok-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.devgrid .tok{min-width:0}
+.devgrid .tok-n,.devgrid .tok-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.devgrid .tok{display:grid;grid-template-columns:28px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+.devgrid .tok-sw{grid-row:span 2;width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--line-2)}
+.devgrid .tok-n{font-size:12px;font-weight:600}
+.devgrid .tok-v{font-size:11px;color:var(--ink-3)}
+.devgrid .tok-type{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline}
+@media (max-width:560px){.devgrid .tok-type{grid-template-columns:1fr;gap:2px}}
