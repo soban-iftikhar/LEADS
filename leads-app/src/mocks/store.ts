@@ -22,7 +22,6 @@ import type {
   Locality,
   Me,
   NotificationItem,
-  NotificationSettings,
   NotificationType,
   OrderCard,
   OrderDetail,
@@ -83,18 +82,11 @@ type User = {
   id: string;
   customerId: string;
   email: string;
-  phone: string; // E.164
-  password: string;
   kind: CustomerKind;
   displayName: string;
   contactPerson: string | null;
-  emailVerified: boolean;
   phoneVerified: boolean;
-  otp: string;
-  otpTries: number;
-  failedLogins: number;
   deleted: boolean;
-  prefs: NotificationSettings;
 };
 
 type Listing = {
@@ -168,7 +160,6 @@ type DB = { users: User[]; listings: Listing[]; leads: Lead[]; orders: Order[]; 
 
 // ---------------------------------------------------------------- seed
 
-const DEFAULT_PREFS: NotificationSettings = { newLeadWhatsapp: true, dailySummary: true, listingUpdates: true, emailCopies: false, packageEnding: true };
 
 const DESC =
   "Corner house on a 40 ft road, 5 bedrooms with attached baths, double kitchen, servant quarter and a small lawn. Near the G-13 markaz and the Kashmir Highway.";
@@ -195,18 +186,11 @@ function seed(): DB {
     id: "usr_demo",
     customerId: "cus_demo",
     email: "demo@leads.pk",
-    phone: "+923001112233",
-    password: "password1",
     kind: "AGENCY",
     displayName: "Al-Noor Estate",
     contactPerson: "Imran Qureshi",
-    emailVerified: true,
     phoneVerified: true,
-    otp: "123456",
-    otpTries: 0,
-    failedLogins: 0,
     deleted: false,
-    prefs: { ...DEFAULT_PREFS },
   };
   const C = user.customerId;
   const mkListing = (
@@ -358,10 +342,6 @@ function initialsOf(name: string): string {
   const parts = name.replace(/[^A-Za-z\s-]/g, " ").trim().split(/[\s-]+/).filter(Boolean);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "")).toUpperCase();
 }
-function maskPhone(e164: string): string {
-  const d = e164.replace(/\D/g, "").slice(2);
-  return `+92 ${d.slice(0, 3)} •••${d.slice(-4)}`;
-}
 function userById(id: string): User {
   const u = db().users.find((x) => x.id === id && !x.deleted);
   if (!u) throw new MockError(401, "Please log in again.");
@@ -491,144 +471,49 @@ function toOrderCard(o: Order): OrderCard {
   };
 }
 
-// ---------------------------------------------------------------- auth
+// ---------------------------------------------------------------- users (auth itself is real)
 
-export function me(userId: string): Me {
+/** The signed-in person as the real auth module sees them; mirrored here so mock data can hang off it. */
+export type RealUser = { id: string; email: string; kind: CustomerKind; displayName: string; contactPerson: string | null; phoneVerified: boolean };
+
+/**
+ * Makes sure the mock store knows this real user. The first real account with the demo email
+ * takes over the seeded demo data; every other account starts empty.
+ */
+export function syncUser(r: RealUser): void {
+  const d = db();
+  let u = d.users.find((x) => x.id === r.id);
+  if (!u) {
+    const demo = d.users.find((x) => x.id === "usr_demo" && x.email === r.email.toLowerCase());
+    if (demo) {
+      demo.id = r.id;
+      u = demo;
+    } else {
+      u = { id: r.id, customerId: uid("cus"), email: r.email, kind: r.kind, displayName: r.displayName, contactPerson: r.contactPerson, phoneVerified: r.phoneVerified, deleted: false };
+      d.users.push(u);
+    }
+  }
+  Object.assign(u, { email: r.email, kind: r.kind, displayName: r.displayName, contactPerson: r.contactPerson, phoneVerified: r.phoneVerified });
+}
+
+export function counts(userId: string): Me["counts"] {
   const u = userById(userId);
   const d = db();
   return {
-    user: {
-      id: u.id,
-      email: u.email,
-      role: u.kind === "AGENCY" ? "CUSTOMER_AGENCY" : "CUSTOMER_SELLER",
-      phoneMasked: maskPhone(u.phone),
-      emailVerified: u.emailVerified,
-      phoneVerified: u.phoneVerified,
-    },
-    customer: { kind: u.kind, displayName: u.displayName, contactPerson: u.contactPerson, initials: initialsOf(u.displayName) },
-    counts: {
-      newLeads: d.leads.filter((l) => l.customerId === u.customerId && l.customerStage === "NEW" && l.status !== "REPORTED").length,
-      unreadNotifications: d.notifications.filter((n) => n.customerId === u.customerId && !n.readAt).length,
-      listings: d.listings.filter((l) => l.customerId === u.customerId && l.status !== "ARCHIVED").length,
-    },
+    newLeads: d.leads.filter((l) => l.customerId === u.customerId && l.customerStage === "NEW" && l.status !== "REPORTED").length,
+    unreadNotifications: d.notifications.filter((n) => n.customerId === u.customerId && !n.readAt).length,
+    listings: d.listings.filter((l) => l.customerId === u.customerId && l.status !== "ARCHIVED").length,
   };
 }
 
-export function login(email: string, password: string): { userId: string; me: Me } {
-  const u = db().users.find((x) => x.email.toLowerCase() === email.trim().toLowerCase() && !x.deleted);
-  if (u && u.failedLogins >= 10) throw new MockError(423, "Too many tries.", { lockedUntil: iso(Date.now() + 15 * MIN) });
-  if (!u || u.password !== password) {
-    if (u) u.failedLogins++;
-    throw new MockError(401, "That email and password do not match.");
-  }
-  u.failedLogins = 0;
-  if (!u.phoneVerified) throw new MockError(403, "Verify your WhatsApp number first.", { requiresPhoneVerification: "true", userId: u.id });
-  return { userId: u.id, me: me(u.id) };
-}
-
-export function register(input: { kind: CustomerKind; displayName: string; contactPerson?: string; email: string; phone: string; password: string }) {
-  const d = db();
-  const phone = "+92" + input.phone.replace(/\D/g, "").replace(/^0/, "");
-  if (d.users.some((u) => u.email.toLowerCase() === input.email.toLowerCase() && !u.deleted)) throw new MockError(409, "This email already has an account.", { email: "This email already has an account. Log in?" });
-  if (d.users.some((u) => u.phone === phone && !u.deleted)) throw new MockError(409, "This number already has an account.", { phone: "This number already has an account. Log in?" });
-  const u: User = {
-    id: uid("usr"),
-    customerId: uid("cus"),
-    email: input.email.trim(),
-    phone,
-    password: input.password,
-    kind: input.kind,
-    displayName: input.displayName.trim(),
-    contactPerson: input.kind === "AGENCY" ? input.contactPerson?.trim() || null : null,
-    emailVerified: false,
-    phoneVerified: false,
-    otp: "123456",
-    otpTries: 0,
-    failedLogins: 0,
-    deleted: false,
-    prefs: { ...DEFAULT_PREFS },
-  };
-  d.users.push(u);
-  return { userId: u.id, phoneMasked: maskPhone(u.phone) };
-}
-
-export function verifyPhone(userId: string, otp: string) {
+export function hasActivePackage(userId: string): boolean {
   const u = userById(userId);
-  if (u.otpTries >= 5) throw new MockError(429, "Too many tries. Send a new code.");
-  // mock: any 6 digits work except 000000 (lets the wrong-code state be tried)
-  if (!/^\d{6}$/.test(otp) || otp === "000000") {
-    u.otpTries++;
-    throw new MockError(422, "That code didn't match.", { otp: "That code didn't match." });
-  }
-  u.phoneVerified = true;
-  u.otpTries = 0;
-  return { phoneVerified: true };
+  return db().orders.some((o) => o.customerId === u.customerId && o.status === "ACTIVE");
 }
 
-export function resendOtp(userId: string) {
-  const u = userById(userId);
-  u.otpTries = 0;
-  return { retryAfterSec: 30 };
-}
-
-export function phoneOf(userId: string): string {
-  const u = userById(userId);
-  const d = u.phone.replace(/\D/g, "").slice(2);
-  return `+92 ${d.slice(0, 3)} ${d.slice(3)}`;
-}
-
-export function verifyEmailToken(token: string) {
-  if (!token || token === "expired") throw new MockError(410, "This link has expired.");
-  return { emailVerified: true };
-}
-
-export function resetPassword(token: string, password: string) {
-  if (!token || token === "expired") throw new MockError(410, "This link has expired.");
-  const u = db().users[0];
-  if (u) u.password = password;
-  return {};
-}
-
-export function updateMe(userId: string, patch: { displayName?: string; contactPerson?: string; email?: string; phone?: string }) {
-  const u = userById(userId);
-  const d = db();
-  if (patch.email && patch.email !== u.email) {
-    if (d.users.some((x) => x.id !== u.id && x.email.toLowerCase() === patch.email!.toLowerCase())) throw new MockError(409, "This email already has an account.", { email: "This email already has an account." });
-    u.email = patch.email;
-    u.emailVerified = false;
-  }
-  if (patch.phone) {
-    const phone = "+92" + patch.phone.replace(/\D/g, "").replace(/^0/, "");
-    if (phone !== u.phone) {
-      u.phone = phone;
-      u.phoneVerified = false;
-    }
-  }
-  if (patch.displayName !== undefined) u.displayName = patch.displayName.trim();
-  if (patch.contactPerson !== undefined) u.contactPerson = patch.contactPerson.trim() || null;
-  return me(u.id);
-}
-
-export function changePassword(userId: string, current: string, next: string) {
-  const u = userById(userId);
-  if (u.password !== current) throw new MockError(422, "Your current password is wrong.", { currentPassword: "That isn't your current password." });
-  u.password = next;
-}
-
-export function getPrefs(userId: string): NotificationSettings {
-  return { ...userById(userId).prefs };
-}
-export function setPrefs(userId: string, patch: Partial<NotificationSettings>): NotificationSettings {
-  const u = userById(userId);
-  u.prefs = { ...u.prefs, ...patch };
-  return { ...u.prefs };
-}
-
-export function deleteMe(userId: string, password: string) {
-  const u = userById(userId);
-  if (u.password !== password) throw new MockError(422, "That password is wrong.", { password: "That password is wrong." });
-  if (db().orders.some((o) => o.customerId === u.customerId && o.status === "ACTIVE")) throw new MockError(409, "You have an active package.");
-  u.deleted = true;
+export function forget(userId: string): void {
+  const u = db().users.find((x) => x.id === userId);
+  if (u) u.deleted = true;
 }
 
 // ---------------------------------------------------------------- dashboard

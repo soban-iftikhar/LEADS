@@ -1,25 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
-import { ApiError, resendOtp, verifyPhone } from "@/lib/api";
-import { Banner, shake, Spinner, Stepper } from "./parts";
+import { useEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { ApiError } from "@/lib/api";
+import { Banner, shake, Spinner } from "./parts";
 
-const SIGNUP_FLAG = "leads-signup-kind";
+type Props = {
+  title: string;
+  sub: ReactNode;
+  /** Resolves when the code is right; throws ApiError otherwise. */
+  verify: (code: string) => Promise<unknown>;
+  /** Resolves with the next cooldown in seconds. */
+  resend: () => Promise<{ retryAfterSec: number }>;
+  onDone: () => void;
+  top?: ReactNode;
+  footer?: ReactNode;
+};
 
-/** Set by the details step, so "Wrong number?" can go back there instead of to settings. */
-function readSignupFlag(): boolean {
-  try {
-    return sessionStorage.getItem(SIGNUP_FLAG) === "1";
-  } catch {
-    return false;
-  }
-}
-const noSubscribe = () => () => {};
-
-export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "agency" }) {
-  const router = useRouter();
+/** Six code boxes: auto-advance, backspace goes back, paste fills all, submits when full. */
+export function CodeForm({ title, sub, verify, resend, onDone, top, footer }: Props) {
   const card = useRef<HTMLDivElement>(null);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const [filled, setFilled] = useState<boolean[]>(Array(6).fill(false));
@@ -27,7 +25,6 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
   const [banner, setBanner] = useState("");
   const [busy, setBusy] = useState(false);
   const [wait, setWait] = useState(30);
-  const fromSignup = useSyncExternalStore(noSubscribe, readSignupFlag, () => false);
   const busyRef = useRef(false);
 
   useEffect(() => {
@@ -42,7 +39,14 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
 
   const code = () => boxes.current.map((el) => el?.value ?? "").join("");
 
-  const verify = async () => {
+  const clear = () => {
+    boxes.current.forEach((el) => {
+      if (el) el.value = "";
+    });
+    setFilled(Array(6).fill(false));
+  };
+
+  const submit = async () => {
     if (busyRef.current) return;
     const c = code();
     if (c.length < 6) {
@@ -54,26 +58,18 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
     setBusy(true);
     setBanner("");
     try {
-      await verifyPhone(c);
-      try {
-        sessionStorage.removeItem(SIGNUP_FLAG);
-      } catch {
-        // ignore
-      }
-      router.replace("/dashboard");
-      router.refresh();
+      await verify(c);
+      onDone();
     } catch (err) {
-      boxes.current.forEach((el) => {
-        if (el) el.value = "";
-      });
-      setFilled(Array(6).fill(false));
+      clear();
       setBad(true);
       setBusy(false);
       busyRef.current = false;
       shake(card.current);
       if (err instanceof ApiError && err.status === 429) setBanner("Too many tries. Send a new code.");
       else if (err instanceof ApiError && err.status === 410) setBanner("That code has expired. Send a new one.");
-      else setBanner("That code didn't match. Try again, or send a new one.");
+      else if (err instanceof ApiError && err.status === 422) setBanner("That code didn't match. Try again, or send a new one.");
+      else setBanner(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
       setTimeout(() => boxes.current[0]?.focus(), 50);
     }
   };
@@ -83,7 +79,7 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
     setFilled(f);
     setBad(false);
     setBanner("");
-    if (f.every(Boolean)) setTimeout(verify, 250);
+    if (f.every(Boolean)) setTimeout(submit, 250);
   };
 
   const fillFrom = (i: number, digits: string) => {
@@ -104,8 +100,7 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
   };
 
   const onKey = (i: number, e: KeyboardEvent<HTMLInputElement>) => {
-    const el = e.currentTarget;
-    if (e.key === "Backspace" && !el.value && i > 0) {
+    if (e.key === "Backspace" && !e.currentTarget.value && i > 0) {
       e.preventDefault();
       const prev = boxes.current[i - 1];
       if (prev) {
@@ -132,37 +127,33 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
     }
   };
 
-  const resend = async () => {
+  const again = async () => {
     try {
-      const r = await resendOtp();
+      const r = await resend();
       setWait(r.retryAfterSec || 30);
       setBanner("");
+      clear();
+      boxes.current[0]?.focus();
     } catch (err) {
-      setBanner(err instanceof ApiError && err.status === 429 ? "Please wait a little before asking for another code." : "Couldn't send a new code. Try again.");
+      if (err instanceof ApiError && err.status === 429) {
+        const s = Number(err.errors?.retryAfterSec);
+        if (s > 0) setWait(s);
+        setBanner("Please wait a little before asking for another code.");
+      } else setBanner(err instanceof ApiError ? err.message : "Couldn't send a new code. Try again.");
     }
   };
 
-  const submit = (e: FormEvent) => {
+  const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    verify();
+    submit();
   };
 
-  const [cc, ...rest] = phone.split(" ");
   return (
     <div className="fcard" ref={card}>
-      <Stepper step={2} />
-      <form className="view" noValidate onSubmit={submit}>
-        <h1 className="ttl">Check WhatsApp.</h1>
-        <p className="sub">
-          We sent a 6-digit code to{" "}
-          <b className="mono" style={{ color: "var(--ink)" }}>
-            {cc} {rest.join(" ")}
-          </b>
-          .{" "}
-          <Link href={fromSignup ? `/signup/details?type=${kind}` : "/settings#profile"} className="lnk">
-            Wrong number?
-          </Link>
-        </p>
+      {top}
+      <form className="view" noValidate onSubmit={onSubmit}>
+        <h1 className="ttl">{title}</h1>
+        <p className="sub">{sub}</p>
         {banner && (
           <div style={{ marginTop: 22 }}>
             <Banner>{banner}</Banner>
@@ -198,11 +189,12 @@ export function VerifyPhone({ phone, kind }: { phone: string; kind: "seller" | "
               New code in <b className="mono">0:{String(wait).padStart(2, "0")}</b>
             </span>
           ) : (
-            <button type="button" className="lnk" onClick={resend}>
+            <button type="button" className="lnk" onClick={again}>
               Send a new code
             </button>
           )}
         </p>
+        {footer}
       </form>
     </div>
   );

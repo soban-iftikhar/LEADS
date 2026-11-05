@@ -10,7 +10,9 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  // Legacy JWT, only for the not-yet-migrated listing/admin routes (SPEC_02 step 6 removes it).
+  // Checked where it is used (jwt.ts), so a weak value can't break the new auth pages.
+  JWT_SECRET: z.string().optional(),
   JWT_EXPIRES_IN: z.string().default("7d"),
 
   // Number of reverse proxies in front of the app that append to X-Forwarded-For.
@@ -22,6 +24,16 @@ const schema = z.object({
 
   OTP_EXPIRY_MINUTES: z.coerce.number().int().positive().default(10),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  // "live" sends codes by email/WhatsApp; "log" only prints them to the server log (local testing,
+  // so test runs never message real inboxes or numbers). Ignored in production.
+  AUTH_DELIVERY: z.enum(["live", "log"]).default("live"),
+
+  // HMAC key for one-time codes (base64, 32 bytes). Required by the auth routes.
+  OTP_PEPPER: z.string().optional(),
+
+  // Google sign-in. Both empty = the Google button is hidden.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 
   // Same values as the Python service (python-service/.env). Base64 of 32 random bytes each.
   // Optional until a route needs them; the WhatsApp webhook does.
@@ -42,6 +54,8 @@ const schema = z.object({
   WHATSAPP_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_API_VERSION: z.string().default("v20.0"),
+  WHATSAPP_OTP_TEMPLATE: z.string().optional(),
+  WHATSAPP_OTP_TEMPLATE_LANG: z.string().default("en"),
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
   WHATSAPP_APP_SECRET: z.string().optional(),
 });

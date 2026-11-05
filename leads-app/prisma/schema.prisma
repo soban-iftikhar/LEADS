@@ -193,6 +193,7 @@ model User {
   buyer             BuyerProfile?
   sessions          Session[]
   tokens            VerificationToken[]
+  oauthAccounts     OAuthAccount[]
   listings          Listing[]
   savedListings     SavedListing[]
   orders            Order[]
@@ -251,6 +252,7 @@ model VerificationToken {
   attempts   Int       @default(0)
   lastSentAt DateTime  @default(now()) @map("last_sent_at") @db.Timestamptz(6) // resend cooldown
   channel    String    @default("EMAIL") // EMAIL | WHATSAPP
+  pendingEnc String?   @map("pending_enc") // PHONE_OTP / PHONE_CHANGE: the number being verified, AES-256-GCM (same as phone_enc)
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
@@ -264,6 +266,23 @@ enum TokenType {
   PHONE_OTP
   PHONE_CHANGE
 
+  @@schema("app")
+}
+
+// Sign-in providers linked to a user (DR-43). One row per provider account.
+model OAuthAccount {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  provider       String // "google"
+  providerUserId String   @map("provider_user_id") // OIDC "sub"
+  email          String
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastUsedAt     DateTime @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("oauth_accounts")
   @@schema("app")
 }
 
@@ -282,14 +301,16 @@ model RecoveryCode {
 }
 
 model CustomerProfile {
-  userId        String       @id @map("user_id") @db.Uuid
-  kind          CustomerKind
-  displayName   String       @map("display_name") // person or agency name
-  contactPerson String?      @map("contact_person") // agency only
-  areas         String[] // locality ids
-  propertyTypes String[]     @map("property_types")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String       @id @map("user_id") @db.Uuid
+  kind              CustomerKind
+  displayName       String       @map("display_name") // person or agency name
+  contactPerson     String?      @map("contact_person") // agency only
+  areas             String[] // locality ids
+  propertyTypes     String[]     @map("property_types")
+  // { newLeadWhatsapp, dailySummary, listingUpdates, emailCopies, packageEnding }; missing keys use the defaults in code
+  notificationPrefs Json         @default("{}") @map("notification_prefs")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("customer_profiles")
   @@schema("app")

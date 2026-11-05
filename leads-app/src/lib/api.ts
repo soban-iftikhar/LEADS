@@ -56,39 +56,40 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return body.data as T;
 }
 
-// ---------------------------------------------------------------- auth
+// ---------------------------------------------------------------- auth (real endpoints)
 
-// TODO(api): POST /api/auth/login
-export const login = (email: string, password: string, remember: boolean): Promise<Me> => unwrap(M.mLogin(email, password, remember));
-// TODO(api): POST /api/auth/register
-export const register = (body: { kind: CustomerKind; displayName: string; contactPerson?: string; email: string; phone: string; password: string; acceptTerms: true }): Promise<{ userId: string; phoneMasked: string }> =>
-  unwrap(M.mRegister(body));
-// TODO(api): POST /api/auth/verify-phone
-export const verifyPhone = (otp: string): Promise<{ phoneVerified: true }> => unwrap(M.mVerifyPhone(otp)) as Promise<{ phoneVerified: true }>;
-// TODO(api): POST /api/auth/resend-otp
-export const resendOtp = (): Promise<{ retryAfterSec: number }> => unwrap(M.mResendOtp());
-// TODO(api): POST /api/auth/logout
-export const logout = (): Promise<void> => unwrap(M.mLogout());
-// TODO(api): POST /api/auth/forgot-password
-export const forgotPassword = (email: string): Promise<unknown> => unwrap(M.mForgot(email));
-// TODO(api): POST /api/auth/reset-password
-export const resetPassword = (token: string, password: string): Promise<unknown> => unwrap(M.mReset(token, password));
-// TODO(api): POST /api/auth/verify-email
-export const verifyEmail = (token: string): Promise<{ emailVerified: boolean }> => unwrap(M.mVerifyEmail(token));
-// TODO(api): GET /api/me
+const post = <T>(path: string, data?: unknown) => apiFetch<T>(path, { method: "POST", body: data === undefined ? undefined : JSON.stringify(data) });
+const patch = <T>(path: string, data: unknown) => apiFetch<T>(path, { method: "PATCH", body: JSON.stringify(data) });
+
+export const login = (email: string, password: string, remember: boolean) => post<{ ok: true }>("/api/auth/login", { email, password, remember });
+export const register = (b: { kind: CustomerKind; displayName: string; contactPerson?: string; email: string; password: string; acceptTerms: true }) => post<{ userId: string }>("/api/auth/register", b);
+export const verifyEmail = (code: string) => post<{ emailVerified: true }>("/api/auth/verify-email", { code });
+export const resendEmailCode = () => post<{ retryAfterSec: number }>("/api/auth/resend-email-code");
+export const startPhone = (phone: string) => post<{ phoneMasked: string; retryAfterSec: number }>("/api/auth/phone", { phone });
+export const verifyPhone = (otp: string) => post<{ phoneVerified: true }>("/api/auth/verify-phone", { otp });
+export const resendOtp = () => post<{ retryAfterSec: number }>("/api/auth/resend-otp");
+export const logout = () => post<void>("/api/auth/logout");
+export const forgotPassword = (email: string) => post<{ ok: true }>("/api/auth/forgot-password", { email });
+export const resetPassword = (token: string, password: string) => post<{ ok: true }>("/api/auth/reset-password", { token, password });
+export const completeGoogleSignup = (b: { kind: CustomerKind; agencyName?: string; acceptTerms: true }) => post<{ ok: true }>("/api/auth/google/complete", b);
+/** Google sign-in starts with a full-page navigation, not a fetch. */
+export const googleHref = (opts: { type?: "seller" | "agency"; next?: string } = {}) => {
+  const p = new URLSearchParams();
+  if (opts.type) p.set("type", opts.type);
+  if (opts.next) p.set("next", opts.next);
+  const s = p.toString();
+  return `/api/auth/google${s ? `?${s}` : ""}`;
+};
+
+/** Server components read Me through the session directly (no HTTP hop). Client code uses GET /api/me. */
 export const getMe = (): Promise<Me> => unwrap(M.mMe());
-/** Full number for the verify screen ("+92 300 1234567"). TODO(api): comes from the register response / GET /api/me. */
-export const getOtpPhone = (): Promise<string> => unwrap(M.mPhone());
-// TODO(api): PATCH /api/me
-export const updateMe = (patch: { displayName?: string; contactPerson?: string; email?: string; phone?: string }): Promise<Me> => unwrap(M.mUpdateMe(patch));
-// TODO(api): PATCH /api/me/password
-export const changePassword = (currentPassword: string, newPassword: string): Promise<void> => unwrap(M.mChangePassword(currentPassword, newPassword));
-// TODO(api): GET /api/me/notification-settings
+/** The number waiting for its WhatsApp code ("+92 300 1234567"), or null. */
+export const getPendingPhone = (): Promise<string | null> => unwrap(M.mPendingPhone());
+export const updateMe = (b: { displayName?: string; contactPerson?: string; email?: string }) => patch<Me>("/api/me", b);
+export const changePassword = (currentPassword: string, newPassword: string) => patch<void>("/api/me/password", { currentPassword, newPassword });
 export const getNotificationSettings = (): Promise<NotificationSettings> => unwrap(M.mGetPrefs());
-// TODO(api): PATCH /api/me/notification-settings
-export const setNotificationSettings = (patch: Partial<NotificationSettings>): Promise<NotificationSettings> => unwrap(M.mSetPrefs(patch));
-// TODO(api): DELETE /api/me
-export const deleteAccount = (password: string): Promise<void> => unwrap(M.mDeleteMe(password));
+export const setNotificationSettings = (b: Partial<NotificationSettings>) => patch<NotificationSettings>("/api/me/notification-settings", b);
+export const deleteAccount = (password: string) => apiFetch<void>("/api/me", { method: "DELETE", body: JSON.stringify({ password }) });
 
 // ---------------------------------------------------------------- dashboard
 

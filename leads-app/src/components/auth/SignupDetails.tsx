@@ -7,17 +7,16 @@ import { Icon } from "@/components/ui/Icon";
 import { ApiError, register } from "@/lib/api";
 import { AuthInput, Banner, FieldError, PasswordInput, passwordStrength, shake, Spinner, Stepper, StrengthMeter, strengthLabel } from "./parts";
 
-type Errs = Partial<Record<"agency" | "name" | "email" | "phone" | "pw" | "terms", string>>;
+type Errs = Partial<Record<"agency" | "name" | "email" | "pw" | "terms", string>>;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneOk = (v: string) => /^3\d{9}$/.test(v.replace(/\D/g, "").replace(/^0/, ""));
 
 export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
   const router = useRouter();
   const card = useRef<HTMLDivElement>(null);
   const agency = kind === "agency";
-  const [v, setV] = useState({ agency: "", name: "", email: "", phone: "", pw: "", terms: false });
+  const [v, setV] = useState({ agency: "", name: "", email: "", pw: "", terms: false });
   const [errs, setErrs] = useState<Errs>({});
-  const [taken, setTaken] = useState<"email" | "phone" | null>(null);
+  const [taken, setTaken] = useState(false);
   const [banner, setBanner] = useState("");
   const [busy, setBusy] = useState(false);
   const level = passwordStrength(v.pw);
@@ -25,7 +24,7 @@ export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
   const set = <K extends keyof typeof v>(k: K, val: (typeof v)[K]) => {
     setV((x) => ({ ...x, [k]: val }));
     setErrs((x) => ({ ...x, [k]: undefined }));
-    if (k === "email" || k === "phone") setTaken(null);
+    if (k === "email") setTaken(false);
     setBanner("");
   };
 
@@ -43,36 +42,31 @@ export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
     if (agency && !v.agency.trim()) fe.agency = "What is your agency called?";
     if (v.name.trim().length < 3) fe.name = "Please enter your full name.";
     if (!EMAIL.test(v.email.trim())) fe.email = "Enter a valid email, like you@example.com.";
-    if (!phoneOk(v.phone)) fe.phone = "Enter a 10-digit mobile number, like 300 1234567.";
     if (v.pw.length < 8 || !/\d/.test(v.pw)) fe.pw = "Use 8 or more characters with a number.";
     if (!v.terms) fe.terms = "Please accept the terms to continue.";
     if (Object.keys(fe).length) return fail(fe);
     setBusy(true);
     try {
-      const digits = v.phone.replace(/\D/g, "").replace(/^0/, "");
       await register({
         kind: agency ? "AGENCY" : "SELLER",
         displayName: agency ? v.agency.trim() : v.name.trim(),
         contactPerson: agency ? v.name.trim() : undefined,
         email: v.email.trim(),
-        phone: "0" + digits,
         password: v.pw,
         acceptTerms: true,
       });
-      try {
-        sessionStorage.setItem("leads-signup-kind", "1");
-      } catch {
-        // storage blocked: verify page links to settings instead
-      }
       router.replace("/signup/verify");
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        const which = err.errors?.phone ? "phone" : "email";
-        setTaken(which);
-        return fail({ [which]: which === "email" ? "This email already has an account." : "This number already has an account." });
+        setTaken(true);
+        return fail({ email: "This email already has an account." });
       }
-      if (err instanceof ApiError && err.status === 422 && err.errors) return fail(err.errors as Errs);
+      if (err instanceof ApiError && err.status === 422 && err.errors) {
+        const e = err.errors;
+        return fail({ agency: agency ? e.displayName : undefined, name: agency ? e.contactPerson : e.displayName, email: e.email, pw: e.password, terms: e.acceptTerms });
+      }
+      if (err instanceof ApiError && err.status === 429) return fail({}, "Too many sign-ups from here. Try again in a little while.");
       fail({}, "Something went wrong. Please try again.");
     }
   };
@@ -81,7 +75,7 @@ export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
     errs[k] ? (
       <FieldError id={`s-${k}-e`}>
         {errs[k]}
-        {taken === k && (
+        {taken && k === "email" && (
           <>
             {" "}
             <Link href="/login" className="lnk" style={{ fontSize: "inherit" }}>
@@ -97,7 +91,7 @@ export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
       <Stepper step={1} />
       <form className="view" noValidate onSubmit={submit}>
         <h1 className="ttl">{agency ? "About your agency." : "About you."}</h1>
-        <p className="sub">We&apos;ll send a 6-digit code to your WhatsApp to check the number.</p>
+        <p className="sub">We&apos;ll email you a 6-digit code to confirm it&apos;s you.</p>
         <div className="fields">
           {banner && <Banner>{banner}</Banner>}
           {agency && (
@@ -116,11 +110,6 @@ export function SignupDetails({ kind }: { kind: "seller" | "agency" }) {
             <label htmlFor="s-email">Email</label>
             <AuthInput id="s-email" type="email" autoComplete="email" placeholder="you@example.com" value={v.email} onChange={(e) => set("email", e.target.value)} error={errs.email} errorId="s-email-e" />
             {err("email")}
-          </div>
-          <div className="field">
-            <label htmlFor="s-phone">WhatsApp number</label>
-            <AuthInput id="s-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="300 1234567" prefix="+92" value={v.phone} onChange={(e) => set("phone", e.target.value.replace(/[^\d\s]/g, "").slice(0, 12))} error={errs.phone} errorId="s-phone-e" />
-            {err("phone")}
           </div>
           <div className="field">
             <div className="lb">

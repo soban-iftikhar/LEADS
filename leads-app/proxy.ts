@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/server/auth/session";
 
-// TODO(api): drop the mock cookie once the UI talks to the real auth routes.
-const MOCK_COOKIE = "leads_mock_session";
+// Session cookie names (src/server/auth/sessions.ts). The proxy only checks that one is present,
+// to redirect signed-out visitors before a page renders; it never trusts it. Every API route and
+// the (app) layout load and validate the session themselves.
+const COOKIES = ["__Host-leads_session", "leads_session"];
 
-// Sends signed-out visitors to the login page before a protected page renders, keeping where
-// they were going in `next`. This is a convenience for pages only: every API route handler checks
-// the session itself, and the (app) layout re-checks role and phone verification.
 export function proxy(request: NextRequest) {
-  const signedIn = !!getCurrentUser(request) || !!request.cookies.get(MOCK_COOKIE)?.value;
+  const signedIn = COOKIES.some((c) => !!request.cookies.get(c)?.value);
   if (!signedIn) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
@@ -31,5 +29,6 @@ export const config = {
     "/notifications/:path*",
     "/settings/:path*",
     "/signup/verify",
+    "/verify-phone",
   ],
 };

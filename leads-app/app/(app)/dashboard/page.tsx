@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { LeadsTable } from "@/components/app/LeadsTable";
 import { OverviewListings } from "@/components/app/OverviewListings";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PhoneNudge } from "@/components/app/PhoneNudge";
 import { LoadError } from "@/components/app/LoadError";
 import { Button, Empty, Section, StatStrip } from "@/components/ui";
 import { getDashboardSummary, getLeads, getMe, getMyListings } from "@/lib/api";
@@ -46,6 +48,7 @@ function Welcome({ me, listings }: { me: Me; listings: ListingCard[] }) {
   return (
     <>
       <PageHeader title={`Welcome, ${name}`} sub="Three steps to your first lead." />
+      {!me.user.phoneVerified && <PhoneNudge />}
       <section className="sec" aria-label="Getting started">
         <Step n={1} title="Add your property" text="About 10 minutes. Photos, price and the ownership document." state={s1} action={<Button href="/listings/new" variant="primary" size="sm">Add listing</Button>} />
         <Step n={2} title="We check it" text="Our team reviews it within 24 hours." state={s2} action={<span className="muted" style={{ fontSize: 13 }}>Within 24 h</span>} />
@@ -77,7 +80,8 @@ export default async function DashboardPage() {
   try {
     const [summary, leads, listings] = await Promise.all([getDashboardSummary(), getLeads({ stage: "new", pageSize: 5 }), getMyListings({ pageSize: 50 })]);
     data = { summary, leads, listings };
-  } catch {
+  } catch (e) {
+    unstable_rethrow(e);
     return (
       <>
         <PageHeader title="Overview" sub={formatLongDay(now)} />
@@ -89,6 +93,7 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title="Overview" sub={formatLongDay(now)} actions={<Button href="/packages/buy" variant="primary">Buy leads</Button>} />
+      {!me.user.phoneVerified && <PhoneNudge />}
       <StatStrip
         items={[
           { label: "Active packages", value: summary.activeOrders, sub: <Link href="/packages" className="lnk" style={{ fontSize: 13 }}>See packages</Link> },

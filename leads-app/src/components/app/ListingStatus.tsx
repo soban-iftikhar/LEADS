@@ -76,7 +76,7 @@ const FIX: Record<string, { icon: IconName; title: string; action: string; ancho
 
 function FixItem({ c, listingId }: { c: QualityCheck; listingId: string }) {
   const f = FIX[c.key] ?? { icon: "alert" as IconName, title: c.label, action: "Edit", anchor: "" };
-  const href = c.key === "whatsapp" ? "/settings#profile" : `/listings/${listingId}/edit${f.anchor}`;
+  const href = c.key === "whatsapp" ? `/verify-phone?next=${encodeURIComponent(`/listings/${listingId}`)}` : `/listings/${listingId}/edit${f.anchor}`;
   return (
     <div className="note warn">
       <Icon name={f.icon} size={20} />

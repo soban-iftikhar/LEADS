@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import { getMe } from "@/lib/api";
 import type { Me } from "@/types/api";
 
@@ -6,7 +7,8 @@ import type { Me } from "@/types/api";
 export async function getViewer(): Promise<Me | null> {
   try {
     return await getMe();
-  } catch {
+  } catch (e) {
+    unstable_rethrow(e);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { mockUserId } from "@/mocks/session";
+import { mockCounts } from "@/mocks/bridge";
 import { exportLeadsCsv } from "@/mocks/store";
+import { loadSession, SESSION_COOKIE } from "@/server/auth/sessions";
 import type { LeadStageFilter } from "@/types/api";
 
 // TODO(api): replace with the real export once GET /api/leads/export.csv exists in the backend module.
@@ -8,7 +9,9 @@ import type { LeadStageFilter } from "@/types/api";
 const STAGES = new Set(["new", "contacted", "viewing", "won", "lost", "reported"]);
 
 export async function GET(request: NextRequest) {
-  const uid = await mockUserId();
+  const s = await loadSession(request.cookies.get(SESSION_COOKIE)?.value);
+  if (s) mockCounts(s.user);
+  const uid = s?.user.id;
   if (!uid) return NextResponse.json({ success: false, message: "Please log in.", errors: null }, { status: 401 });
   const sp = request.nextUrl.searchParams;
   const stage = sp.get("stage");

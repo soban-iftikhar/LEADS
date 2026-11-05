@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button, Field, Icon, Modal, Section, Switch, TextInput, useToast } from "@/components/ui";
@@ -23,7 +24,7 @@ function Profile({ me }: { me: Me }) {
   const router = useRouter();
   const toast = useToast();
   const agency = me.customer.kind === "AGENCY";
-  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email, phone: "" });
+  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email });
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof v, val: string) => {
@@ -36,8 +37,6 @@ function Profile({ me }: { me: Me }) {
     if (v.displayName.trim().length < (agency ? 2 : 3)) fe.displayName = agency ? "What is your agency called?" : "Please enter your full name.";
     if (agency && v.contactPerson.trim().length < 3) fe.contactPerson = "Please enter your full name.";
     if (!EMAIL.test(v.email.trim())) fe.email = "Enter a valid email, like you@example.com.";
-    const digits = v.phone.replace(/\D/g, "").replace(/^0/, "");
-    if (v.phone && !/^3\d{9}$/.test(digits)) fe.phone = "Enter a 10-digit mobile number, like 300 1234567.";
     if (Object.values(fe).some(Boolean)) return setErrs(fe);
     setBusy(true);
     try {
@@ -46,13 +45,13 @@ function Profile({ me }: { me: Me }) {
         displayName: v.displayName.trim(),
         ...(agency ? { contactPerson: v.contactPerson.trim() } : {}),
         ...(emailChanged ? { email: v.email.trim() } : {}),
-        ...(digits ? { phone: "0" + digits } : {}),
       });
-      if (digits) {
-        router.push("/signup/verify");
+      if (emailChanged) {
+        // the new address needs its code before the app opens again
+        router.push("/signup/verify?next=%2Fsettings");
         return;
       }
-      toast(emailChanged ? "Saved. We sent a link to confirm your new email." : "Saved.");
+      toast("Saved.");
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError && err.errors) setErrs(err.errors);
@@ -80,10 +79,18 @@ function Profile({ me }: { me: Me }) {
             <TextInput autoComplete="name" value={v.contactPerson} onChange={(e) => set("contactPerson", e.target.value)} />
           </Field>
         )}
-        <Field label="WhatsApp number" hint="Leads are sent here. Changing it asks for a new code." error={errs.phone}>
-          <TextInput prefix="+92" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder={me.user.phoneMasked?.replace(/^\+92\s?/, "") ?? "300 1234567"} value={v.phone} onChange={(e) => set("phone", e.target.value.replace(/[^\d\s]/g, "").slice(0, 12))} />
-        </Field>
-        <Field label="Email" hint="You log in with this." error={errs.email}>
+        <div className="field">
+          <span className="lbl">WhatsApp number</span>
+          <div className="inp ro">
+            <span className="pre">+92</span>
+            <span className={`ro-v ${me.user.phoneVerified ? "mono" : ""}`}>{me.user.phoneVerified && me.user.phoneMasked ? me.user.phoneMasked.replace(/^\+92\s?/, "") : "Not added yet"}</span>
+            <Link href={`/verify-phone?next=%2Fsettings${me.user.phoneVerified ? "&change=1" : ""}`} className="lnk ro-a">
+              {me.user.phoneVerified ? "Change" : "Add"}
+            </Link>
+          </div>
+          <div className="hint">{me.user.phoneVerified ? "Leads are sent here." : "Leads are sent here. Verify it to submit listings and start your free trial."}</div>
+        </div>
+        <Field label="Email" hint="You log in with this. Changing it asks for a new code." error={errs.email}>
           <TextInput type="email" autoComplete="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
         </Field>
         <button type="submit" hidden />
