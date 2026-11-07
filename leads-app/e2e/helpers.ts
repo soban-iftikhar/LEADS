@@ -10,6 +10,7 @@ export async function loginAsDemo(page: Page, next?: string) {
   await page.fill("#l-pw", "password1");
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page).toHaveURL(next ? new RegExp(next.replace(/[?]/g, "\\?")) : /\/dashboard/);
+  await page.waitForLoadState("networkidle"); // interactive before the test clicks anything
 }
 
 /** Latest code the server logged for this recipient (AUTH_DELIVERY=log). */

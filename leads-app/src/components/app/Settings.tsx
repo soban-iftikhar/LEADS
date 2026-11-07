@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button, Field, Icon, Modal, Section, Switch, TextInput, useToast } from "@/components/ui";
-import { ApiError, changePassword, deleteAccount, setNotificationSettings, updateMe } from "@/lib/api";
+import { ApiError, changePassword, deleteAccount, logout, setNotificationSettings, updateMe } from "@/lib/api";
 import { CUSTOMER_KIND } from "@/lib/labels";
 import type { Me, NotificationSettings } from "@/types/api";
 import { PageHeader } from "./PageHeader";
@@ -189,6 +189,16 @@ function Account({ me }: { me: Me }) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const kind = CUSTOMER_KIND[me.customer.kind];
+  const [leaving, setLeaving] = useState(false);
+  const doLogout = async () => {
+    setLeaving(true);
+    try {
+      await logout();
+    } finally {
+      router.replace("/login");
+      router.refresh();
+    }
+  };
   const del = async () => {
     if (!pw) return setErr("Enter your password.");
     setBusy(true);
@@ -210,9 +220,14 @@ function Account({ me }: { me: Me }) {
           Can&apos;t be changed. Contact us if you need {kind === "Agency" ? "an owner" : "an agency"} account.
         </div>
       </div>
-      <Button variant="danger" icon="trash" onClick={() => setOpen(true)}>
-        Delete account
-      </Button>
+      <div className="row">
+        <Button icon="out" loading={leaving} loadingLabel="Logging out…" onClick={doLogout}>
+          Log out
+        </Button>
+        <Button variant="danger" icon="trash" onClick={() => setOpen(true)}>
+          Delete account
+        </Button>
+      </div>
       {open && (
         <Modal
           title="Delete your account?"
