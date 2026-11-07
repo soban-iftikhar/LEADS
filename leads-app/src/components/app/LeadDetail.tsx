@@ -123,7 +123,7 @@ export function LeadDetailView({ lead: initial, displayName, reportOpen, now }: 
           </Button>
         </div>
       </section>
-      <div className="twocol">
+      <div className="cols c-21">
         <div>
           <Section title="How they replied" action={<span className="muted" style={{ fontSize: 13 }}>{isForm ? "Property form" : "WhatsApp"}</span>} bodyClassName="convo">
             {lead.conversation.map((m, i) => (

@@ -568,7 +568,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
         </div>
       </section>
 
-      <div className="twocol" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr)" }}>
+      <div className="cols" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr)" }}>
         <div>
           <section className="sec" id="photos">
             <div className="sec-h">

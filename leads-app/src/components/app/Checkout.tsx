@@ -66,7 +66,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
           {banner}
         </Note>
       )}
-      <div className="twocol2">
+      <div className="cols c-2s">
         <div>
           <Section title="Pay with" bodyClassName="stack10">
             {bank ? (
