@@ -122,7 +122,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
                 <dt>Package</dt>
                 <dd>{`${order.planName} · ${order.leadCount} leads`}</dd>
                 <dt>Window</dt>
-                <dd>{startsLater ? `60 days from ${formatDate(order.startsAt, n)}` : "60 days from payment"}</dd>
+                <dd>60 days</dd>
                 <dt>Price</dt>
                 <dd className="mono">{total}</dd>
                 <dt>Tax</dt>
@@ -147,14 +147,29 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
               <div className="muted" style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", margin: "10px 0 4px" }}>
                 What happens next
               </div>
-              <div className="act">
-                <span className="t">{startsLater ? formatDate(order.startsAt, n) : "Today"}</span>
-                <span>Payment confirmed, package starts</span>
-              </div>
-              <div className="act">
-                <span className="t">Within 48 h</span>
-                <span>First buyers get your listing on WhatsApp</span>
-              </div>
+              {startsLater ? (
+                <>
+                  <div className="act">
+                    <span className="t">Today</span>
+                    <span>Payment confirmed</span>
+                  </div>
+                  <div className="act">
+                    <span className="t">{formatDate(order.startsAt, n)}</span>
+                    <span>Package starts when the current one ends</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="act">
+                    <span className="t">Today</span>
+                    <span>Payment confirmed, package starts</span>
+                  </div>
+                  <div className="act">
+                    <span className="t">Within 48 h</span>
+                    <span>First buyers get your listing on WhatsApp</span>
+                  </div>
+                </>
+              )}
               <div className="act">
                 <span className="t">Day 60</span>
                 <span>Cashback for any lead we missed</span>
@@ -166,7 +181,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
                 </Button>
               )}
               <p className="muted" style={{ fontSize: 12.5, margin: "10px 0 0", textAlign: "center" }}>
-                Leads start arriving within 48 hours.
+                You&apos;ll come back here after paying.
               </p>
             </div>
           </aside>

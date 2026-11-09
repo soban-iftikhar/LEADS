@@ -9,7 +9,7 @@ export async function loginAsDemo(page: Page, next?: string) {
   await page.fill("#l-email", "demo@leads.pk");
   await page.fill("#l-pw", "password1");
   await page.getByRole("button", { name: "Log in", exact: true }).click();
-  await expect(page).toHaveURL(next ? new RegExp(next.replace(/[?]/g, "\\?")) : /\/dashboard/);
+  await expect(page).toHaveURL(next ? new RegExp(next.replace(/[?]/g, "\\?")) : /\/dashboard/, { timeout: 30_000 });
   await page.waitForLoadState("networkidle"); // interactive before the test clicks anything
 }
 

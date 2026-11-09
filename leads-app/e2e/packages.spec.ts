@@ -9,6 +9,8 @@ test("buy leads, pay, and come back to a confirmed package", async ({ page }) =>
   await page.getByRole("button", { name: /Pay PKR/ }).click();
   await expect(page).toHaveURL(/\/checkout\/[^/]+\/return$/, { timeout: 20_000 });
   await expect(page.getByText("Payment received")).toBeVisible({ timeout: 20_000 });
-  await page.getByRole("link", { name: "Go to packages" }).click();
-  await expect(page).toHaveURL(/\/packages$/);
+  await expect(page.getByText(/Receipt sent to demo@leads\.pk\. Order OR-/)).toBeVisible();
+  await page.screenshot({ path: "test-results/paid.png" });
+  await page.getByRole("link", { name: "See packages" }).click();
+  await page.waitForURL(/\/packages$/, { waitUntil: "commit" });
 });
