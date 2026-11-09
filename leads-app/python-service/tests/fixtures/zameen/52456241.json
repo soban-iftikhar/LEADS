@@ -1,0 +1,1592 @@
+{
+  "captured_at": "2026-11-09T20:56:07.485325+00:00",
+  "source_url": "https://www.zameen.com/Property/bahria_greens_overseas_enclave_bahria_greens_-_overseas_enclave_-_sector_5_10_marla_double_unit_overseas_5_double-heighted_tv_lounge-52456241-8304-1.html",
+  "search_url": "https://www.zameen.com/Homes/Rawalpindi-41-1.html?purpose=2",
+  "detail": {
+    "active": true,
+    "agency": {
+      "active": true,
+      "createdAt": "2016-07-15T06:52:28+00:00",
+      "externalID": "165295",
+      "id": 626,
+      "licenses": [],
+      "logo": {
+        "id": 20472891,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/20472891/4b26f2126e234576a6370aad14ea4641"
+      },
+      "name": "AIM Real Estate Consultants",
+      "objectID": 626,
+      "product": "titanium plus",
+      "productScore": 4,
+      "roles": [],
+      "slug": "Rawalpindi-AIM_Real_Estate_Consultants-165295-1",
+      "tier": 4,
+      "tr": 4,
+      "type": "agency"
+    },
+    "amenities": [
+      {
+        "amenities": [
+          {
+            "externalID": 1,
+            "format": "number",
+            "rank": 1,
+            "slug": "built-in-year",
+            "text": "Built in year",
+            "value": "2025",
+            "icon": "built-in-year"
+          },
+          {
+            "externalID": 4,
+            "format": "number",
+            "rank": 1,
+            "slug": "parking-spaces",
+            "text": "Parking Spaces",
+            "value": "3",
+            "icon": "parking-spaces"
+          },
+          {
+            "externalID": 8,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "double-glazed-windows",
+            "text": "Double Glazed Windows",
+            "value": "",
+            "icon": "double-glazed-windows"
+          },
+          {
+            "externalID": 9,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "central-air-conditioning",
+            "text": "Central Air Conditioning",
+            "value": "",
+            "icon": "central-air-conditioning"
+          },
+          {
+            "externalID": 10,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "central-heating",
+            "text": "Central Heating",
+            "value": "",
+            "icon": "central-heating"
+          },
+          {
+            "externalID": 11,
+            "format": "select",
+            "rank": 1,
+            "slug": "flooring",
+            "text": "Flooring",
+            "value": "",
+            "icon": "flooring"
+          },
+          {
+            "externalID": 12,
+            "format": "select",
+            "rank": 1,
+            "slug": "electricity-backup",
+            "text": "Electricity Backup",
+            "value": "",
+            "icon": "electricity-backup"
+          },
+          {
+            "externalID": 13,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "waste-disposal",
+            "text": "Waste Disposal",
+            "value": "",
+            "icon": "waste-disposal"
+          },
+          {
+            "externalID": 15,
+            "format": "number",
+            "rank": 1,
+            "slug": "floors",
+            "text": "Floors",
+            "value": "2",
+            "icon": "total-number-of-floors"
+          },
+          {
+            "externalID": 20,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-main-features",
+            "text": "Other Main Features",
+            "value": "",
+            "icon": "other-key-features"
+          },
+          {
+            "externalID": 22,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "furnished",
+            "text": "Furnished",
+            "value": "",
+            "icon": "furnished"
+          }
+        ],
+        "externalGroupID": 1,
+        "groupRank": 1,
+        "text": "Main Features"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 24,
+            "format": "number",
+            "rank": 1,
+            "slug": "bedrooms",
+            "text": "Bedrooms",
+            "value": "5",
+            "icon": "number-of-bedrooms"
+          },
+          {
+            "externalID": 25,
+            "format": "number",
+            "rank": 1,
+            "slug": "bathrooms",
+            "text": "Bathrooms",
+            "value": "6",
+            "icon": "number-of-bathrooms"
+          },
+          {
+            "externalID": 26,
+            "format": "number",
+            "rank": 1,
+            "slug": "servant-quarters",
+            "text": "Servant Quarters",
+            "value": "1",
+            "icon": "number-of-servant-quarters"
+          },
+          {
+            "externalID": 27,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "drawing-room",
+            "text": "Drawing Room",
+            "value": "",
+            "icon": "drawing-room"
+          },
+          {
+            "externalID": 28,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "dining-room",
+            "text": "Dining Room",
+            "value": "",
+            "icon": "dining-room"
+          },
+          {
+            "externalID": 29,
+            "format": "number",
+            "rank": 1,
+            "slug": "kitchens",
+            "text": "Kitchens",
+            "value": "2",
+            "icon": "number-of-kitchens"
+          },
+          {
+            "externalID": 30,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "study-room",
+            "text": "Study Room",
+            "value": "",
+            "icon": "study-room"
+          },
+          {
+            "externalID": 31,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "prayer-room",
+            "text": "Prayer Room",
+            "value": "",
+            "icon": "prayer-room"
+          },
+          {
+            "externalID": 32,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "powder-room",
+            "text": "Powder Room ",
+            "value": "",
+            "icon": "powder-room"
+          },
+          {
+            "externalID": 33,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "gym",
+            "text": "Gym",
+            "value": "",
+            "icon": "gym-room"
+          },
+          {
+            "externalID": 34,
+            "format": "number",
+            "rank": 1,
+            "slug": "store-rooms",
+            "text": "Store Rooms",
+            "value": "1",
+            "icon": "number-of-store-rooms"
+          },
+          {
+            "externalID": 35,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "steam-room",
+            "text": "Steam Room",
+            "value": "",
+            "icon": "steam-room"
+          },
+          {
+            "externalID": 36,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "lounge-or-sitting-room",
+            "text": "Lounge or Sitting Room",
+            "value": "",
+            "icon": "lounge-sitting-room"
+          },
+          {
+            "externalID": 37,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "laundry-room",
+            "text": "Laundry Room",
+            "value": "",
+            "icon": "laundry-room"
+          },
+          {
+            "externalID": 38,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-rooms",
+            "text": "Other Rooms",
+            "value": "",
+            "icon": "any-other-rooms"
+          }
+        ],
+        "externalGroupID": 2,
+        "groupRank": 2,
+        "text": "Rooms"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 51,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "broadband-internet-access",
+            "text": "Broadband Internet Access",
+            "value": "",
+            "icon": "broadband-internet-access"
+          },
+          {
+            "externalID": 52,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "satellite-or-cable-tv-ready",
+            "text": "Satellite or Cable TV Ready",
+            "value": "",
+            "icon": "satellite-or-cable-tv-ready"
+          },
+          {
+            "externalID": 55,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "intercom",
+            "text": "Intercom",
+            "value": "",
+            "icon": "intercom"
+          },
+          {
+            "externalID": 57,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-business-and-communication-facilities",
+            "text": "Other Business and Communication Facilities",
+            "value": "",
+            "icon": "other-business-amenities"
+          }
+        ],
+        "externalGroupID": 4,
+        "groupRank": 4,
+        "text": "Business and Communication"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 58,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-lawn-or-garden",
+            "text": "Community Lawn or Garden",
+            "value": "",
+            "icon": "community-lawn-or-garden"
+          },
+          {
+            "externalID": 59,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-swimming-pool",
+            "text": "Community Swimming Pool",
+            "value": "",
+            "icon": "community-swimming-pool"
+          },
+          {
+            "externalID": 60,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-gym",
+            "text": "Community Gym",
+            "value": "",
+            "icon": "community-gym"
+          },
+          {
+            "externalID": 61,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "first-aid-or-medical-centre",
+            "text": "First Aid or Medical Centre",
+            "value": "",
+            "icon": "first-aid-or-medical-centre"
+          },
+          {
+            "externalID": 62,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "day-care-centre",
+            "text": "Day Care Centre",
+            "value": "",
+            "icon": "day-care-centre"
+          },
+          {
+            "externalID": 63,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "kids-play-area",
+            "text": "Kids Play Area",
+            "value": "",
+            "icon": "kids-play-area"
+          },
+          {
+            "externalID": 64,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "barbeque-area",
+            "text": "Barbeque Area",
+            "value": "",
+            "icon": "barbeque-area"
+          },
+          {
+            "externalID": 65,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "mosque",
+            "text": "Mosque",
+            "value": "",
+            "icon": "community-mosque"
+          },
+          {
+            "externalID": 66,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "community-centre",
+            "text": "Community Centre",
+            "value": "",
+            "icon": "community-centre"
+          },
+          {
+            "externalID": 67,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-community-facilities",
+            "text": "Other Community Facilities",
+            "value": "",
+            "icon": "other-community-facilities"
+          }
+        ],
+        "externalGroupID": 5,
+        "groupRank": 5,
+        "text": "Community Features"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 68,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "lawn-or-garden",
+            "text": "Lawn or Garden",
+            "value": "",
+            "icon": "lawn-or-garden"
+          },
+          {
+            "externalID": 69,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "swimming-pool",
+            "text": "Swimming Pool",
+            "value": "",
+            "icon": "swimming-pool"
+          },
+          {
+            "externalID": 70,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "sauna",
+            "text": "Sauna",
+            "value": "",
+            "icon": "sauna"
+          },
+          {
+            "externalID": 71,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "jacuzzi",
+            "text": "Jacuzzi",
+            "value": "",
+            "icon": "jacuzzi"
+          },
+          {
+            "externalID": 72,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-healthcare-and-recreation-facilities",
+            "text": "Other Healthcare and Recreation Facilities",
+            "value": "",
+            "icon": "other-recreational-facilities"
+          }
+        ],
+        "externalGroupID": 6,
+        "groupRank": 6,
+        "text": "Healthcare Recreational"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 73,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-schools",
+            "text": "Nearby Schools",
+            "value": "",
+            "icon": "schools"
+          },
+          {
+            "externalID": 74,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-hospitals",
+            "text": "Nearby Hospitals",
+            "value": "",
+            "icon": "hospitals"
+          },
+          {
+            "externalID": 75,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-shopping-malls",
+            "text": "Nearby Shopping Malls",
+            "value": "",
+            "icon": "shopping-malls"
+          },
+          {
+            "externalID": 76,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-restaurants",
+            "text": "Nearby Restaurants",
+            "value": "",
+            "icon": "restaurants"
+          },
+          {
+            "externalID": 77,
+            "format": "text",
+            "rank": 1,
+            "slug": "distance-from-airport-kms",
+            "text": "Distance From Airport (kms)",
+            "value": "",
+            "icon": "distance-from-airport-(kms)"
+          },
+          {
+            "externalID": 78,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-public-transport-service",
+            "text": "Nearby Public Transport Service",
+            "value": "",
+            "icon": "public-transport-service"
+          },
+          {
+            "externalID": 79,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-nearby-places",
+            "text": "Other Nearby Places",
+            "value": "",
+            "icon": "other-nearby-places"
+          }
+        ],
+        "externalGroupID": 7,
+        "groupRank": 7,
+        "text": "Nearby Locations and Other Facilities"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 80,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "maintenance-staff",
+            "text": "Maintenance Staff",
+            "value": "",
+            "icon": "maintenance-staff"
+          },
+          {
+            "externalID": 81,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "security-staff",
+            "text": "Security Staff",
+            "value": "",
+            "icon": "security-staff"
+          },
+          {
+            "externalID": 86,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "facilities-for-disabled",
+            "text": "Facilities for Disabled",
+            "value": "",
+            "icon": "facilities-for-disabled"
+          },
+          {
+            "externalID": 88,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-facilities",
+            "text": "Other Facilities",
+            "value": "",
+            "icon": "other-maintenance-services"
+          }
+        ],
+        "externalGroupID": 8,
+        "groupRank": 8,
+        "text": "Other Facilities\r\n"
+      }
+    ],
+    "approvedAt": 1744802834,
+    "area": 209.03184000000002,
+    "baths": 5,
+    "category": [
+      {
+        "externalID": "1",
+        "id": 1,
+        "level": 0,
+        "name": "Homes",
+        "nameSingular": "Home",
+        "roles": [],
+        "seoName": "Homes",
+        "slug": "Homes"
+      },
+      {
+        "externalID": "9",
+        "id": 9,
+        "level": 1,
+        "name": "Houses",
+        "nameSingular": "House",
+        "roles": [],
+        "seoName": "Houses",
+        "slug": "Houses_Property"
+      }
+    ],
+    "completionStatus": "completed",
+    "contactName": "Test Seller",
+    "coverPhoto": {
+      "id": 299863587,
+      "externalID": "289640520",
+      "title": "10 Marla Double Unit Overseas 5 Double-Heighted TV Lounge",
+      "orderIndex": 0,
+      "nimaScore": null,
+      "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863587/f05339ea9da34390a703c5433b30be38",
+      "main": true,
+      "uuid": "178242bd-b5c0-44d2-a31f-abb502a94886"
+    },
+    "coverVideo": {
+      "externalID": 491453,
+      "title": null,
+      "host": "youtube",
+      "url": "https://youtu.be/-g_1cWMZhZA",
+      "orderIndex": 0
+    },
+    "createdAt": 1794212711,
+    "description": "10 Marla House Overseas 5<br /> Modern 5 bed double unit located in Overseas 5, featuring:<br /> Double-heighted TV lounge for a spacious, luxurious feel<br /> Well-designed layout with quality finishes<br /> Great for families or rental potential<br /> Demand: 5.80 Crore<br /> Contact now for viewing and details!",
+    "externalID": "52456241",
+    "extraFields": {
+      "dldPropertySK": "52456241"
+    },
+    "floorPlans": [],
+    "furnishingStatus": "furnished",
+    "geo_point": [
+      73.074353,
+      33.502004
+    ],
+    "geography": {
+      "lat": 33.502004,
+      "lng": 73.074353
+    },
+    "hasExactGeography": true,
+    "hierarchyPath": "Bahria Greens - Overseas Enclave - Sector 5 Bahria Greens - Overseas Enclave Bahria Town Phase 8 Bahria Town Rawalpindi Rawalpindi Punjab Pakistan",
+    "id": 107561872,
+    "installments": {
+      "remainingInstallments": 0
+    },
+    "isVerified": false,
+    "link": "https://www.zameen.com/Property/bahria_greens_overseas_enclave_bahria_greens_-_overseas_enclave_-_sector_5_10_marla_double_unit_overseas_5_double-heighted_tv_lounge-52456241-8304-1.html",
+    "location": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1522",
+        "id": 4,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "/Punjab-1522"
+      },
+      {
+        "externalID": "41",
+        "id": 25,
+        "level": 2,
+        "name": "Rawalpindi",
+        "slug": "/Rawalpindi-41"
+      },
+      {
+        "externalID": "632",
+        "id": 491,
+        "level": 3,
+        "name": "Bahria Town Rawalpindi",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632"
+      },
+      {
+        "externalID": "3048",
+        "id": 6492,
+        "level": 4,
+        "name": "Bahria Town Phase 8",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048"
+      },
+      {
+        "externalID": "3081",
+        "id": 6497,
+        "level": 5,
+        "name": "Bahria Greens - Overseas Enclave",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081"
+      },
+      {
+        "externalID": "8304",
+        "id": 10367,
+        "level": 6,
+        "name": "Bahria Greens - Overseas Enclave - Sector 5",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304"
+      }
+    ],
+    "objectID": 107561872,
+    "occupancyStatus": "notSpecified",
+    "ownerID": 214124,
+    "ownershipStatus": "notSpecified",
+    "panoramaCount": 0,
+    "panoramas": [],
+    "phoneNumber": {
+      "mobileNumbers": [
+        "+923326131052"
+      ],
+      "phoneNumbers": [
+        "+923326131052"
+      ],
+      "proxyMobile": null,
+      "proxyPhone": null,
+      "whatsapp": "923303473958"
+    },
+    "photoCount": 40,
+    "photos": [
+      {
+        "id": 299863587,
+        "externalID": "289640520",
+        "title": "1 ",
+        "orderIndex": 0,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863587/f05339ea9da34390a703c5433b30be38",
+        "uuid": "178242bd-b5c0-44d2-a31f-abb502a94886"
+      },
+      {
+        "id": 299863588,
+        "externalID": "289640521",
+        "title": "2 ",
+        "orderIndex": 1,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863588/c2c54b4f75c54b7a9024e378ce805761",
+        "uuid": "aad0d1e3-4ffe-43fc-b481-45725526953d"
+      },
+      {
+        "id": 299863589,
+        "externalID": "289640522",
+        "title": "3 ",
+        "orderIndex": 2,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863589/e220da579cdb4538bd3ed989bba676cc",
+        "uuid": "5f615adb-c0ac-444b-b075-8dc6b0cfa98a"
+      },
+      {
+        "id": 299863590,
+        "externalID": "289640523",
+        "title": "4 ",
+        "orderIndex": 3,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863590/7bb7fbefaa98408d98059efc944d8a72",
+        "uuid": "ce9b9364-6ca0-4e05-933e-f1a9d6f4acef"
+      },
+      {
+        "id": 299863591,
+        "externalID": "289640524",
+        "title": "5 ",
+        "orderIndex": 4,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863591/47e45b8a68c7458aa0461e59bd78c47f",
+        "uuid": "5eef3aac-d65c-49a4-8470-2afcf8cad197"
+      },
+      {
+        "id": 299863592,
+        "externalID": "289640525",
+        "title": "6 ",
+        "orderIndex": 5,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863592/8581c0e2bc2c42819a8ad53bd9135e17",
+        "uuid": "365b9e90-6f0c-4ba8-98da-b5070e63f906"
+      },
+      {
+        "id": 299863593,
+        "externalID": "289640526",
+        "title": "7 ",
+        "orderIndex": 6,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863593/2b41d6ad8fb642f19683c3d841d2333f",
+        "uuid": "4cad73bf-ca01-436c-88f4-3e97d2df57c2"
+      },
+      {
+        "id": 299863594,
+        "externalID": "289640527",
+        "title": "8 ",
+        "orderIndex": 7,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863594/7f0ff68b8ee6494abb9f3135a97fd445",
+        "uuid": "7aae983e-da60-45a8-9c2e-649249fff132"
+      },
+      {
+        "id": 299863595,
+        "externalID": "289640528",
+        "title": "9 ",
+        "orderIndex": 8,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863595/c69aef86596c43228a874e5186440760",
+        "uuid": "861dc139-6b9a-419c-a6cb-15fa62f38f79"
+      },
+      {
+        "id": 299863596,
+        "externalID": "289640529",
+        "title": "10 ",
+        "orderIndex": 9,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863596/b5bef1d48b3b4d8292939c3778ba4b32",
+        "uuid": "ac1b83c1-2fc4-4d0a-b2fb-a3b985b04346"
+      },
+      {
+        "id": 299863597,
+        "externalID": "289640530",
+        "title": "11 ",
+        "orderIndex": 10,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863597/0c18c7562814452182825b113e90f207",
+        "uuid": "6a296063-c565-4950-a674-bcde1e24de70"
+      },
+      {
+        "id": 299863598,
+        "externalID": "289640531",
+        "title": "12 ",
+        "orderIndex": 11,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863598/ad06026ddf094b2b82f7e88fd9e1a21a",
+        "uuid": "a847253a-fe66-48c9-9a36-18664dfc1f72"
+      },
+      {
+        "id": 299863599,
+        "externalID": "289640532",
+        "title": "13 ",
+        "orderIndex": 12,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863599/fb9bbcf4fea64a0da81ec0afad167c7a",
+        "uuid": "9656c67d-ca55-4e89-a66b-aecade4a49d4"
+      },
+      {
+        "id": 299863600,
+        "externalID": "289640533",
+        "title": "14 ",
+        "orderIndex": 13,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863600/9ea41fd1a24e4acb87a42e4dd1f18070",
+        "uuid": "909e6b2a-4069-4e24-9dfd-a7a354794255"
+      },
+      {
+        "id": 299863601,
+        "externalID": "289640534",
+        "title": "15 ",
+        "orderIndex": 14,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863601/742ea2cd9d3048b29e7edf99abb39ddc",
+        "uuid": "5d18acad-9c8b-4ee4-bc7b-8ddc846d7dad"
+      },
+      {
+        "id": 299863602,
+        "externalID": "289640535",
+        "title": "16 ",
+        "orderIndex": 15,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863602/7fdc5e56c8ad494f98b4814e8c95846a",
+        "uuid": "3e2aa98d-af7f-48b7-ab40-edd5a12a73c0"
+      },
+      {
+        "id": 299863603,
+        "externalID": "289640536",
+        "title": "17 ",
+        "orderIndex": 16,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863603/693e315b7809429fb2ae63986044bf1c",
+        "uuid": "f2a6dbc0-2c37-4730-9bc7-9ba50e0f3f2a"
+      },
+      {
+        "id": 299863604,
+        "externalID": "289640537",
+        "title": "18 ",
+        "orderIndex": 17,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863604/45c5083546544543be3790fb36c03b17",
+        "uuid": "39877add-dd67-44d2-883f-553f416471fd"
+      },
+      {
+        "id": 299863605,
+        "externalID": "289640538",
+        "title": "19 ",
+        "orderIndex": 18,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863605/27296e9b3eaa41b4837e1b8f28b8b039",
+        "uuid": "b55aa183-7ede-4d04-9a7c-dfd29f86ff58"
+      },
+      {
+        "id": 299863606,
+        "externalID": "289640539",
+        "title": "20 ",
+        "orderIndex": 19,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863606/2937146b9ad642f5a1931bb2e903e2f7",
+        "uuid": "6452c8d8-4c67-4fe8-afbc-a0cb4fb45c10"
+      },
+      {
+        "id": 299863607,
+        "externalID": "289640540",
+        "title": "21 ",
+        "orderIndex": 20,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863607/372e9a37b64b4416aca78d4084ae0608",
+        "uuid": "eb0df7e1-1a87-43c1-88fe-e219581428cb"
+      },
+      {
+        "id": 299863608,
+        "externalID": "289640541",
+        "title": "22 ",
+        "orderIndex": 21,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863608/4b95140c1cf44fbea7c4b56e91a0c24e",
+        "uuid": "6cd83ac2-7628-4eb5-a312-c9fe2c22d39a"
+      },
+      {
+        "id": 299863609,
+        "externalID": "289640542",
+        "title": "23 ",
+        "orderIndex": 22,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863609/b0c85e1c13c240628ebaf17d8900414a",
+        "uuid": "765fb9cd-13f7-402e-9f1d-352813060448"
+      },
+      {
+        "id": 299863610,
+        "externalID": "289640543",
+        "title": "24 ",
+        "orderIndex": 23,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863610/b7ac1a6655ad482bbe89ae9cee43b8dc",
+        "uuid": "31223fa6-63bc-4c25-b585-ee0e32b3d744"
+      },
+      {
+        "id": 299863611,
+        "externalID": "289640544",
+        "title": "25 ",
+        "orderIndex": 24,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863611/f53305be31dd4262b8c83be8f9ebc5a6",
+        "uuid": "5abe3eae-9366-48b5-af84-3e989ee252ac"
+      },
+      {
+        "id": 299863612,
+        "externalID": "289640545",
+        "title": "26 ",
+        "orderIndex": 25,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863612/49311daeccc04abf8325095b17ad1767",
+        "uuid": "2f5d62d0-4da8-4f71-b25d-b08ee344b7ce"
+      },
+      {
+        "id": 299863613,
+        "externalID": "289640546",
+        "title": "27 ",
+        "orderIndex": 26,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863613/3d15d6e0a85548d5af8ce668635323c1",
+        "uuid": "66df86a2-4bc6-43c3-a73d-6e1281cf1ed6"
+      },
+      {
+        "id": 299863614,
+        "externalID": "289640547",
+        "title": "28 ",
+        "orderIndex": 27,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863614/e29d109394814fafbeb758b721e8790d",
+        "uuid": "2f32eca4-4866-4400-98c3-dc9ef2378822"
+      },
+      {
+        "id": 299863615,
+        "externalID": "289640548",
+        "title": "29 ",
+        "orderIndex": 28,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863615/3bb6c363d9d44237b1eb9f11c532db9c",
+        "uuid": "1860b867-df0f-4de3-9c0b-9ab90935abc8"
+      },
+      {
+        "id": 299863616,
+        "externalID": "289640549",
+        "title": "30 ",
+        "orderIndex": 29,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863616/e6170b35436242aaa634af8d2361b2e9",
+        "uuid": "c038f39c-1647-4e54-b037-a5119bf9a777"
+      },
+      {
+        "id": 299863617,
+        "externalID": "289640550",
+        "title": "31 ",
+        "orderIndex": 30,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863617/46149ee9576b49acb3f3ec25e67484bb",
+        "uuid": "440ce6f8-9bc5-48f6-be8c-9f009afba513"
+      },
+      {
+        "id": 299863618,
+        "externalID": "289640552",
+        "title": "32 ",
+        "orderIndex": 31,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863618/f885fed4e6a947e0a7afb883e07e011c",
+        "uuid": "403c2856-29ee-4ab5-89a0-131e2c73aae1"
+      },
+      {
+        "id": 299863619,
+        "externalID": "289640553",
+        "title": "33 ",
+        "orderIndex": 32,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863619/6b342e2616834eb8b360043819fb0f47",
+        "uuid": "28d02eac-aa9d-4d63-bf82-e5130999cef3"
+      },
+      {
+        "id": 299863620,
+        "externalID": "289640554",
+        "title": "34 ",
+        "orderIndex": 33,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863620/5f3242b58fa34aeb88c5a155bcc18819",
+        "uuid": "ef4369b5-e285-44b0-919c-9ae87b98fdc2"
+      },
+      {
+        "id": 299863621,
+        "externalID": "289640555",
+        "title": "35 ",
+        "orderIndex": 34,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863621/7b16ad10d9fc4c2d8ac23560e965f060",
+        "uuid": "05863a86-96f3-41ab-b145-6a83c20da0fb"
+      },
+      {
+        "id": 299863622,
+        "externalID": "289640556",
+        "title": "36 ",
+        "orderIndex": 35,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863622/719659a1a7464eabb5b1ba7c2b3d7c35",
+        "uuid": "acf37f40-8e03-4923-afc6-413ea67e1add"
+      },
+      {
+        "id": 299863623,
+        "externalID": "289640557",
+        "title": "37 ",
+        "orderIndex": 36,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863623/84768d0575234f53a3cc161fa5dceec3",
+        "uuid": "58781384-59e4-4033-b7c2-975c1f751339"
+      },
+      {
+        "id": 299863624,
+        "externalID": "289640558",
+        "title": "38 ",
+        "orderIndex": 37,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863624/1d73412d977e4a1693046ec2f4674f71",
+        "uuid": "144a9456-ceb7-4605-a8c7-4dec4b006253"
+      },
+      {
+        "id": 299863625,
+        "externalID": "289640559",
+        "title": "39 ",
+        "orderIndex": 38,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863625/75e5269e2ead4ace81676c38602730b7",
+        "uuid": "a1f7278d-ada9-4468-97bf-8c2193e531a2"
+      },
+      {
+        "id": 299863626,
+        "externalID": "289640560",
+        "title": "40 ",
+        "orderIndex": 39,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/299863626/6ece48c80d9b448ab1650095a85035ad",
+        "uuid": "9cdc110e-bb7b-409f-98ba-5abaa6311428"
+      }
+    ],
+    "price": 57500000,
+    "product": "superhot",
+    "productLabel": "default",
+    "propertyTour": false,
+    "purpose": "for-sale",
+    "reactivatedAt": 1773399531.149624,
+    "rooms": 5,
+    "score": 9990,
+    "shortDescription": "10 Marla House Overseas 5\n Modern 5 bed double unit located in Overseas 5, featuring:\n",
+    "slug": "bahria_greens_overseas_enclave_bahria_greens_-_overseas_enclave_-_sector_5_10_marla_double_unit_overseas_5_double-heighted_tv_lounge-52456241-8304-1",
+    "sourceID": 1,
+    "state": "active",
+    "title": "10 Marla Double Unit Overseas 5 Double-Heighted TV Lounge",
+    "touchedAt": 1794212711.936494,
+    "type": "property",
+    "updatedAt": 1794212711,
+    "userExternalID": "00000000-0000-0000-0000-214124464555",
+    "verification": {
+      "status": "unverified",
+      "type": null,
+      "eligible": false,
+      "comment": null,
+      "updatedAt": 1744802881.664584,
+      "verifiedAt": null,
+      "visitedAt": null,
+      "trucheckedAt": 0
+    },
+    "videoCount": 1,
+    "videos": [
+      {
+        "externalID": 491453,
+        "title": null,
+        "host": "youtube",
+        "url": "https://youtu.be/-g_1cWMZhZA",
+        "orderIndex": 0
+      }
+    ],
+    "isDeveloper": false,
+    "isStudio": false,
+    "primaryPhoneNumber": "+923326131052",
+    "mobilePhoneNumber": "+923326131052",
+    "coverPhotoID": 299863587,
+    "coverPhotoTitle": "10 Marla Double Unit Overseas 5 Double-Heighted TV Lounge",
+    "labels": {
+      "categoryName": "Houses",
+      "locationNames": [
+        "Pakistan",
+        "Punjab",
+        "Rawalpindi",
+        "Bahria Town Rawalpindi",
+        "Bahria Town Phase 8",
+        "Bahria Greens - Overseas Enclave",
+        "Bahria Greens - Overseas Enclave - Sector 5"
+      ],
+      "locationHierarchy": "Bahria Greens - Overseas Enclave - Sector 5, Bahria Greens - Overseas Enclave, Bahria Town Phase 8, Bahria Town Rawalpindi, Rawalpindi, Punjab"
+    },
+    "referenceNumber": "ID52456241",
+    "isOfTitaniumPlusAgency": true,
+    "isOfTitaniumAgency": false,
+    "isOfFeaturedAgency": false,
+    "locationTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521"
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521"
+        }
+      },
+      {
+        "en": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "Punjab",
+          "slug": "/Punjab-1522"
+        },
+        "ur": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "پنجاب",
+          "slug": "/Punjab-1522"
+        }
+      },
+      {
+        "en": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "Rawalpindi",
+          "slug": "/Rawalpindi-41"
+        },
+        "ur": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "راولپنڈی",
+          "slug": "/Rawalpindi-41"
+        }
+      },
+      {
+        "en": {
+          "id": 491,
+          "level": 3,
+          "externalID": "632",
+          "name": "Bahria Town Rawalpindi",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632"
+        },
+        "ur": {
+          "id": 491,
+          "level": 3,
+          "externalID": "632",
+          "name": "بحریہ ٹاؤن راولپنڈی",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632"
+        }
+      },
+      {
+        "en": {
+          "id": 6492,
+          "level": 4,
+          "externalID": "3048",
+          "name": "Bahria Town Phase 8",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048"
+        },
+        "ur": {
+          "id": 6492,
+          "level": 4,
+          "externalID": "3048",
+          "name": "بحریہ ٹاؤن فیز 8",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048"
+        }
+      },
+      {
+        "en": {
+          "id": 6497,
+          "level": 5,
+          "externalID": "3081",
+          "name": "Bahria Greens - Overseas Enclave",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081"
+        },
+        "ur": {
+          "id": 6497,
+          "level": 5,
+          "externalID": "3081",
+          "name": "بحریہ گرینز۔ اوورسیز انکلیو",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081"
+        }
+      },
+      {
+        "en": {
+          "id": 10367,
+          "level": 6,
+          "externalID": "8304",
+          "name": "Bahria Greens - Overseas Enclave - Sector 5",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304"
+        },
+        "ur": {
+          "id": 10367,
+          "level": 6,
+          "externalID": "8304",
+          "name": "بحریہ گرینز۔ اوورسیز انکلیو - سیکٹر 5",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304"
+        }
+      }
+    ],
+    "locations": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "isMain": true,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1522",
+        "id": 4,
+        "isMain": true,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "/Punjab-1522"
+      },
+      {
+        "externalID": "41",
+        "id": 25,
+        "isMain": true,
+        "level": 2,
+        "name": "Rawalpindi",
+        "slug": "/Rawalpindi-41"
+      },
+      {
+        "externalID": "632",
+        "id": 491,
+        "isMain": true,
+        "level": 3,
+        "name": "Bahria Town Rawalpindi",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632"
+      },
+      {
+        "externalID": "3048",
+        "id": 6492,
+        "isMain": true,
+        "level": 4,
+        "name": "Bahria Town Phase 8",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048"
+      },
+      {
+        "externalID": "3081",
+        "id": 6497,
+        "isMain": true,
+        "level": 5,
+        "name": "Bahria Greens - Overseas Enclave",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081"
+      },
+      {
+        "externalID": "8304",
+        "id": 10367,
+        "isMain": true,
+        "level": 6,
+        "name": "Bahria Greens - Overseas Enclave - Sector 5",
+        "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304"
+      }
+    ],
+    "locationsTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "Punjab",
+          "slug": "/Punjab-1522",
+          "isMain": true
+        },
+        "ur": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "پنجاب",
+          "slug": "/Punjab-1522",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "Rawalpindi",
+          "slug": "/Rawalpindi-41",
+          "isMain": true
+        },
+        "ur": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "راولپنڈی",
+          "slug": "/Rawalpindi-41",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 491,
+          "level": 3,
+          "externalID": "632",
+          "name": "Bahria Town Rawalpindi",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632",
+          "isMain": true
+        },
+        "ur": {
+          "id": 491,
+          "level": 3,
+          "externalID": "632",
+          "name": "بحریہ ٹاؤن راولپنڈی",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 6492,
+          "level": 4,
+          "externalID": "3048",
+          "name": "Bahria Town Phase 8",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048",
+          "isMain": true
+        },
+        "ur": {
+          "id": 6492,
+          "level": 4,
+          "externalID": "3048",
+          "name": "بحریہ ٹاؤن فیز 8",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 6497,
+          "level": 5,
+          "externalID": "3081",
+          "name": "Bahria Greens - Overseas Enclave",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081",
+          "isMain": true
+        },
+        "ur": {
+          "id": 6497,
+          "level": 5,
+          "externalID": "3081",
+          "name": "بحریہ گرینز۔ اوورسیز انکلیو",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave-3081",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 10367,
+          "level": 6,
+          "externalID": "8304",
+          "name": "Bahria Greens - Overseas Enclave - Sector 5",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304",
+          "isMain": true
+        },
+        "ur": {
+          "id": 10367,
+          "level": 6,
+          "externalID": "8304",
+          "name": "بحریہ گرینز۔ اوورسیز انکلیو - سیکٹر 5",
+          "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8_Bahria_Greens___Overseas_Enclave_Bahria_Greens___Overseas_Enclave___Sector_5-8304",
+          "isMain": true
+        }
+      }
+    ],
+    "categoryTranslations": [
+      {
+        "en": {
+          "id": 1,
+          "level": 0,
+          "externalID": "1",
+          "name": "Homes",
+          "slug": "Homes",
+          "roles": [],
+          "seoName": "Homes",
+          "nameSingular": "Home"
+        },
+        "ur": {
+          "id": 1,
+          "level": 0,
+          "externalID": "1",
+          "name": "گھر",
+          "slug": "Homes",
+          "roles": [],
+          "seoName": "گھر",
+          "nameSingular": "گھر"
+        }
+      },
+      {
+        "en": {
+          "id": 9,
+          "level": 1,
+          "externalID": "9",
+          "name": "Houses",
+          "slug": "Houses_Property",
+          "roles": [],
+          "seoName": "Houses",
+          "nameSingular": "House"
+        },
+        "ur": {
+          "id": 9,
+          "level": 1,
+          "externalID": "9",
+          "name": "مکانات",
+          "slug": "Houses_Property",
+          "roles": [],
+          "seoName": "مکانات",
+          "nameSingular": "مکان"
+        }
+      }
+    ],
+    "requiresLoginForContact": false,
+    "hasEmail": true,
+    "hidePrice": false,
+    "links": {
+      "areaLinks": [
+        {
+          "location": {
+            "name": "Rawalpindi",
+            "slug": "/Rawalpindi-41",
+            "type": null
+          },
+          "category": {
+            "name": "Houses",
+            "slug": "Houses_Property"
+          },
+          "purpose": "for-sale",
+          "area": {
+            "name": "10 Marla",
+            "slug": "10marla"
+          }
+        },
+        {
+          "location": {
+            "name": "Bahria Town Rawalpindi",
+            "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632",
+            "type": null
+          },
+          "category": {
+            "name": "Houses",
+            "slug": "Houses_Property"
+          },
+          "purpose": "for-sale",
+          "area": {
+            "name": "10 Marla",
+            "slug": "10marla"
+          }
+        },
+        {
+          "location": {
+            "name": "Bahria Town Phase 8",
+            "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048",
+            "type": null
+          },
+          "category": {
+            "name": "Houses",
+            "slug": "Houses_Property"
+          },
+          "purpose": "for-sale",
+          "area": {
+            "name": "10 Marla",
+            "slug": "10marla"
+          }
+        }
+      ],
+      "topLevelCategoryLinks": [
+        {
+          "location": {
+            "name": "Rawalpindi",
+            "slug": "/Rawalpindi-41",
+            "type": null
+          },
+          "category": {
+            "name": "Homes",
+            "slug": "Homes"
+          },
+          "purpose": "for-sale"
+        },
+        {
+          "location": {
+            "name": "Bahria Town Rawalpindi",
+            "slug": "/Rawalpindi_Bahria_Town_Rawalpindi-632",
+            "type": null
+          },
+          "category": {
+            "name": "Homes",
+            "slug": "Homes"
+          },
+          "purpose": "for-sale"
+        },
+        {
+          "location": {
+            "name": "Bahria Town Phase 8",
+            "slug": "/Rawalpindi_Bahria_Town_Rawalpindi_Bahria_Town_Phase_8-3048",
+            "type": null
+          },
+          "category": {
+            "name": "Homes",
+            "slug": "Homes"
+          },
+          "purpose": "for-sale"
+        }
+      ]
+    }
+  },
+  "show_numbers": {
+    "contact_details": {
+      "phone": [
+        "+923326131052"
+      ],
+      "mobile": "+923326131052",
+      "agency_name": "AIM Real Estate Consultants",
+      "fax": ""
+    },
+    "success": true
+  }
+}

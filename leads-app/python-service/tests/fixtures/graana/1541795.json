@@ -1,0 +1,115 @@
+{
+  "captured_at": "2026-11-09T20:55:44.575475+00:00",
+  "source_url": "https://www.graana.com/property/206.9-marla-shop-sale-dha-phase-1,-sector-b-islamabad-1541795",
+  "search_url": "https://www.graana.com/sale/shop-sale-Islamabad-1/?pageSize=30&page=1",
+  "detail": {
+    "id": 1541795,
+    "name": "Test Seller",
+    "purpose": "buy",
+    "type": "commercial",
+    "customTitleGenerated": "false",
+    "subtype": "shop",
+    "areaId": 2051,
+    "cityId": 1,
+    "price": "6207000",
+    "size": 206.9,
+    "sizeUnit": "marla",
+    "status": "published",
+    "bed": null,
+    "bath": null,
+    "agencyId": null,
+    "customTitle": "OFFICE FOR SALE ON INSTALLMENT In DHA 1 Islamabad",
+    "propsureId": null,
+    "address": "DHA Phase 1, Sector B",
+    "description": "We are excited to introduce an exceptional project: Oasis Tower. This multipurpose commercial property spans an area of 28 Marla and seven-story offers premium commercial shop spaces designed to meet the diverse needs of businesses. Boost your lifestyle and business with the perfect investment at Oasis Tower! Your Future Awaits at Oasis Tower, DHA-1 Islamabad! Whether youre seeking shops, offices, or apartments, Oasis Tower offers unmatched luxury, convenience, and investment potential in DHA-1 Islamabad. Key Highlights: 7-story multiple purpose building Prime location in DHA-1 with and area of 28 Marla Commercial and residential building with shops, offices and luxury apartments Modern architecture and premium interiors to enhance comfort Retail  Office Spaces for Businesses Oasis Tower is DHA Approved and Situated in the heart of DHA Phase-1, Islamabad, ensuring high footfall, excellent connectivity, and easy access to essential facilities like schools, hospitals, and business hubs, the development also features: Premium Shops: Designed to cater to high-end retail brands and businesses, Oasis Tower features spacious commercial shops on prime floors. With modern storefront designs, high visibility, and a strategic DHA-1 location, its the perfect destination for thriving retail businesses. Corporate Offices: Oasis Tower offers sophisticated office spaces tailored for startups, corporate firms, and professionals. Featuring modern layouts, natural lighting, and high-speed connectivity, these offices provide a productive and inspiring work environment. Luxury Apartments: Elevate your lifestyle with elegantly designed studio and 1-bedroom apartments at Oasis Tower. These residences offer modern interiors, high-end finishes, and breathtaking views, making them ideal for both living and investment.",
+    "condition": "Brand new",
+    "countryCode": "+92",
+    "phone": "3309223560",
+    "primaryFeatures": {
+      "builtYear": 2026,
+      "cctvCamera": true,
+      "publicParking": true,
+      "centralCooling": true,
+      "centralHeating": true,
+      "elevatorOrLift": true,
+      "accessingBoulevard": true,
+      "undergroundParking": true
+    },
+    "secondaryFeatures": {
+      "maintenance": true,
+      "numberOfFloors": "5",
+      "backupGenerator": true,
+      "whichFloorIsYourUnitOn": "2"
+    },
+    "utilityFeatures": {
+      "gas": true,
+      "security": true,
+      "sewerage": true,
+      "electricity": true,
+      "waterSupply": true
+    },
+    "communicationFeatures": {
+      "internetAccess": true,
+      "satelliteOrCableTv": true
+    },
+    "nearByFeatures": {
+      "mosque": true,
+      "schools": true,
+      "hospitals": true,
+      "restaurants": true
+    },
+    "expiresAt": "2026-11-22T07:24:46.000Z",
+    "userId": "00000000-0000-0000-0000-205334471648",
+    "systemUserId": null,
+    "riderId": null,
+    "agentId": null,
+    "daysOnGraana": null,
+    "builtYear": null,
+    "createdAt": "2026-06-19T11:42:41.008Z",
+    "lat": 0,
+    "lng": 0,
+    "propertyAvailability": null,
+    "area.id": 2051,
+    "area.name": "DHA Phase 1, Sector B",
+    "city.id": 1,
+    "city.name": "Islamabad",
+    "propertyImages": [
+      {
+        "id": 10942504,
+        "url": "/images/original/93def8a27dd41dcb8efa4601aae941e6",
+        "type": "image",
+        "updatedAt": "2026-06-19T11:42:41.052Z"
+      },
+      {
+        "id": 10942499,
+        "url": "/images/original/8ef11887ff4ead02add34265b3dccecf",
+        "type": "image",
+        "updatedAt": "2026-06-19T11:42:41.049Z"
+      },
+      {
+        "id": 10942498,
+        "url": "/images/original/9133b56033db345e2d0596e1586a5ff2",
+        "type": "image",
+        "updatedAt": "2026-06-19T11:42:41.047Z"
+      },
+      {
+        "id": 10942496,
+        "url": "/images/original/986bf49997700a045a22298df307490a",
+        "type": "image",
+        "updatedAt": "2026-06-19T11:42:41.043Z"
+      },
+      {
+        "id": 10942495,
+        "url": "/images/original/d2137fce9b9895ab6f5c6b3c2bab1d8b",
+        "type": "image",
+        "updatedAt": "2026-06-19T11:42:41.039Z"
+      },
+      {
+        "id": 10942497,
+        "url": "/images/original/46620992ae97fda03c356bf059957d6c",
+        "type": "cover",
+        "updatedAt": "2026-06-19T11:42:41.034Z"
+      }
+    ]
+  }
+}

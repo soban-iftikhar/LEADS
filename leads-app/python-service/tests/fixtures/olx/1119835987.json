@@ -1,0 +1,306 @@
+{
+  "captured_at": "2026-11-09T20:56:31.471141+00:00",
+  "source_url": "https://www.olx.com.pk/item/brand-new-house-for-low-price-urgent-transfer-iid-1119835987",
+  "search_url": "https://www.olx.com.pk/houses_c1721/?location=rawalpindi",
+  "detail": {
+    "activeProducts": {
+      "featured_ad": {
+        "expiresAt": 1794825323.069269,
+        "appliedAt": 1792233323.069269,
+        "productPurchaseId": 18698358,
+        "name": {
+          "en": "Feature Ad for 30 days"
+        }
+      },
+      "ad_limit_bump": {
+        "expiresAt": 1793165837.491074,
+        "appliedAt": 1790573837.491074,
+        "productPurchaseId": 18567227,
+        "name": {
+          "en": "Post another Ad"
+        }
+      }
+    },
+    "breadCrumbs": [
+      {
+        "item": "https://www.olx.com.pk",
+        "@type": "ListItem",
+        "name": "Home",
+        "position": 1
+      },
+      {
+        "item": "https://www.olx.com.pk/mobiles_c1411",
+        "@type": "ListItem",
+        "name": "Mobiles",
+        "position": 2
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453",
+        "@type": "ListItem",
+        "name": "Mobile Phones",
+        "position": 3
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-mobiles",
+        "@type": "ListItem",
+        "name": "Zte",
+        "position": 4
+      },
+      {
+        "item": "https://www.olx.com.pk/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model",
+        "position": 5
+      },
+      {
+        "item": "https://www.olx.com.pk/lahore_g4060673/mobile-phones_c1453/q-zte-other-model",
+        "@type": "ListItem",
+        "name": "Zte Other Model in Lahore",
+        "position": 6
+      }
+    ],
+    "category": [
+      {
+        "externalID": "2",
+        "id": 1,
+        "level": 0,
+        "name": "Property for Sale",
+        "nameSingular": "Property for Sale",
+        "roles": [
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "enabled_for_ads_sitemap"
+        ],
+        "seoName": "Property for Sale",
+        "slug": "property-for-sale"
+      },
+      {
+        "externalID": "1721",
+        "id": 17,
+        "level": 1,
+        "name": "Houses",
+        "nameSingular": "House",
+        "roles": [
+          "include_purpose_in_title",
+          "include_purpose_in_description",
+          "disable_ecommerce_ads",
+          "enabled_for_seo",
+          "enabled_for_sitemap",
+          "enabled_for_ads_sitemap",
+          "combined_sitemap_group_parent"
+        ],
+        "seoName": "Houses for Sale",
+        "slug": "houses"
+      }
+    ],
+    "contactInfo": {
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ]
+    },
+    "createdAt": 1790573837.491074,
+    "description": "NASHEMAN IQBAL PHASE 2 BRAND NEW 10M\nSEPRATE TWO HOUSES FOR SALE OWN BUILD VERY GOOD INVESTMENT LOCATION NEAR COLLEGE ROAD AND DEFENSE ROAD . OF U LOOKING LOW BUDGET AND ALMOST 5MARLA PRICE. PLEASE CALL ME ANY TIME VISIT \nIMTIAZ AHMAD JILLANI ESTATE AND BUILDER \nSINCE 1993. UR TRUSTED AGENCY. OLEASE COME\nWITH CONFIDENCE",
+    "documentCount": 0,
+    "documents": [],
+    "expiresAt": 1794825323.069269,
+    "externalID": "1119835987",
+    "extraFields": {
+      "ft": 10,
+      "price": 40000000,
+      "rooms": "5",
+      "ft_unit": "marla",
+      "bathrooms": "6",
+      "furnished": "no",
+      "deliverable": "no",
+      "video": "no",
+      "panorama": "no",
+      "seller_verified": "no"
+    },
+    "format": "full",
+    "formattedExtraFields": [
+      {
+        "name": "Area",
+        "attribute": "ft",
+        "formattedValue": "10.00"
+      },
+      {
+        "name": "Price",
+        "attribute": "price",
+        "formattedValue": "40,000,000"
+      },
+      {
+        "name": "Bedrooms",
+        "attribute": "rooms",
+        "formattedValue": "5"
+      },
+      {
+        "name": "Area unit",
+        "attribute": "ft_unit",
+        "formattedValue": "Marla"
+      },
+      {
+        "name": "Bathrooms",
+        "attribute": "bathrooms",
+        "formattedValue": "6"
+      },
+      {
+        "name": "Furnished",
+        "attribute": "furnished",
+        "formattedValue": "Unfurnished"
+      }
+    ],
+    "geo_point": [
+      74.278464,
+      31.40537
+    ],
+    "geography": {
+      "lat": 31.40537,
+      "lng": 74.278464
+    },
+    "id": 107058422,
+    "isSellerVerified": false,
+    "location": [
+      {
+        "externalID": "1000001",
+        "id": 1,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "pakistan_g1000001"
+      },
+      {
+        "externalID": "2003006",
+        "id": 7,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "punjab_g2003006"
+      },
+      {
+        "externalID": "4060673",
+        "id": 85,
+        "level": 2,
+        "name": "Lahore",
+        "slug": "lahore_g4060673"
+      },
+      {
+        "externalID": "5000667",
+        "id": 1311,
+        "level": 3,
+        "name": "Nasheman-e-Iqbal",
+        "slug": "nasheman-e-iqbal_g5000667"
+      },
+      {
+        "externalID": "4071",
+        "id": 46532,
+        "level": 4,
+        "name": "Nasheman-e-Iqbal Phase 2",
+        "slug": "lahore-nasheman-e-iqbal-phase-2_g4071"
+      }
+    ],
+    "objectID": 107058422,
+    "panoramaCount": 0,
+    "panoramas": [],
+    "photos": [
+      {
+        "id": 648905491,
+        "externalID": "zameen-54800536",
+        "title": null,
+        "orderIndex": null,
+        "nimaScore": null
+      }
+    ],
+    "postingID": 212117021,
+    "price": 0,
+    "product": "featured",
+    "productConsumptionIDs": [
+      31191245,
+      31191232,
+      31044600,
+      31015423
+    ],
+    "productInfo": {
+      "expiresAt": 1794825323.069269,
+      "name": "Feature Ad for 30 days"
+    },
+    "productRefreshedAt": 1792233323.069269,
+    "purpose": "for-sale",
+    "rawDescription": "NASHEMAN IQBAL PHASE 2 BRAND NEW 10M\nSEPRATE TWO HOUSES FOR SALE OWN BUILD VERY GOOD INVESTMENT LOCATION NEAR COLLEGE ROAD AND DEFENSE ROAD . OF U LOOKING LOW BUDGET AND ALMOST 5MARLA PRICE. PLEASE CALL ME ANY TIME VISIT \nIMTIAZ AHMAD JILLANI ESTATE AND BUILDER \nSINCE 1993. UR TRUSTED AGENCY. OLEASE COME\nWITH CONFIDENCE",
+    "slug": "brand-new-house-for-low-price-urgent-transfer",
+    "sourceID": 3,
+    "state": "active",
+    "stateMessage": "This ad is currently live.",
+    "timestamp": 1792233323.069269,
+    "title": "BRAND NEW HOUSE FOR LOW PRICE URGENT TRANSFER",
+    "type": "general",
+    "updatedAt": 1790573837.583259,
+    "userExternalID": "00000000-0000-0000-0000-589339230217",
+    "videoCount": 0,
+    "videos": [],
+    "virtualState": "featured",
+    "locationTranslations": [
+      {
+        "en": {
+          "externalID": "1000001",
+          "id": 1,
+          "level": 0,
+          "name": "Pakistan",
+          "slug": "pakistan_g1000001"
+        }
+      },
+      {
+        "en": {
+          "externalID": "2003006",
+          "id": 7,
+          "level": 1,
+          "name": "Punjab",
+          "slug": "punjab_g2003006"
+        }
+      },
+      {
+        "en": {
+          "externalID": "4060673",
+          "id": 85,
+          "level": 2,
+          "name": "Lahore",
+          "slug": "lahore_g4060673"
+        }
+      },
+      {
+        "en": {
+          "externalID": "5000667",
+          "id": 1311,
+          "level": 3,
+          "name": "Nasheman-e-Iqbal",
+          "slug": "nasheman-e-iqbal_g5000667"
+        }
+      },
+      {
+        "en": {
+          "externalID": "4071",
+          "id": 46532,
+          "level": 4,
+          "name": "Nasheman-e-Iqbal Phase 2",
+          "slug": "lahore-nasheman-e-iqbal-phase-2_g4071"
+        }
+      }
+    ],
+    "adTags": []
+  },
+  "contact_info": {
+    "status": 200,
+    "body": {
+      "name": "Test Seller",
+      "mobile": "+923019736882",
+      "whatsapp": null,
+      "proxyMobile": null,
+      "mobileNumbers": [
+        "+923019736882"
+      ],
+      "roles": [
+        "allow_chat_communication",
+        "show_phone_number"
+      ]
+    }
+  }
+}

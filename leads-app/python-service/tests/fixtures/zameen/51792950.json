@@ -1,0 +1,552 @@
+{
+  "captured_at": "2026-11-09T20:59:30.930169+00:00",
+  "source_url": "https://www.zameen.com/Property/rawalpindi_ijp_road_56_marla_commercial_plot_odl_building_for_sale_in_ijp_road-51792950-18986-2.html",
+  "search_url": "https://www.zameen.com/Plots/Rawalpindi-41-1.html?purpose=1",
+  "detail": {
+    "active": true,
+    "agency": {
+      "active": true,
+      "createdAt": "2013-03-07T06:04:27+00:00",
+      "externalID": "148536",
+      "id": 1410,
+      "licenses": [],
+      "name": "Zawiya Enterprises",
+      "objectID": 1410,
+      "product": "titanium",
+      "productScore": 1,
+      "roles": [],
+      "slug": "Islamabad-Zawiya_Enterprises-148536-1",
+      "tier": 4,
+      "tr": 4,
+      "type": "agency"
+    },
+    "amenities": [
+      {
+        "amenities": [
+          {
+            "externalID": 73,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-schools",
+            "text": "Nearby Schools",
+            "value": "",
+            "icon": "schools"
+          },
+          {
+            "externalID": 74,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-hospitals",
+            "text": "Nearby Hospitals",
+            "value": "",
+            "icon": "hospitals"
+          },
+          {
+            "externalID": 75,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-shopping-malls",
+            "text": "Nearby Shopping Malls",
+            "value": "",
+            "icon": "shopping-malls"
+          },
+          {
+            "externalID": 76,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-restaurants",
+            "text": "Nearby Restaurants",
+            "value": "",
+            "icon": "restaurants"
+          },
+          {
+            "externalID": 77,
+            "format": "text",
+            "rank": 1,
+            "slug": "distance-from-airport-kms",
+            "text": "Distance From Airport (kms)",
+            "value": "",
+            "icon": "distance-from-airport-(kms)"
+          },
+          {
+            "externalID": 78,
+            "format": "text",
+            "rank": 1,
+            "slug": "nearby-public-transport-service",
+            "text": "Nearby Public Transport Service",
+            "value": "",
+            "icon": "public-transport-service"
+          },
+          {
+            "externalID": 79,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-nearby-places",
+            "text": "Other Nearby Places",
+            "value": "",
+            "icon": "other-nearby-places"
+          }
+        ],
+        "externalGroupID": 7,
+        "groupRank": 7,
+        "text": "Nearby Locations and Other Facilities"
+      },
+      {
+        "amenities": [
+          {
+            "externalID": 81,
+            "format": "checkbox",
+            "rank": 1,
+            "slug": "security-staff",
+            "text": "Security Staff",
+            "value": "",
+            "icon": "security-staff"
+          },
+          {
+            "externalID": 88,
+            "format": "text",
+            "rank": 1,
+            "slug": "other-facilities",
+            "text": "Other Facilities",
+            "value": "",
+            "icon": "other-maintenance-services"
+          }
+        ],
+        "externalGroupID": 8,
+        "groupRank": 8,
+        "text": "Other Facilities\r\n"
+      }
+    ],
+    "approvedAt": 1732686085,
+    "area": 1170.5783040000001,
+    "baths": 0,
+    "category": [
+      {
+        "externalID": "2",
+        "id": 2,
+        "level": 0,
+        "name": "Plots",
+        "nameSingular": "Plot",
+        "roles": [],
+        "seoName": "Plots",
+        "slug": "Plots"
+      },
+      {
+        "externalID": "11",
+        "id": 16,
+        "level": 1,
+        "name": "Commercial Plots",
+        "nameSingular": "Commercial Plot",
+        "roles": [],
+        "seoName": "Commercial Plots",
+        "slug": "Commercial_Plots"
+      }
+    ],
+    "completionStatus": "completed",
+    "contactName": "Test Seller",
+    "coverPhoto": {
+      "id": 301570000,
+      "externalID": "300986637",
+      "title": "56 Marla Commercial Plot / Odl Building For Sale In IJP Road",
+      "orderIndex": 0,
+      "nimaScore": null,
+      "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/301570000/c79dc3fc7e804661b46f6404a2783330",
+      "main": true,
+      "uuid": "9a4a2233-25d9-40f2-9308-3e84bc2312bc"
+    },
+    "createdAt": 1792906884,
+    "description": "Aoa Dear Sir. . . . <br /> I Have 56 Marla Commercial Plot In IJP Road. . . Very Nice Location . . . If You Need Good Location Plot Plz Contact For Best Deal. . . . . <br /> Zawiya Enterprises Is An Established Real Estate Consultancy Offering Advisory Services To Investors And Individuals Alike, Since Year 2000. <br /> We Are Known As A Reliable Service Provider In All Aspects Of Real Estate Business From Commercial To The Residential And From Large Scale Deals For The Housing Societies To High-Rise Building Projects In ICT, Bahria Town, DHA, Gulberg And Other Leading Societies In And Around The Twin Cities. <br /> We Are A Registered With Real Estate Association And With FBR. <br /> We Cater All The Requirements Of Our Worthy Clients From Verification Of The Documents Of Land/ Plot/ Building To The Process Of NOC (WHERE REQUIRED) Till The Handing Over And Completion Of Transfer To The Satisfaction Of The Client In A Most Transparent Manner. <br /> In Addition We Render Most Profitable Deals From Our Inventory At A Lowest Service Charges. To Offer Best Opportunities And Safeguard Your Capital Is Our Sole Philosophy As We Look In The Value Against Money For Our Service To You And Desire For A Long Term Relationship. . .",
+    "externalID": "51792950",
+    "extraFields": {
+      "dldPropertySK": "51792950"
+    },
+    "floorPlans": [],
+    "geo_point": [
+      73.063849,
+      33.651789
+    ],
+    "geography": {
+      "lat": 33.651789,
+      "lng": 73.063849
+    },
+    "hasExactGeography": true,
+    "hierarchyPath": "IJP Road Rawalpindi Punjab Pakistan",
+    "id": 49522973,
+    "installments": {
+      "remainingInstallments": 0
+    },
+    "isVerified": false,
+    "link": "https://www.zameen.com/Property/rawalpindi_ijp_road_56_marla_commercial_plot_odl_building_for_sale_in_ijp_road-51792950-18986-2.html",
+    "location": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1522",
+        "id": 4,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "/Punjab-1522"
+      },
+      {
+        "externalID": "41",
+        "id": 25,
+        "level": 2,
+        "name": "Rawalpindi",
+        "slug": "/Rawalpindi-41"
+      },
+      {
+        "externalID": "18986",
+        "id": 17979,
+        "level": 3,
+        "name": "IJP Road",
+        "slug": "/Rawalpindi_IJP_Road-18986"
+      }
+    ],
+    "objectID": 49522973,
+    "occupancyStatus": "notSpecified",
+    "ownerID": 52303,
+    "ownershipStatus": "notSpecified",
+    "panoramaCount": 0,
+    "panoramas": [],
+    "phoneNumber": {
+      "mobileNumbers": [
+        "+923273605152"
+      ],
+      "phoneNumbers": [
+        "+923034113008"
+      ],
+      "proxyMobile": null,
+      "proxyPhone": null,
+      "whatsapp": "923070577530"
+    },
+    "photoCount": 4,
+    "photos": [
+      {
+        "id": 301570000,
+        "externalID": "300986637",
+        "title": "1 ",
+        "orderIndex": 0,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/301570000/c79dc3fc7e804661b46f6404a2783330",
+        "uuid": "9a4a2233-25d9-40f2-9308-3e84bc2312bc"
+      },
+      {
+        "id": 301570001,
+        "externalID": "300986638",
+        "title": "2 ",
+        "orderIndex": 1,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/301570001/c4b9fa2c811b4085a13c48d1ce513b83",
+        "uuid": "0eea4fcb-d6be-4d4e-80ee-de71f9a7d806"
+      },
+      {
+        "id": 301570002,
+        "externalID": "300986641",
+        "title": "3 ",
+        "orderIndex": 2,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/301570002/6e918f0332414610888bbe0402c1d85e",
+        "uuid": "4434e0ae-7ce1-4194-b93a-0f28b51933b9"
+      },
+      {
+        "id": 301570003,
+        "externalID": "300986640",
+        "title": "4 ",
+        "orderIndex": 3,
+        "nimaScore": null,
+        "url": "https://zameen-dev.s3.eu-west-1.amazonaws.com/image/301570003/6bf774d2174e42c6aabd0c8e081a012f",
+        "uuid": "b19d21f3-953e-4bc0-a0a3-4f5b75e12226"
+      }
+    ],
+    "price": 600000000,
+    "product": "superhot",
+    "productLabel": "default",
+    "propertyTour": false,
+    "purpose": "for-sale",
+    "reactivatedAt": 1758634943.432199,
+    "rooms": 0,
+    "score": 1990,
+    "shortDescription": "Aoa Dear Sir. . . . \n I Have 56 Marla Commercial Plot In IJP Road. . . Very Nice Location . . . If",
+    "slug": "rawalpindi_ijp_road_56_marla_commercial_plot_odl_building_for_sale_in_ijp_road-51792950-18986-2",
+    "sourceID": 1,
+    "state": "active",
+    "title": "56 Marla Commercial Plot / Odl Building For Sale In IJP Road",
+    "touchedAt": 1794164969.950045,
+    "type": "property",
+    "updatedAt": 1794164564,
+    "userExternalID": "00000000-0000-0000-0000-052303942216",
+    "verification": {
+      "status": "unverified",
+      "type": null,
+      "eligible": false,
+      "comment": null,
+      "updatedAt": 1732686085.612842,
+      "verifiedAt": null,
+      "visitedAt": null,
+      "trucheckedAt": 0
+    },
+    "videoCount": 0,
+    "videos": [],
+    "isDeveloper": false,
+    "coverVideo": null,
+    "isStudio": false,
+    "primaryPhoneNumber": "+923273605152",
+    "mobilePhoneNumber": "+923273605152",
+    "coverPhotoID": 301570000,
+    "coverPhotoTitle": "56 Marla Commercial Plot / Odl Building For Sale In IJP Road",
+    "labels": {
+      "categoryName": "Commercial Plots",
+      "locationNames": [
+        "Pakistan",
+        "Punjab",
+        "Rawalpindi",
+        "IJP Road"
+      ],
+      "locationHierarchy": "IJP Road, Rawalpindi, Punjab"
+    },
+    "referenceNumber": "ID51792950",
+    "isOfTitaniumPlusAgency": false,
+    "isOfTitaniumAgency": true,
+    "isOfFeaturedAgency": false,
+    "locationTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521"
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521"
+        }
+      },
+      {
+        "en": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "Punjab",
+          "slug": "/Punjab-1522"
+        },
+        "ur": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "پنجاب",
+          "slug": "/Punjab-1522"
+        }
+      },
+      {
+        "en": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "Rawalpindi",
+          "slug": "/Rawalpindi-41"
+        },
+        "ur": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "راولپنڈی",
+          "slug": "/Rawalpindi-41"
+        }
+      },
+      {
+        "en": {
+          "id": 17979,
+          "level": 3,
+          "externalID": "18986",
+          "name": "IJP Road",
+          "slug": "/Rawalpindi_IJP_Road-18986"
+        },
+        "ur": {
+          "id": 17979,
+          "level": 3,
+          "externalID": "18986",
+          "name": "آئی جے پی روڈ",
+          "slug": "/Rawalpindi_IJP_Road-18986"
+        }
+      }
+    ],
+    "locations": [
+      {
+        "externalID": "1521",
+        "id": 2,
+        "isMain": true,
+        "level": 0,
+        "name": "Pakistan",
+        "slug": "/Pakistan-1521"
+      },
+      {
+        "externalID": "1522",
+        "id": 4,
+        "isMain": true,
+        "level": 1,
+        "name": "Punjab",
+        "slug": "/Punjab-1522"
+      },
+      {
+        "externalID": "41",
+        "id": 25,
+        "isMain": true,
+        "level": 2,
+        "name": "Rawalpindi",
+        "slug": "/Rawalpindi-41"
+      },
+      {
+        "externalID": "18986",
+        "id": 17979,
+        "isMain": true,
+        "level": 3,
+        "name": "IJP Road",
+        "slug": "/Rawalpindi_IJP_Road-18986"
+      }
+    ],
+    "locationsTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "Pakistan",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "1521",
+          "name": "پاکستان",
+          "slug": "/Pakistan-1521",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "Punjab",
+          "slug": "/Punjab-1522",
+          "isMain": true
+        },
+        "ur": {
+          "id": 4,
+          "level": 1,
+          "externalID": "1522",
+          "name": "پنجاب",
+          "slug": "/Punjab-1522",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "Rawalpindi",
+          "slug": "/Rawalpindi-41",
+          "isMain": true
+        },
+        "ur": {
+          "id": 25,
+          "level": 2,
+          "externalID": "41",
+          "name": "راولپنڈی",
+          "slug": "/Rawalpindi-41",
+          "isMain": true
+        }
+      },
+      {
+        "en": {
+          "id": 17979,
+          "level": 3,
+          "externalID": "18986",
+          "name": "IJP Road",
+          "slug": "/Rawalpindi_IJP_Road-18986",
+          "isMain": true
+        },
+        "ur": {
+          "id": 17979,
+          "level": 3,
+          "externalID": "18986",
+          "name": "آئی جے پی روڈ",
+          "slug": "/Rawalpindi_IJP_Road-18986",
+          "isMain": true
+        }
+      }
+    ],
+    "categoryTranslations": [
+      {
+        "en": {
+          "id": 2,
+          "level": 0,
+          "externalID": "2",
+          "name": "Plots",
+          "slug": "Plots",
+          "roles": [],
+          "seoName": "Plots",
+          "nameSingular": "Plot"
+        },
+        "ur": {
+          "id": 2,
+          "level": 0,
+          "externalID": "2",
+          "name": "پلاٹس",
+          "slug": "Plots",
+          "roles": [],
+          "seoName": "پلاٹس",
+          "nameSingular": "پلاٹ"
+        }
+      },
+      {
+        "en": {
+          "id": 16,
+          "level": 1,
+          "externalID": "11",
+          "name": "Commercial Plots",
+          "slug": "Commercial_Plots",
+          "roles": [],
+          "seoName": "Commercial Plots",
+          "nameSingular": "Commercial Plot"
+        },
+        "ur": {
+          "id": 16,
+          "level": 1,
+          "externalID": "11",
+          "name": "کمرشل پلاٹ",
+          "slug": "Commercial_Plots",
+          "roles": [],
+          "seoName": "کمرشل پلاٹ",
+          "nameSingular": "کمرشل پلاٹ"
+        }
+      }
+    ],
+    "requiresLoginForContact": false,
+    "hasEmail": true,
+    "hidePrice": false,
+    "links": []
+  },
+  "show_numbers": {
+    "contact_details": {
+      "phone": [
+        "+92--3041400350"
+      ],
+      "mobile": "+923273605152",
+      "agency_name": "Zawiya Enterprises",
+      "fax": ""
+    },
+    "success": true
+  }
+}
