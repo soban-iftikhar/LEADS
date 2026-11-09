@@ -15,7 +15,7 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const existing = await prisma.listing.findUnique({
+    const existing = await prisma.legacyListing.findUnique({
       where: { id },
       select: { sellerId: true, status: true },
     });
@@ -48,7 +48,7 @@ export async function PATCH(
       );
     }
 
-    const updated = await prisma.listing.update({
+    const updated = await prisma.legacyListing.update({
       where: { id },
       data: parsed.data,
     });
@@ -86,7 +86,7 @@ export async function DELETE(
       );
     }
 
-    const existing = await prisma.listing.findUnique({
+    const existing = await prisma.legacyListing.findUnique({
       where: { id },
       select: { sellerId: true, status: true },
     });
@@ -99,7 +99,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.listing.update({
+    await prisma.legacyListing.update({
       where: { id },
       data: { status: "DELETED" },
     });

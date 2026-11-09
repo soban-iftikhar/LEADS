@@ -1,18 +1,14 @@
+import 'dotenv/config'
 import path from 'path'
-import { defineConfig } from 'prisma/config'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { defineConfig, env } from 'prisma/config'
 
+// Connection string comes from DATABASE_URL (.env); never hardcode credentials here.
 export default defineConfig({
-  earlyAccess: true,
   schema: path.join('prisma', 'schema.prisma'),
-  datasource: {
-    url: 'postgresql://leads_user:leads_password@localhost:5432/leads_db',
+  migrations: {
+    path: path.join('prisma', 'migrations'),
   },
-  migrate: {
-    async adapter() {
-      return new PrismaPg({
-        connectionString: 'postgresql://leads_user:leads_password@localhost:5432/leads_db',
-      })
-    },
+  datasource: {
+    url: env('DATABASE_URL'),
   },
 })

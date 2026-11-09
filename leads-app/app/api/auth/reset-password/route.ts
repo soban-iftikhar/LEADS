@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { email, token, password } = parsed.data;
 
     // Find user by email
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.legacyUser.findUnique({ where: { email } });
 
     if (!user) {
       return errorResponse("Invalid or expired reset link.", 400);
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Check token has not expired
     if (new Date() > user.passwordResetExpiresAt) {
       // Clean up expired token
-      await prisma.user.update({
+      await prisma.legacyUser.update({
         where: { email },
         data: {
           passwordResetToken: null,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const newPasswordHash = await hashPassword(password);
 
     // Update password and clear reset token fields in one atomic operation
-    await prisma.user.update({
+    await prisma.legacyUser.update({
       where: { email },
       data: {
         passwordHash: newPasswordHash,

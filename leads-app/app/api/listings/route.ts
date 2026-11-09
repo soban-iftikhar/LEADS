@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
 
-    const listing = await prisma.listing.create({
+    const listing = await prisma.legacyListing.create({
       data: {
         title: data.title,
         category: data.category,

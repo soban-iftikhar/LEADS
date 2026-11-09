@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const { fullName, email, phone, role, password } = parsed.data;
 
     // Check email uniqueness (case-insensitive, already lowercased by Zod)
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.legacyUser.findUnique({
       where: { email },
     });
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Check phone uniqueness only if provided
     if (phone) {
-      const existingPhone = await prisma.user.findUnique({
+      const existingPhone = await prisma.legacyUser.findUnique({
         where: { phone },
       });
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user record
-    const user = await prisma.user.create({
+    const user = await prisma.legacyUser.create({
       data: {
         fullName,
         email,

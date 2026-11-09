@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const listings = await prisma.listing.findMany({
+    const listings = await prisma.legacyListing.findMany({
       where: {
         sellerId: user.userId,
         status: { not: "DELETED" },

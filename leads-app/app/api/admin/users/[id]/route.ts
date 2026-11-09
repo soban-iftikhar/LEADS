@@ -27,7 +27,7 @@ export async function GET(
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.legacyUser.findUnique({
       where: { id: params.id },
       select: {
         id:              true,
@@ -106,7 +106,7 @@ export async function PATCH(
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.legacyUser.findUnique({
       where: { id: params.id },
       select: { id: true },
     })
@@ -115,7 +115,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const updated = await prisma.user.update({
+    const updated = await prisma.legacyUser.update({
       where: { id: params.id },
       data:  parsed.data,
       select: {
@@ -160,7 +160,7 @@ export async function DELETE(
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.legacyUser.findUnique({
       where: { id: params.id },
       select: { id: true, role: true },
     })
@@ -170,7 +170,7 @@ export async function DELETE(
     }
 
     // soft delete — anonymise personal data, keep the record
-    await prisma.user.update({
+    await prisma.legacyUser.update({
       where: { id: params.id },
       data: {
         fullName:        'Deleted User',

@@ -44,7 +44,7 @@ async function handleIncomingMessage(message: any) {
   // direct DB-level match. At current scale, filtering CONTACTED prospects
   // in memory is simple and correct;
 
-  const candidates = await prisma.prospect.findMany({ where: { status: "CONTACTED" } });
+  const candidates = await prisma.legacyProspect.findMany({ where: { status: "CONTACTED" } });
   const match = candidates.find((p: { contact: string | null }) => normalizeForWhatsApp(p.contact) === from);
 
   if (!match) {
@@ -52,7 +52,7 @@ async function handleIncomingMessage(message: any) {
     return;
   }
 
-  await prisma.prospect.update({
+  await prisma.legacyProspect.update({
     where: { id: match.id },
     data: { status: "REPLIED", repliedAt: new Date(), lastReplyText: text },
   });
@@ -62,7 +62,7 @@ async function handleStatusUpdate(status: any) {
   const waMessageId = status.id as string;
   const newStatus = status.status as string; // "sent" | "delivered" | "read" | "failed"
 
-  const prospect = await prisma.prospect.findFirst({ where: { waMessageId } });
+  const prospect = await prisma.legacyProspect.findFirst({ where: { waMessageId } });
   if (!prospect) return;
 
   console.log(`[webhook] Prospect ${prospect.id} outreach message is now "${newStatus}"`);
