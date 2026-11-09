@@ -23,3 +23,22 @@ test("create a listing, fill it and submit it for review", async ({ page }) => {
   await expect(page).toHaveURL(/\/listings\/[^/]+$/, { timeout: 20_000 });
   await expect(page.locator(".chip", { hasText: "Under review" }).first()).toBeVisible();
 });
+
+test("agency sees Owner's name; owner gets one row and Add another, no tabs", async ({ page }) => {
+  await loginAsDemo(page);
+  await page.goto("/listings/new", { waitUntil: "networkidle" });
+  await expect(page.getByLabel("Owner's name")).toBeVisible();
+  await page.goto("/settings", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.waitForURL(/\/login/, { waitUntil: "commit" });
+
+  await page.fill("#l-email", "owner@leads.pk");
+  await page.fill("#l-pw", "password1");
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.waitForURL(/\/dashboard/, { waitUntil: "commit" });
+  await page.goto("/listings", { waitUntil: "networkidle" });
+  await expect(page.getByRole("tablist", { name: "Filter listings" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Add another" })).toBeVisible();
+  await page.goto("/listings/new", { waitUntil: "networkidle" });
+  await expect(page.getByLabel("Owner's name")).toHaveCount(0);
+});

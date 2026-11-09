@@ -104,6 +104,7 @@ type Listing = {
   addressText: string | null;
   description: string;
   amenities: string[];
+  ownerName?: string | null;
   status: ListingStatus;
   createdAt: string;
   updatedAt: string;
@@ -709,6 +710,7 @@ export function getListing(userId: string, id: string): ListingDetail {
     benchmark,
     reviews: l.reviews,
     timeline: l.timeline,
+    ownerName: u.kind === "AGENCY" ? l.ownerName ?? null : null,
   };
 }
 
@@ -732,6 +734,7 @@ export function patchListing(userId: string, id: string, patch: ListingPatch) {
   if (patch.addressText !== undefined) l.addressText = patch.addressText;
   if (patch.description !== undefined) l.description = patch.description;
   if (patch.amenities) l.amenities = patch.amenities;
+  if (patch.ownerName !== undefined && u.kind === "AGENCY") l.ownerName = patch.ownerName.trim().slice(0, 100) || null;
   l.updatedAt = iso(Date.now());
   return getListing(userId, id);
 }

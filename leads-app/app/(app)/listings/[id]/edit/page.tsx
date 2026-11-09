@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ListingForm } from "@/components/app/ListingForm";
-import { ApiError, getListing } from "@/lib/api";
+import { ApiError, getListing, getMe } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Edit listing", robots: { index: false } };
 
@@ -14,5 +14,6 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
     throw e;
   });
   if (!EDITABLE.includes(listing.status)) redirect(`/listings/${id}`);
-  return <ListingForm listing={listing} now={new Date().toISOString()} />;
+  const me = await getMe();
+  return <ListingForm listing={listing} now={new Date().toISOString()} agency={me.customer.kind === "AGENCY"} />;
 }
