@@ -67,7 +67,7 @@ test("the same WhatsApp number can't verify a second account", async ({ page }) 
 
 test("forgot password sends a link that works once", async ({ page }) => {
   await page.goto("/forgot-password");
-  await page.fill("#f-email", "demo@leads.pk");
+  await page.getByLabel("Email").fill("demo@leads.pk");
   await page.getByRole("button", { name: "Send reset link" }).click();
   await expect(page.getByText("If that email has an account, we sent a link.")).toBeVisible();
 });
