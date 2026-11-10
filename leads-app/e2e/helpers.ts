@@ -4,14 +4,17 @@ import { expect, type Page } from "@playwright/test";
 const LOG = process.env.E2E_SERVER_LOG ?? "e2e/.server.log";
 
 // Demo account created by scripts/demo-user.mjs (global setup).
-export async function loginAsDemo(page: Page, next?: string) {
+export async function loginAsDemo(page: Page, next?: string, email = "demo@leads.pk") {
   await page.goto(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
-  await page.fill("#l-email", "demo@leads.pk");
+  await page.fill("#l-email", email);
   await page.fill("#l-pw", "password1");
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page).toHaveURL(next ? new RegExp(next.replace(/[?]/g, "\\?")) : /\/dashboard/, { timeout: 30_000 });
   await page.waitForLoadState("networkidle"); // interactive before the test clicks anything
 }
+
+/** The owner demo account (one listing, one package). */
+export const loginAsOwner = (page: Page, next?: string) => loginAsDemo(page, next, "owner@leads.pk");
 
 /** Latest code the server logged for this recipient (AUTH_DELIVERY=log). */
 export async function codeFor(recipient: string): Promise<string> {

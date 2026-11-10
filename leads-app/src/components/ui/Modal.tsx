@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+
+const noop = () => () => {};
+const portalHost = () => document.querySelector<HTMLElement>(".app-ui") ?? document.body;
 
 type Props = {
   title: string;
@@ -14,11 +18,14 @@ export function Modal({ title, onClose, children, footer }: Props) {
   const panel = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const closeRef = useRef(onClose);
+  // portal out of the page pane: its transition (filter/transform) would trap position:fixed
+  const host = useSyncExternalStore(noop, portalHost, () => null);
   useEffect(() => {
     closeRef.current = onClose;
   });
 
   useEffect(() => {
+    if (!host) return;
     const prev = document.activeElement as HTMLElement | null;
     const el = panel.current;
     const focusables = () =>
@@ -53,9 +60,10 @@ export function Modal({ title, onClose, children, footer }: Props) {
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, []);
+  }, [host]);
 
-  return (
+  if (!host) return null;
+  return createPortal(
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={panel} className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className="sec-h">
@@ -69,6 +77,7 @@ export function Modal({ title, onClose, children, footer }: Props) {
         <div className="sec-b">{children}</div>
         {footer && <div className="modal-f">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    host,
   );
 }

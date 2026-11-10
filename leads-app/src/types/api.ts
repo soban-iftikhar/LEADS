@@ -101,6 +101,7 @@ export type LeadCounts = { all: number; new: number; contacted: number; viewing:
 export type LeadDetail = LeadListItem & {
   note: string | null;
   followUpAt: string | null;
+  followUpKind: FollowUpKind | null;
   order: { id: string; planName: string; deliveredCount: number; leadCount: number } | null;
   conversation: { direction: "OUT" | "IN"; body: string; at: string }[];
   activity: { at: string; text: string }[];
@@ -139,13 +140,35 @@ export type PayResult =
 
 export type PackagePlan = { id: string; name: string; leadCount: number; pricePkr: Pkr; pricePerLeadPkr: Pkr; deliveryDays: number };
 
+export type FollowUpKind = "CALL" | "VISIT";
+
+export type DashboardActiveOrder = {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  localityName: string;
+  planName: string;
+  leadCount: number;
+  deliveredCount: number;
+  windowStartsAt: string;
+  windowEndsAt: string;
+  daysLeft: number;
+  dayOfWindow: number;
+  /** round(leadCount × dayOfWindow / deliveryDays) */
+  expectedByToday: number;
+};
+
 export type DashboardSummary = {
-  activeOrders: number;
-  delivered: number;
-  bought: number;
-  nextEnding: { orderId: string; windowEndsAt: string; daysLeft: number; listingTitle: string } | null;
-  leadsToCall: number;
-  oldestNewLeadAt: string | null;
+  activeOrders: DashboardActiveOrder[];
+  totals: { delivered: number; bought: number; expectedByToday: number; projectedEndDate: string | null };
+  /** leads delivered today (Asia/Karachi) */
+  today: number;
+  thisWeek: { days: { date: string; label: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"; count: number }[]; total: number };
+  pipeline: { new: number; contacted: number; viewing: number; won: number; lost: number };
+  reportsUnderCheck: number;
+  /** stage NEW, max 3, oldest first */
+  waiting: { count: number; oldestAt: string | null; items: LeadListItem[] };
+  followUpsToday: { leadId: string; buyerName: string; listingTitle: string; at: string; kind: FollowUpKind }[];
 };
 
 export type NotificationType =

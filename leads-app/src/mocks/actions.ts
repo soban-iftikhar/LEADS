@@ -7,6 +7,7 @@ import { currentSession } from "@/server/auth/sessions";
 import { AppError } from "@/server/http/errors";
 import { pendingPhone, prefsOf, toMe, userWithProfile } from "@/server/modules/auth/service";
 import type {
+  FollowUpKind,
   CustomerStage,
   DocumentKind,
   LeadStageFilter,
@@ -68,7 +69,7 @@ export const mSummary = async () => run(async () => S.dashboardSummary(await uid
 // leads
 export const mLeads = async (q: { stage?: LeadStageFilter; listing?: string; q?: string; page?: number; pageSize?: number }) => run(async () => S.listLeads(await uidOrThrow(), q));
 export const mLead = async (id: string) => run(async () => S.getLead(await uidOrThrow(), id));
-export const mPatchLead = async (id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null }) => run(async () => S.patchLead(await uidOrThrow(), id, patch));
+export const mPatchLead = async (id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null; followUpKind?: FollowUpKind | null }) => run(async () => S.patchLead(await uidOrThrow(), id, patch));
 export const mReportLead = async (id: string, reason: ReportReason, details?: string) => run(async () => S.reportLead(await uidOrThrow(), id, reason, details));
 
 // listings
