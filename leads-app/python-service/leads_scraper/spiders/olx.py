@@ -2,6 +2,7 @@ import re
 import json
 import scrapy
 from itertools import product
+from leads_scraper.extract import window_state
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
@@ -10,8 +11,6 @@ class OLXSpider(BaseSpider):
     platform_name = "olx"
     allowed_domains = ["olx.com.pk"]
     BASE_URL = "https://www.olx.com.pk"
-
-    CITIES = ["islamabad", "lahore", "karachi", "rawalpindi", "peshawar", "faisalabad"]
 
     # canonical -> (path, needs a separator-aware join — see _build_search_url)
     CATEGORY_MAP = {
@@ -41,17 +40,6 @@ class OLXSpider(BaseSpider):
 
     # Request resolution (targeted vs general)
 
-    def _resolve_cities(self):
-        if self.city:
-            match = next((c for c in self.CITIES if c == self.city.lower()), None)
-            if not match:
-                self.logger.error(f"[olx] Unsupported city: {self.city}")
-                return []
-            return [match]
-        if self.full_scrape:
-            return list(self.CITIES)
-        return ["islamabad", "lahore", "karachi"]
-
     def _resolve_categories(self):
         if self.category:
             plat_cat = self.platform_category(self.category)
@@ -64,29 +52,30 @@ class OLXSpider(BaseSpider):
         return {"house": "/houses_c1721/", "flat": "/apartments-flats_c1725/"}
 
     def start_requests(self):
-        cities = self._resolve_cities()
+        cities = self.cities()
         categories = self._resolve_categories()
         if not cities or not categories:
             return
 
-        for city, (canon_cat, cat_path) in product(cities, categories.items()):
-            url = self._build_search_url(cat_path, city)
+        for (city, city_path), (canon_cat, cat_path) in product(cities, categories.items()):
+            url = self._build_search_url(cat_path, city_path)
             yield scrapy.Request(
                 url=url,
                 callback=self.parse_listing_page,
-                cb_kwargs={"city": city.title(), "canonical_category": canon_cat, "cat_path": cat_path, "page": 1},
+                cb_kwargs={"city": city, "canonical_category": canon_cat, "cat_path": cat_path, "page": 1},
                 errback=self.handle_error,
             )
 
-    def _build_search_url(self, cat_path, city):
-        separator = "&" if "?" in cat_path else "?"
-        return f"{self.BASE_URL}{cat_path}{separator}location={city}"
+    def _build_search_url(self, cat_path, city_path):
+        # OLX filters by city in the path (/islamabad_g4060615/houses_c1721/); ?location= is ignored.
+        return f"{self.BASE_URL}/{city_path}{cat_path}"
 
     # Listing page
 
     def parse_listing_page(self, response, city, canonical_category, cat_path, page):
         self.logger.info(f"[olx] {city}/{canonical_category} page {page} — {response.url}")
 
+        self.pages_fetched += 1
         cards = response.css("li[aria-label='Listing']")
         if not cards:
             self.logger.warning(f"[olx] 0 listing cards: {response.url}")
@@ -132,81 +121,33 @@ class OLXSpider(BaseSpider):
     # Detail page
 
     def parse_detail(self, response, city, canonical_category, card_data):
-        # Already fetched — only bail on the real goal, never should_dispatch().
         if self.max_records is not None and self.records_collected >= self.max_records:
             return
         if response.status in (403, 429):
             self.logger.warning(f"[olx] Blocked [{response.status}]: {response.url}")
             return
-
-        listing_id = self._extract_id(response.url)
-
-        title = response.css("h1::text").get("").strip() or card_data["title_card"]
-        price = self._extract_price_text(response) or card_data["price_card"]
-        locality = self._extract_locality_text(response) or card_data["location_card"]
-
-        bedrooms = response.xpath(
-            "//span[normalize-space(text())='Bedrooms']/following-sibling::span/text()"
-        ).get("") or card_data["beds_card"]
-        bathrooms = response.xpath(
-            "//span[normalize-space(text())='Bathrooms']/following-sibling::span/text()"
-        ).get("") or card_data["baths_card"]
-        size = response.xpath(
-            "//span[normalize-space(text())='Area']/following-sibling::span/text()"
-        ).get("") or card_data["size_card"]
-        bedrooms, bathrooms, size = bedrooms.strip(), bathrooms.strip(), size.strip()
-
-        added_date = (
-            response.css("span[aria-label='Creation date']::text").get("") or card_data["added_date_card"]
-        ).strip()
-
-        desc_parts = response.css("div[aria-label='Description'] *::text").getall()
-        description = " ".join(p.strip() for p in desc_parts if p.strip() and p.strip() != "Description")
-
-        seller_name = response.xpath(
-            "//span[normalize-space(text())='Posted by']/following-sibling::div[1]//span/text()"
-        ).get("").strip()
-
-        item = self.build_item(
-            listing_id=listing_id,
-            url=response.url,
-            title=title,
-            price=price,
-            city=city,
-            locality=locality,
-            location=locality,
-            category=canonical_category,
-            purpose="sale",
-            description=description,
-            seller_name=seller_name,
-            agency_name="",
-            agency_profile_url="",
-            phone="",
-            mobile="",
-            bedrooms=bedrooms,
-            bathrooms=bathrooms,
-            size=size,
-            added_date=added_date,
-            amenities=[],
-            is_project=False,
-        )
+        try:
+            detail = window_state(response.text)["ad"]["data"]
+        except (ValueError, KeyError, TypeError) as e:
+            self.logger.warning(f"[olx] no listing data ({e}): {response.url}")
+            self.errors.append({"url": response.url, "error": f"no listing data: {e}"})
+            return
+        ctx = {"category": canonical_category, "purpose": "sale", "city": city, "url": response.url}
 
         if self.access_token:
-            contact_url = f"{self.BASE_URL}/api/listing/{listing_id}/contactInfo/"
             yield scrapy.Request(
-                url=contact_url,
+                url=f"{self.BASE_URL}/api/listing/{detail['externalID']}/contactInfo/",
                 callback=self.parse_contact_info,
-                cb_kwargs={"item": item},
-                headers={
-                    "Accept": "application/json",
-                    "Referer": response.url,
-                    "X-Requested-With": "XMLHttpRequest",
-                },
+                cb_kwargs={"detail": detail, "ctx": ctx},
+                headers={"Accept": "application/json", "Referer": response.url,
+                         "X-Requested-With": "XMLHttpRequest"},
                 cookies={"kc_access_token": self.access_token, "kc_id_token": self.id_token},
                 errback=self.handle_error,
+                meta={"handle_httpstatus_list": [401, 403]},
+                dont_filter=True,
             )
         else:
-            yield item
+            yield self.raw_item({"detail": detail, "contact_info": None}, **ctx)
 
     def _build_next_page_url(self, current_url: str, next_page: int) -> str:
         if re.search(r"[?&]page=\d+", current_url):
@@ -216,31 +157,23 @@ class OLXSpider(BaseSpider):
 
     # Contact info API
 
-    def parse_contact_info(self, response, item):
-        if response.status == 401:
-            # Token's dead for the rest of this run — stop spending a
-            # request per listing trying it again.
+    def parse_contact_info(self, response, detail, ctx):
+        if response.status in (401, 403):
             if self.access_token:
                 self.logger.error(
-                    f"[olx] OLX_ACCESS_TOKEN expired/invalid (401 on {response.url}). "
+                    f"[olx] OLX_ACCESS_TOKEN expired or invalid ({response.status}). "
                     f"Skipping contact lookups for the rest of this run."
                 )
                 self.access_token = None
-            yield item
+                self.auth_failed = True
+            yield self.raw_item({"detail": detail, "contact_info": None}, **ctx)
             return
-
         try:
-            data = json.loads(response.text)
-            item["seller_name"] = data.get("name", "") or item.get("seller_name", "")
-            mobile_numbers = data.get("mobileNumbers") or []
-            item["mobile"] = mobile_numbers[0] if mobile_numbers else data.get("mobile", "")
-            item["phone"] = item["mobile"]
-        except Exception as e:
-            self.logger.warning(f"[olx] contactInfo parse error: {e} — status {response.status} — body: '{response.text[:150]}'")
-            item["mobile"] = ""
-            item["phone"] = ""
-
-        yield item
+            body = json.loads(response.text)
+        except ValueError:
+            body = None
+            self.logger.warning(f"[olx] contactInfo not JSON (status {response.status})")
+        yield self.raw_item({"detail": detail, "contact_info": {"status": response.status, "body": body}}, **ctx)
 
     # Helpers
 

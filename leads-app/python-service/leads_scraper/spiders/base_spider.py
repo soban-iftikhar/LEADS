@@ -1,6 +1,8 @@
-import os
+from datetime import datetime, timezone
+
 import scrapy
-from leads_scraper.items import PropertyItem
+
+from leads_scraper.items import RawListingItem
 
 
 def _to_int(value):
@@ -13,8 +15,10 @@ def _to_int(value):
 
 
 class BaseSpider(scrapy.Spider):
-    """
-    Base class for all LEADS platform scrapers.
+    """Base class for all LEADS portal spiders.
+
+    Spiders only fetch and yield RawListingItem (the portal's own JSON plus context).
+    Parsing, phone protection and storage happen in the item pipelines.
     """
 
     platform_name = None
@@ -24,43 +28,61 @@ class BaseSpider(scrapy.Spider):
         self,
         city=None,
         category=None,
-        price_min=None,
-        price_max=None,
         purpose=None,
-        since_hours=None, 
+        since_hours=None,
         full_scrape=False,
         max_records=None,
-        job_id=None,
+        run_id=None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-
         self.city = city or None
         self.category = category or None
-        self.price_min = _to_int(price_min)
-        self.price_max = _to_int(price_max)
         self.purpose = purpose or None  # "sale" / "rent" — None = both
         self.since_hours = _to_int(since_hours)
         self.full_scrape = str(full_scrape).lower() == "true"
         self.max_records = _to_int(max_records)
-        self.job_id = job_id
-
-        self.targeted = any([self.city, self.category, self.price_min, self.price_max, self.purpose])
+        self.run_id = run_id or None  # master.crawl_runs.id when started by the scheduler
         self.max_pages = 999 if self.full_scrape else 3
 
-        # Written by the pipeline, not by the spider itself — pipeline increments records_collected after a successful save, and raisesCloseSpider once max_records is hit.
+        # Written by the pipelines.
         self.records_collected = 0
         self.records_rejected = 0
+        self.items_new = 0
+        self.items_updated = 0
 
-        # Owned by the spider — counts detail-page requests DISPATCHED (not responses processed). Used only to cap new dispatch; never checked at the top of a callback handling an already-fetched response (see should_dispatch docstring).
+        # Owned by the spider.
         self.dispatched = 0
+        self.pages_fetched = 0
         self.errors = []
+        self.auth_failed = False  # set when a portal token is rejected; run ends `partial`
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super().from_crawler(crawler, *args, **kwargs)
+        # Pace per portal comes from config.portals.requests_per_minute.
+        try:
+            from leads_scraper.regions import requests_per_minute
+            rpm = max(1, requests_per_minute(spider.platform_name))
+            spider.download_delay = 60.0 / rpm
+        except Exception as e:  # noqa: BLE001 - keep the project default if config is unreachable
+            spider.logger.warning(f"[{spider.platform_name}] could not read pace from config: {e}")
+        return spider
+
+    def cities(self) -> list[tuple[str, str]]:
+        """Active (city name, portal city id) pairs from config, filtered by -a city=."""
+        from leads_scraper.regions import active_cities
+        found = active_cities(self.platform_name, self.city)
+        if not found:
+            self.logger.error(f"[{self.platform_name}] no active cities in config"
+                              + (f" matching {self.city!r}" if self.city else ""))
+        return found
 
     # Category mapping
 
     def platform_category(self, canonical: str):
-        """Maps a canonical category to this platform's own value, or None if this platform doesn't support it."""
+        """Maps a canonical category to this platform's own value, or None if unsupported."""
         return self.CATEGORY_MAP.get(canonical)
 
     # Dispatch cap
@@ -70,20 +92,24 @@ class BaseSpider(scrapy.Spider):
             return True
         if self.records_collected >= self.max_records:
             return False
-        if self.dispatched >= self.max_records * 10:
-            return False
-        return True
+        return self.dispatched < self.max_records * 10
 
-    # Item builder
+    # Items
 
-    def build_item(self, **kwargs) -> PropertyItem:
-        item = PropertyItem()
-        item["platform"] = self.platform_name
-        for key, value in kwargs.items():
-            item[key] = value
-        return item
+    def raw_item(self, payload: dict, *, category, purpose, city=None, url=None) -> RawListingItem:
+        return RawListingItem(
+            platform=self.platform_name,
+            payload=payload,
+            ctx={
+                "scraped_at": datetime.now(timezone.utc),
+                "category": category,
+                "purpose": purpose,
+                "city": city,
+                "url": url,
+            },
+        )
 
-    # Error handler
+    # Errors
 
     def handle_error(self, failure):
         url = failure.request.url
@@ -91,47 +117,9 @@ class BaseSpider(scrapy.Spider):
         self.logger.error(f"[{self.platform_name}] Request failed: {url} — {msg}")
         self.errors.append({"url": url, "error": msg})
 
-    # Optional progress callback (only fires if job_id + CALLBACK_BASE_URL set)
-
-    def report_progress(self):
-        if not self.job_id:
-            return
-        callback = os.getenv("CALLBACK_BASE_URL")
-        if not callback:
-            return
-        try:
-            import requests
-            requests.post(
-                f"{callback}/internal/jobs/{self.job_id}/progress",
-                json={"count": self.records_collected, "limit": self.max_records},
-                timeout=2,
-            )
-        except Exception:
-            self.logger.warning(f"[{self.platform_name}] progress callback failed")
-
-    # Closed
-
     def closed(self, reason):
         self.logger.info(
-            f"\n{'='*60}\n"
-            f"[{self.platform_name}] Spider finished\n"
-            f"  Reason    : {reason}\n"
-            f"  Collected : {self.records_collected}\n"
-            f"  Rejected  : {self.records_rejected}\n"
-            f"  Errors    : {len(self.errors)}\n"
-            f"{'='*60}"
+            f"[{self.platform_name}] finished ({reason}): collected={self.records_collected} "
+            f"new={self.items_new} updated={self.items_updated} rejected={self.records_rejected} "
+            f"pages={self.pages_fetched} errors={len(self.errors)} auth_failed={self.auth_failed}"
         )
-        if not self.job_id:
-            return
-        callback = os.getenv("CALLBACK_BASE_URL")
-        if not callback:
-            return
-        try:
-            import requests
-            requests.post(
-                f"{callback}/internal/jobs/{self.job_id}/finished",
-                json={"count": self.records_collected, "reason": reason},
-                timeout=3,
-            )
-        except Exception:
-            self.logger.warning(f"[{self.platform_name}] finished callback failed")

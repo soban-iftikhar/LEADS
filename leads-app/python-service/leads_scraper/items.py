@@ -1,44 +1,9 @@
 import scrapy
 
 
-class PropertyItem(scrapy.Item):
-    # Source info
-    platform = scrapy.Field()        # "zameen", "olx", "graana", ...
-    listing_id = scrapy.Field()      # external ID from platform
-    url = scrapy.Field()             # full detail page URL
-    scraped_at = scrapy.Field()      # timestamp
+class RawListingItem(scrapy.Item):
+    """One listing as the portal sent it. CleaningPipeline turns it into a record."""
 
-    # Property details
-    title = scrapy.Field()
-    category = scrapy.Field()        # CANONICAL category (see categories.py)
-    purpose = scrapy.Field()         # "sale" or "rent"
-    price = scrapy.Field()           # raw string e.g. "15.95 Crore"
-    price_numeric = scrapy.Field()   # converted to PKR integer
-    size = scrapy.Field()            # raw string e.g. "5 Marla"
-    size_numeric = scrapy.Field()    # converted to sqft float
-    size_unit = scrapy.Field()       # Marla, Kanal, Sqft
-
-    # Location
-    city = scrapy.Field()
-    location = scrapy.Field()        # full location string
-    locality = scrapy.Field()        # area/sector
-
-    # Room details
-    bedrooms = scrapy.Field()
-    bathrooms = scrapy.Field()
-
-    # Description
-    description = scrapy.Field()
-    amenities = scrapy.Field()       # list of amenity strings
-
-    # Seller/Agency
-    seller_name = scrapy.Field()     # agent name
-    agency_name = scrapy.Field()
-    phone = scrapy.Field()           # primary phone
-    mobile = scrapy.Field()
-    agency_profile_url = scrapy.Field()
-
-    # Metadata
-    added_date = scrapy.Field()      # raw string e.g. "3 hours ago"
-    listed_at = scrapy.Field()       # parsed absolute datetime from added_date
-    is_project = scrapy.Field()      # False for individual listings
+    platform = scrapy.Field()  # zameen | olx | graana | ilaan
+    payload = scrapy.Field()   # portal JSON, same shape as tests/fixtures/<portal>/*.json
+    ctx = scrapy.Field()       # {scraped_at, category, purpose, city, url}

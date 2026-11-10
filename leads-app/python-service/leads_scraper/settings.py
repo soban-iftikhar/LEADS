@@ -42,17 +42,12 @@ DOWNLOADER_MIDDLEWARES = {
 # Pipelines
 ITEM_PIPELINES = {
     "leads_scraper.pipelines.CleaningPipeline": 200,
-    "leads_scraper.pipelines.PostgresPipeline": 300,
+    "leads_scraper.pipelines.PortalPipeline": 300,
 }
 
 # Postgres
-POSTGRES_DSN = os.getenv(
-    "POSTGRES_DSN",
-    "postgresql://leads_user:leads_password@127.0.0.1:5432/leads_db",
-)
 
 
-CALLBACK_BASE_URL = os.getenv("CALLBACK_BASE_URL", "")
 
 # Retry
 RETRY_ENABLED = True
@@ -68,12 +63,11 @@ MEMUSAGE_LIMIT_MB = 512
 MEMUSAGE_WARNING_MB = 384
 
 LOG_LEVEL = "INFO"
+TELNETCONSOLE_ENABLED = False
 
 # Playwright
-DOWNLOAD_HANDLERS = {
-    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-}
+# Plain HTTP is enough for all four portals (FIELD_INVENTORY section 1). To render a page
+# with a browser, add scrapy-playwright to DOWNLOAD_HANDLERS and set meta={"playwright": True}.
 PLAYWRIGHT_BROWSER_TYPE = "chromium"
 PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
@@ -82,3 +76,5 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 OLX_ACCESS_TOKEN = os.getenv("OLX_ACCESS_TOKEN")
 OLX_ID_TOKEN = os.getenv("OLX_ID_TOKEN")
 OLX_REFRESH_TOKEN = os.getenv("OLX_REFRESH_TOKEN")
+ILAAN_AUTH_TOKEN = os.getenv("ILAAN_AUTH_TOKEN")
+ILAAN_CSRF_TOKEN = os.getenv("ILAAN_CSRF_TOKEN")
