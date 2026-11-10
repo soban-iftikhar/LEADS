@@ -129,6 +129,7 @@ class IlaanSpider(BaseSpider):
                 return
             ctx = {"category": canonical_category, "purpose": purpose_name,
                    "city": entry.get("cityName"), "url": None}
+            search = {"type": api_type, "status": status}  # needed to build the listing URL
             self.dispatched += 1
             # Verified and gold-verified sellers' numbers are paid to reveal; only unverified ones are free.
             # The feed shows a masked number (0304-XXXXXXX) when one exists; if it is blank,
@@ -136,13 +137,13 @@ class IlaanSpider(BaseSpider):
             has_number = bool(entry.get("agentPhone") or entry.get("agentWhatsApp"))
             if (not self.auth_token or entry.get("isVerified") or entry.get("isGoldVerified")
                     or not has_number):
-                yield self.raw_item({"listing": entry, "reveal_contact": None}, **ctx)
+                yield self.raw_item({"listing": entry, "reveal_contact": None, "search": search}, **ctx)
                 continue
             yield scrapy.Request(
                 url=self.REVEAL_URL.format(property_id=entry["propertyId"]),
                 method="POST",
                 callback=self.reveal_contact,
-                cb_kwargs={"entry": entry, "ctx": ctx},
+                cb_kwargs={"entry": entry, "ctx": ctx, "search": search},
                 headers={"Accept": "application/json", "Content-Type": "application/json",
                          "Origin": "https://www.ilaan.com", "Referer": "https://www.ilaan.com/",
                          "X-CSRF-Token": self.csrf_token or ""},
@@ -162,7 +163,7 @@ class IlaanSpider(BaseSpider):
 
     # Reveal contact
 
-    def reveal_contact(self, response, entry, ctx):
+    def reveal_contact(self, response, entry, ctx, search):
         try:
             body = json.loads(response.text)
         except ValueError:
@@ -182,11 +183,12 @@ class IlaanSpider(BaseSpider):
                 )
                 self.auth_token = None
                 self.auth_failed = True
-            yield self.raw_item({"listing": entry, "reveal_contact": None}, **ctx)
+            yield self.raw_item({"listing": entry, "reveal_contact": None, "search": search}, **ctx)
             return
         if body is None:
             self.logger.warning(f"[ilaan] reveal-contact not JSON (status {response.status})")
-        yield self.raw_item({"listing": entry, "reveal_contact": {"status": response.status, "body": body}}, **ctx)
+        yield self.raw_item({"listing": entry, "reveal_contact": {"status": response.status, "body": body},
+                             "search": search}, **ctx)
 
     def closed(self, reason):
         super().closed(reason)

@@ -76,3 +76,23 @@ def test_master_rules():
     assert "locality" in master_rejection({**good, "locality": None})
     assert "url" in master_rejection({**good, "url": None})
     assert "category" in master_rejection({**good, "category": "castle"})
+
+
+# Real links from ilaan.com/house-for-sale on 10 Nov 2026, paired with the API fields they were built from.
+@pytest.mark.parametrize("entry, expected", [
+    ({"propertyId": 797145, "landArea": 5.5, "areaUnitName": "marla", "localityName": "Harbanspura", "cityName": "Lahore"},
+     "https://www.ilaan.com/house-for-sale/5.5-marla-house-for-sale-in-harbanspura-lahore-pidseoio5lv"),
+    ({"propertyId": 797127, "landArea": 6.25, "areaUnitName": "marla", "localityName": "Johar Town", "cityName": "Lahore"},
+     "https://www.ilaan.com/house-for-sale/6.25-marla-house-for-sale-in-johar-town-lahore-pidcpyjrqjv"),
+    ({"propertyId": 797118, "landArea": 5.0, "areaUnitName": "marla", "localityName": "Bahria Orchard", "cityName": "Lahore"},
+     "https://www.ilaan.com/house-for-sale/5-marla-house-for-sale-in-bahria-orchard-lahore-pidhme4pja7"),
+])
+def test_ilaan_url_matches_site_links(entry, expected):
+    from leads_scraper.normalize import ilaan_url
+    assert ilaan_url(entry, "House", "ForSale") == expected
+
+
+def test_ilaan_url_needs_type_and_id():
+    from leads_scraper.normalize import ilaan_url
+    assert ilaan_url({"propertyId": 1}, None, "ForSale") is None
+    assert ilaan_url({"propertyId": None}, "House", "ForSale") is None

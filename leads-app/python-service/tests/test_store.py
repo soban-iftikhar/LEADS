@@ -64,9 +64,11 @@ def test_all_portals_write_and_link_contacts(db, spider):
     for portal in PORTALS:
         res = write_batch(db, records(portal, spider))
         assert not res.failed, res.failed
-    # Ilaan has no detail URL yet (FIELD_INVENTORY F7), so it stays out of master.
-    assert count(db, "master.listings", "platform = 'ilaan'") == 0
-    assert count(db, "ilaan.listings", "master_rejected_reason LIKE %s", ("%url%",)) == 3
+    # Every Ilaan row gets a built URL; rows with a locality reach master, the rest say why not.
+    assert count(db, "ilaan.listings", "url LIKE %s", ("https://www.ilaan.com/%-pid%",)) == 3
+    in_master = count(db, "master.listings", "platform = 'ilaan'")
+    no_locality = count(db, "ilaan.listings", "master_rejected_reason LIKE %s", ("%locality%",))
+    assert in_master + no_locality == 3 and in_master >= 1
     assert count(db, "app.contacts") >= 1
     assert count(db, "intel.seller_contact_links") >= 1
     assert count(db, "app.contacts", "purge_at IS NULL") == 0
