@@ -22,3 +22,21 @@ def next_data(html: str) -> dict:
     if not m:
         raise ValueError("__NEXT_DATA__ not found")
     return json.loads(m.group(1))
+
+
+def search_hits(state: dict) -> list[dict]:
+    """Zameen / OLX search pages: listing summaries in window.state.algolia.content.hits."""
+    try:
+        hits = state["algolia"]["content"]["hits"]
+    except (KeyError, TypeError):
+        return []
+    return hits if isinstance(hits, list) else []
+
+
+def hit_dates(state: dict) -> dict[str, object]:
+    """externalID -> newest date the portal shows for it (createdAt, else timestamp)."""
+    out = {}
+    for h in search_hits(state):
+        if isinstance(h, dict) and h.get("externalID") is not None:
+            out[str(h["externalID"])] = h.get("createdAt") or h.get("timestamp")
+    return out

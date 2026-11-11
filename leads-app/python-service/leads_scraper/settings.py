@@ -57,7 +57,8 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 # Safety — CLOSESPIDER_TIMEOUT is a hard backstop: no matter what else
 # goes wrong, a targeted run can never actually run forever.
 CLOSESPIDER_ERRORCOUNT = 30
-CLOSESPIDER_TIMEOUT = 1800  # 30 min hard ceiling per run
+CLOSESPIDER_TIMEOUT = 6600  # 1 h 50 min: the spider closes itself cleanly (and records its
+# result) before the scheduler's 2 h soft limit would stop it
 MEMUSAGE_ENABLED = True
 MEMUSAGE_LIMIT_MB = 512
 MEMUSAGE_WARNING_MB = 384

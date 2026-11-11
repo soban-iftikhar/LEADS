@@ -2,7 +2,7 @@ import re
 import json
 import scrapy
 from itertools import product
-from leads_scraper.extract import window_state
+from leads_scraper.extract import hit_dates, window_state
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
@@ -81,6 +81,14 @@ class OLXSpider(BaseSpider):
             self.logger.warning(f"[olx] 0 listing cards: {response.url}")
             return
 
+        # Each search hit carries the listing's last refresh time; anything older than the
+        # window is skipped without opening its detail page.
+        try:
+            dates = hit_dates(window_state(response.text))
+        except ValueError:
+            dates = {}
+
+        fresh = 0
         for card in cards:
             if not self.should_dispatch():
                 return
@@ -88,6 +96,10 @@ class OLXSpider(BaseSpider):
             if not href:
                 continue
             url = href if href.startswith("http") else self.BASE_URL + href
+            ext = self._extract_id(url)
+            if ext in dates and not self.is_fresh(dates[ext]):
+                continue
+            fresh += 1
             card_data = self._extract_card_data(card)
 
             self.dispatched += 1
@@ -98,7 +110,7 @@ class OLXSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-        if self.should_dispatch() and page < self.max_pages:
+        if self.keep_paging(fresh, page):
             next_url = self._build_next_page_url(response.url, page + 1)
             yield scrapy.Request(
                 url=next_url,
@@ -131,6 +143,8 @@ class OLXSpider(BaseSpider):
         except (ValueError, KeyError, TypeError) as e:
             self.logger.warning(f"[olx] no listing data ({e}): {response.url}")
             self.errors.append({"url": response.url, "error": f"no listing data: {e}"})
+            return
+        if not self.is_fresh(detail.get("createdAt")):
             return
         ctx = {"category": canonical_category, "purpose": "sale", "city": city, "url": response.url}
 

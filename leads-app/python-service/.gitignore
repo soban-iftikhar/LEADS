@@ -1,3 +1,7 @@
 
 # Full portal captures (local only; sanitised copies live in tests/fixtures)
 samples/
+
+# Runtime files
+logs/
+celerybeat-schedule*

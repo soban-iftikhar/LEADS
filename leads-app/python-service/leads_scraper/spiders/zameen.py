@@ -2,7 +2,7 @@ import re
 
 import scrapy
 from itertools import product
-from leads_scraper.extract import window_state
+from leads_scraper.extract import hit_dates, window_state
 from leads_scraper.spiders.base_spider import BaseSpider
 
 
@@ -104,6 +104,14 @@ class ZameenSpider(BaseSpider):
             self.logger.warning(f"[zameen] 0 listings: {response.url}")
             return
 
+        # The search page lists a date per listing when its embedded state is present;
+        # old ones are skipped without opening their detail page.
+        try:
+            dates = hit_dates(window_state(response.text))
+        except ValueError:
+            dates = {}
+
+        fresh = 0
         for listing in listings:
             if not self.should_dispatch():
                 return
@@ -113,6 +121,10 @@ class ZameenSpider(BaseSpider):
             if not link:
                 continue
             detail_url = link if link.startswith("http") else f"https://www.zameen.com{link}"
+            ext = self._extract_external_id(detail_url)
+            if ext in dates and not self.is_fresh(dates[ext]):
+                continue
+            fresh += 1
 
             self.dispatched += 1
             yield scrapy.Request(
@@ -127,7 +139,7 @@ class ZameenSpider(BaseSpider):
                 errback=self.handle_error,
             )
 
-        if self.should_dispatch() and page < self.max_pages:
+        if self.keep_paging(fresh, page):
             next_url = self._get_next_page(response, page)
             if next_url:
                 yield scrapy.Request(
@@ -171,8 +183,17 @@ class ZameenSpider(BaseSpider):
             self.logger.warning(f"[zameen] no listing data ({e}): {response.url}")
             self.errors.append({"url": response.url, "error": f"no listing data: {e}"})
             return
+        if not self.is_fresh(detail.get("createdAt")):
+            return
         # Phones are already in the detail payload, so the showNumbers call is skipped.
         yield self.raw_item(
             {"detail": detail},
             category=canonical_category, purpose=purpose_name, city=city_name, url=response.url,
         )
+
+    # Helpers
+
+    def _extract_external_id(self, url: str) -> str:
+        """.../some_title-54827763-3118-1.html -> 54827763"""
+        match = re.search(r"-(\d{6,})-\d+-\d+\.html", url)
+        return match.group(1) if match else ""
