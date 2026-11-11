@@ -23,6 +23,11 @@ const schema = z.object({
   OTP_EXPIRY_MINUTES: z.coerce.number().int().positive().default(10),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
 
+  // Same values as the Python service (python-service/.env). Base64 of 32 random bytes each.
+  // Optional until a route needs them; the WhatsApp webhook does.
+  PHONE_HASH_PEPPER: z.string().optional(),
+  PHONE_ENC_KEY: z.string().optional(),
+
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
