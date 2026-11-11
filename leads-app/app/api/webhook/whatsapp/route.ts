@@ -1,69 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { normalizeForWhatsApp } from "@/lib/whatsapp/phone";
+import { env } from "@/server/env";
+import { isValidWebhookSignature } from "@/server/modules/messaging/whatsapp/webhook-signature";
+import {
+  recordInboundMessage,
+  recordStatusUpdate,
+  type WebhookMessage,
+  type WebhookStatus,
+} from "@/server/modules/messaging/inbound";
 
-// One-time handshake Meta does when you register this URL in the dashboard.
+interface WebhookPayload {
+  entry?: { changes?: { value?: { messages?: WebhookMessage[]; statuses?: WebhookStatus[] } }[] }[];
+}
+
+// One-time handshake Meta does when the URL is registered in the dashboard.
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
-  const mode = params.get("hub.mode");
-  const token = params.get("hub.verify_token");
-  const challenge = params.get("hub.challenge") || "";
-
-  if (mode === "subscribe" && token === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
-    return new NextResponse(challenge, { status: 200 });
+  const verifyToken = env().WHATSAPP_WEBHOOK_VERIFY_TOKEN;
+  if (verifyToken && params.get("hub.mode") === "subscribe" && params.get("hub.verify_token") === verifyToken) {
+    return new NextResponse(params.get("hub.challenge") ?? "", { status: 200 });
   }
   return new NextResponse("Verification failed", { status: 403 });
 }
 
-// Ongoing traffic — Meta expects a fast 200
+// Replies and delivery receipts. Meta expects a fast 200; classification happens later
+// in the Python worker (ops.job_requests CLASSIFY_MESSAGE).
 export async function POST(req: NextRequest) {
-  const payload = await req.json();
+  // Read the raw text first: the signature is computed over the exact bytes Meta sent.
+  const rawBody = await req.text();
+  if (!isValidWebhookSignature(rawBody, req.headers.get("x-hub-signature-256"))) {
+    return new NextResponse("Invalid signature", { status: 401 });
+  }
 
-  for (const entry of payload.entry || []) {
-    for (const change of entry.changes || []) {
-      const value = change.value || {};
+  let payload: WebhookPayload;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new NextResponse("Invalid JSON", { status: 400 });
+  }
 
-      for (const message of value.messages || []) {
-        await handleIncomingMessage(message);
+  for (const entry of payload.entry ?? []) {
+    for (const change of entry.changes ?? []) {
+      for (const message of change.value?.messages ?? []) {
+        const result = await recordInboundMessage(message);
+        if (result === "unknown_sender") console.warn("[webhook] reply from a number that is not a known contact");
       }
-      for (const status of value.statuses || []) {
-        await handleStatusUpdate(status);
+      for (const status of change.value?.statuses ?? []) {
+        await recordStatusUpdate(status);
       }
     }
   }
 
   return NextResponse.json({ status: "ok" });
-}
-
-async function handleIncomingMessage(message: any) {
-  const from = message.from as string; // e.g. "923001234567"
-  const text = message.type === "text" ? message.text?.body ?? "" : `[${message.type} message]`;
-
-  // Prospect.contact is stored in local format (e.g. "0300-1234567"), not
-  // the international format WhatsApp sends "from" in — so this can't be a
-  // direct DB-level match. At current scale, filtering CONTACTED prospects
-  // in memory is simple and correct;
-
-  const candidates = await prisma.legacyProspect.findMany({ where: { status: "CONTACTED" } });
-  const match = candidates.find((p: { contact: string | null }) => normalizeForWhatsApp(p.contact) === from);
-
-  if (!match) {
-    console.warn(`[webhook] No CONTACTED prospect found for inbound message from ${from}`);
-    return;
-  }
-
-  await prisma.legacyProspect.update({
-    where: { id: match.id },
-    data: { status: "REPLIED", repliedAt: new Date(), lastReplyText: text },
-  });
-}
-
-async function handleStatusUpdate(status: any) {
-  const waMessageId = status.id as string;
-  const newStatus = status.status as string; // "sent" | "delivered" | "read" | "failed"
-
-  const prospect = await prisma.legacyProspect.findFirst({ where: { waMessageId } });
-  if (!prospect) return;
-
-  console.log(`[webhook] Prospect ${prospect.id} outreach message is now "${newStatus}"`);
 }

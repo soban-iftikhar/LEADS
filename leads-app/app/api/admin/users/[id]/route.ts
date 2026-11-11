@@ -1,34 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { verifyToken } from '@/lib/auth/jwt'
+import { prisma } from '@/server/db'
+import { requireRole } from '@/server/auth/guards'
 import { z } from 'zod'
-
-// Auth helper
-function getAdminFromRequest(req: NextRequest) {
-  const token = req.cookies.get('token')?.value
-  if (!token) return null
-  try {
-    const payload = verifyToken(token)
-    if (!payload || payload.role !== 'ADMIN') return null
-    return payload
-  } catch {
-    return null
-  }
-}
 
 // GET /api/admin/users/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = getAdminFromRequest(req)
-  if (!admin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const auth = requireRole(req, 'ADMIN')
+  if (!auth.ok) return auth.response
+  const { id } = await params
 
   try {
     const user = await prisma.legacyUser.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id:              true,
         fullName:        true,
@@ -67,15 +53,14 @@ const updateSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = getAdminFromRequest(req)
-  if (!admin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const auth = requireRole(req, 'ADMIN')
+  if (!auth.ok) return auth.response
+  const { id } = await params
 
   // prevent admin from modifying their own account via this route
-  if (params.id === admin.userId) {
+  if (id === auth.user.userId) {
     return NextResponse.json(
       { error: 'You cannot modify your own account through this endpoint' },
       { status: 400 }
@@ -107,7 +92,7 @@ export async function PATCH(
 
   try {
     const user = await prisma.legacyUser.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true },
     })
 
@@ -116,7 +101,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.legacyUser.update({
-      where: { id: params.id },
+      where: { id },
       data:  parsed.data,
       select: {
         id:       true,
@@ -144,15 +129,14 @@ export async function PATCH(
 // DELETE /api/admin/users/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = getAdminFromRequest(req)
-  if (!admin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const auth = requireRole(req, 'ADMIN')
+  if (!auth.ok) return auth.response
+  const { id } = await params
 
   // prevent admin from deleting themselves
-  if (params.id === admin.userId) {
+  if (id === auth.user.userId) {
     return NextResponse.json(
       { error: 'You cannot delete your own account' },
       { status: 400 }
@@ -161,7 +145,7 @@ export async function DELETE(
 
   try {
     const user = await prisma.legacyUser.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, role: true },
     })
 
@@ -171,10 +155,10 @@ export async function DELETE(
 
     // soft delete — anonymise personal data, keep the record
     await prisma.legacyUser.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         fullName:        'Deleted User',
-        email:           `deleted_${params.id}@leads.pk`,
+        email:           `deleted_${id}@leads.pk`,
         phone:           null,
         passwordHash:    'DELETED',
         isActive:        false,

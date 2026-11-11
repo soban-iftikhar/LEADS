@@ -1,3 +1,0 @@
-# Campaign Status API
-
-TODO

@@ -10,7 +10,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # prisma.config.ts requires DATABASE_URL to exist; generating the client never connects.
 ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
-RUN npx prisma generate && npm run build
+RUN npm run build   # runs prisma generate first
 
 FROM node:22-alpine
 ENV NODE_ENV=production

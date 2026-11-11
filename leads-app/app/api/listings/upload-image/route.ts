@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import cloudinary from "@/lib/cloudinary";
+import type { UploadApiResponse } from "cloudinary";
+import { getCloudinary } from "@/server/integrations/cloudinary";
+import { requireUser } from "@/server/auth/guards";
 
 // --- Validation rules ---
 
@@ -13,6 +15,10 @@ const MAX_HEIGHT = 6000;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export async function POST(req: NextRequest) {
+  // Uploads go to our Cloudinary account, so only signed-in users may send them.
+  const auth = requireUser(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -74,11 +80,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Upload to Cloudinary
-    const uploadResult = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
+    const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const uploadStream = getCloudinary().uploader.upload_stream(
         { folder: "leads/listings" },
         (error, result) => {
-          if (error) reject(error);
+          if (error || !result) reject(error ?? new Error("Cloudinary returned no result"));
           else resolve(result);
         }
       );

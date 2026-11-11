@@ -36,7 +36,7 @@ def test_same_fixture_twice_no_duplicates_and_seen_times(db, spider):
     with db.connection() as conn:
         rows = conn.execute("SELECT first_seen_at, last_seen_at FROM zameen.listings").fetchall()
         mrows = conn.execute("SELECT first_seen_at, last_seen_at FROM master.listings").fetchall()
-    assert all(f == SCRAPED_AT and l == later for f, l in rows + mrows)
+    assert all(f == SCRAPED_AT and last == later for f, last in rows + mrows)
 
 
 def test_price_change_writes_event(db, spider):
@@ -88,6 +88,7 @@ def _phone_values(obj, key=""):
 
 def test_no_plaintext_phone_anywhere(db, spider):
     import re
+
     from leads_scraper.normalize import normalize
     from tests.conftest import load_fixtures as lf
 

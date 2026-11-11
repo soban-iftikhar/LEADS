@@ -1,17 +1,8 @@
-import { NextRequest } from "next/server";
-import { successResponse } from "@/lib/api-response";
+import { successResponse } from "@/server/http/response";
+import { endSession } from "@/server/auth/session";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const response = successResponse({ message: "Logged out successfully" });
-  
-  // Clear the token cookie
-  response.cookies.set("token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 0, // expires immediately
-    path: "/",
-  });
-
+  endSession(response);
   return response;
 }

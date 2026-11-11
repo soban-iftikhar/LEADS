@@ -18,7 +18,6 @@ Exit code: 0 success, 1 partial, 2 failed, 3 skipped (already ran / not needed).
 
 import argparse
 import logging
-import os
 import signal
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -28,8 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import redis  # noqa: E402
 
-from leads import runs  # noqa: E402
 from leads.alerts import crawl_run_alert  # noqa: E402
+from leads.crawl import runs  # noqa: E402
 from leads.db import close_pool, get_pool  # noqa: E402
 from leads.settings import get_settings  # noqa: E402
 
@@ -64,7 +63,7 @@ def main() -> int:
 
     day = runs.pkt_date()
     if trigger in runs.LOCKED_TRIGGERS:
-        rds = redis.Redis.from_url(os.getenv("CELERY_BROKER_URL", get_settings().celery_broker_url))
+        rds = redis.Redis.from_url(get_settings().celery_broker_url)
         if not runs.acquire_day_lock(rds, day):
             log.info("run for %s already taken (Redis lock); exiting", day)
             return 3

@@ -1,7 +1,9 @@
-import re
 import json
-import scrapy
+import re
 from itertools import product
+
+import scrapy
+
 from leads_scraper.extract import hit_dates, window_state
 from leads_scraper.spiders.base_spider import BaseSpider
 
