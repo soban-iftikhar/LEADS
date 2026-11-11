@@ -116,6 +116,42 @@ def spider_settings():
     return get_settings()
 
 
+def test_phone_ciphertext_lives_only_in_contacts(db, spider):
+    for portal in PORTALS:
+        write_batch(db, records(portal, spider))
+    with db.connection() as conn:
+        cols = conn.execute(
+            "SELECT table_schema FROM information_schema.columns "
+            "WHERE column_name = 'phone_enc' AND table_name = 'listings'").fetchall()
+        assert cols == []
+        # every listing with a phone points at a contact that holds the ciphertext
+        for t in ["zameen.listings", "olx.listings", "graana.listings", "master.listings"]:
+            orphans = conn.execute(
+                f"SELECT count(*) FROM {t} l LEFT JOIN app.contacts c ON c.id = l.contact_id "
+                f"WHERE l.phone_hash IS NOT NULL AND (c.id IS NULL OR c.phone_enc IS NULL "
+                f"OR c.phone_hash <> l.phone_hash)").fetchone()[0]
+            assert orphans == 0, t
+
+
+def test_portal_only_rows_still_get_a_contact(db, spider):
+    def no_price(payload):
+        payload["detail"]["price"] = None
+
+    res = write_batch(db, records("graana", spider, mutate=no_price))
+    assert res.master == 0 and res.contacts == 3
+    assert count(db, "graana.listings", "contact_id IS NOT NULL") == 3
+
+
+def test_seen_again_reactivates_exited_listing(db, spider):
+    write_batch(db, records("zameen", spider))
+    with db.connection() as conn:
+        conn.execute("UPDATE zameen.listings SET status = 'exited', exited_at = now()")
+        conn.execute("UPDATE master.listings SET status = 'exited', exited_at = now()")
+    write_batch(db, records("zameen", spider, SCRAPED_AT + timedelta(hours=24)))
+    assert count(db, "zameen.listings", "status = 'active' AND exited_at IS NULL") == 3
+    assert count(db, "master.listings", "status = 'active' AND exited_at IS NULL") == 3
+
+
 def test_missing_phone_on_update_keeps_existing_hash(db, spider):
     write_batch(db, records("zameen", spider))
 
@@ -124,4 +160,4 @@ def test_missing_phone_on_update_keeps_existing_hash(db, spider):
         payload["detail"]["mobilePhoneNumber"] = None
 
     write_batch(db, records("zameen", spider, SCRAPED_AT + timedelta(hours=1), drop_phones))
-    assert count(db, "zameen.listings", "phone_hash IS NULL") == 0
+    assert count(db, "zameen.listings", "phone_hash IS NULL OR contact_id IS NULL") == 0

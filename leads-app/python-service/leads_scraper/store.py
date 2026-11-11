@@ -1,10 +1,12 @@
 """Database writes for scraped listings (SPEC_01 section 4).
 
-write_batch() runs one transaction per batch:
-  1. upsert <portal>.listings on (platform, external_id); keep first_seen_at, bump last_seen_at
-  2. if content_hash changed, append master.listing_events (PRICE_CHANGE or EDIT)
-  3. if the master rules pass, upsert master.listings
-  4. for rows with a phone: upsert app.contacts and intel.seller_contact_links
+write_batch() runs one transaction per batch. For each record:
+  1. if it has a phone: upsert app.contacts. The encrypted number lives only there;
+     listings carry phone_hash and contact_id.
+  2. upsert <portal>.listings on (platform, external_id); keep first_seen_at, bump
+     last_seen_at, mark the ad active again
+  3. if content_hash changed, append master.listing_events (PRICE_CHANGE or EDIT)
+  4. if the master rules pass, upsert master.listings and intel.seller_contact_links
 """
 
 import logging
@@ -21,7 +23,7 @@ COMMON = [
     "price_raw", "price_pkr", "size_raw", "size_value", "size_unit", "size_sqft",
     "city", "locality", "location_text", "listed_at", "listed_at_precision", "scraped_at",
     "content_hash", "bedrooms", "bathrooms", "description", "amenities", "seller_name",
-    "agency_name", "agency_profile_url", "is_agency", "phone_enc", "phone_hash",
+    "agency_name", "agency_profile_url", "is_agency", "phone_hash", "contact_id",
     "added_date_raw", "latitude", "longitude", "image_urls",
 ]
 
@@ -45,7 +47,7 @@ MASTER_PORTAL_SPECIFIC = {
 }
 
 # On update, a missing phone (e.g. expired token) must not wipe the one we have.
-KEEP_IF_NULL = {"phone_hash", "phone_enc"}
+KEEP_IF_NULL = {"phone_hash", "contact_id"}
 
 
 @dataclass
@@ -72,6 +74,8 @@ def _upsert_sql(schema: str, cols: list[str], extra_insert: dict[str, str], retu
         else:
             updates.append(sql.SQL("{c} = EXCLUDED.{c}").format(c=sql.Identifier(c)))
     updates.append(sql.SQL("last_seen_at = EXCLUDED.scraped_at"))
+    # Seen again on the portal: it is live, whatever the presence sweep said before.
+    updates.append(sql.SQL("status = 'active', exited_at = NULL, last_checked_at = EXCLUDED.scraped_at"))
     return sql.SQL(
         "INSERT INTO {t} ({cols}) VALUES ({vals}) "
         "ON CONFLICT (platform, external_id) DO UPDATE SET {upd} RETURNING {ret}"
@@ -100,7 +104,8 @@ def portal_sql(platform: str) -> sql.Composable:
             "id, (xmax = 0) AS inserted, (SELECT content_hash FROM prev), "
             "(SELECT price_pkr FROM prev), (SELECT size_sqft FROM prev), (SELECT title FROM prev)"
         )
-        extra = {"first_seen_at": "%(scraped_at)s", "last_seen_at": "%(scraped_at)s"}
+        extra = {"first_seen_at": "%(scraped_at)s", "last_seen_at": "%(scraped_at)s",
+                 "last_checked_at": "%(scraped_at)s"}
         _PORTAL_SQL[platform] = prev + _upsert_sql(platform, cols, extra, returning)
     return _PORTAL_SQL[platform]
 
@@ -116,7 +121,8 @@ def master_columns(platform: str) -> dict[str, str]:
 def master_sql(platform: str) -> sql.Composable:
     if platform not in _MASTER_SQL:
         cols = list(master_columns(platform).values()) + ["source_row_id", "source_schema"]
-        extra = {"first_seen_at": "%(scraped_at)s", "last_seen_at": "%(scraped_at)s"}
+        extra = {"first_seen_at": "%(scraped_at)s", "last_seen_at": "%(scraped_at)s",
+                 "last_checked_at": "%(scraped_at)s"}
         _MASTER_SQL[platform] = _upsert_sql("master", cols, extra, sql.SQL("id"))
     return _MASTER_SQL[platform]
 
@@ -158,6 +164,19 @@ def _snapshot(price, size, title) -> dict:
 
 def write_record(cur, rec: dict, result: BatchResult, purge_days: int) -> None:
     platform = rec["platform"]
+
+    # 1. contact first, so both listing rows can point at it
+    rec["contact_id"] = None
+    if rec.get("phone_hash"):
+        cur.execute(CONTACT_SQL, {
+            "phone_hash": rec["phone_hash"], "phone_enc": rec.get("phone_enc"),
+            "name": rec.get("seller_name"),
+            "purge_at": rec["scraped_at"] + timedelta(days=purge_days),
+        })
+        rec["contact_id"] = cur.fetchone()[0]
+        result.contacts += 1
+
+    # 2. portal row
     keys = COMMON + PORTAL_EXTRA[platform] + ["raw", "master_rejected_reason"]
     cur.execute(portal_sql(platform), _params(rec, keys))
     row_id, inserted, prev_hash, prev_price, prev_size, prev_title = cur.fetchone()
@@ -165,6 +184,7 @@ def write_record(cur, rec: dict, result: BatchResult, purge_days: int) -> None:
         result.new += 1
     else:
         result.updated += 1
+        # 3. change event
         if prev_hash != rec["content_hash"]:
             kind = "PRICE_CHANGE" if prev_price != rec.get("price_pkr") else "EDIT"
             cur.execute(EVENT_SQL, (
@@ -179,21 +199,14 @@ def write_record(cur, rec: dict, result: BatchResult, purge_days: int) -> None:
         result.rejected += 1
         return
 
+    # 4. master row and buyer-pool link
     mparams = {mcol: rec.get(key) for key, mcol in master_columns(platform).items()}
     mparams.update(source_row_id=row_id, source_schema=platform)
     cur.execute(master_sql(platform), mparams)
     master_id = cur.fetchone()[0]
     result.master += 1
-
-    if rec.get("phone_hash"):
-        cur.execute(CONTACT_SQL, {
-            "phone_hash": rec["phone_hash"], "phone_enc": rec.get("phone_enc"),
-            "name": rec.get("seller_name"),
-            "purge_at": rec["scraped_at"] + timedelta(days=purge_days),
-        })
-        contact_id = cur.fetchone()[0]
-        cur.execute(LINK_SQL, (contact_id, master_id))
-        result.contacts += 1
+    if rec["contact_id"]:
+        cur.execute(LINK_SQL, (rec["contact_id"], master_id))
 
 
 def write_batch(pool, records: list[dict], purge_days: int = 60) -> BatchResult:
