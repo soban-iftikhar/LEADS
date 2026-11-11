@@ -11,9 +11,15 @@ def get_pool() -> ConnectionPool:
     global _pool
     if _pool is None:
         s = get_settings()
-        _pool = ConnectionPool(s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max,
-                               open=True, name="leads")
-        _pool.wait(timeout=30)
+        pool = ConnectionPool(s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                              open=True, name="leads")
+        try:
+            pool.wait(timeout=30)
+        except Exception:
+            # Without this, the next caller would get a pool that can never connect.
+            pool.close()
+            raise
+        _pool = pool
     return _pool
 
 

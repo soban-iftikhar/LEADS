@@ -1,3 +1,0 @@
-# Campaign Messages API
-
-TODO

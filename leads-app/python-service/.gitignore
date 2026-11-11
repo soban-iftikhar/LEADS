@@ -5,3 +5,7 @@ samples/
 # Runtime files
 logs/
 celerybeat-schedule*
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+.env.local

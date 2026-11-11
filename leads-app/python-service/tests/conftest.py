@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -27,7 +27,7 @@ os.environ["DATABASE_URL"] = os.getenv(
 
 FIXTURES = ROOT / "tests" / "fixtures"
 PORTALS = ["zameen", "olx", "graana", "ilaan"]
-SCRAPED_AT = datetime(2026, 11, 10, 21, 0, tzinfo=timezone.utc)
+SCRAPED_AT = datetime(2026, 11, 10, 21, 0, tzinfo=UTC)
 
 
 def load_fixtures(portal: str) -> list[tuple[str, dict]]:

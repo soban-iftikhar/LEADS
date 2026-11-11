@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { normalizeForWhatsApp } from "@/lib/whatsapp/phone";
+import { prisma } from "@/server/db";
+import { isValidWebhookSignature } from "@/server/modules/messaging/whatsapp/webhook-signature";
+import { normalizeForWhatsApp } from "@/server/modules/messaging/whatsapp/phone";
+import { env } from "@/server/env";
+
+// The parts of Meta's webhook payload this handler reads.
+interface WebhookMessage {
+  from: string; // e.g. "923001234567"
+  type: string;
+  text?: { body?: string };
+}
+interface WebhookStatus {
+  id: string;
+  status: string; // "sent" | "delivered" | "read" | "failed"
+}
+interface WebhookPayload {
+  entry?: { changes?: { value?: { messages?: WebhookMessage[]; statuses?: WebhookStatus[] } }[] }[];
+}
 
 // One-time handshake Meta does when you register this URL in the dashboard.
 export async function GET(req: NextRequest) {
@@ -9,7 +25,7 @@ export async function GET(req: NextRequest) {
   const token = params.get("hub.verify_token");
   const challenge = params.get("hub.challenge") || "";
 
-  if (mode === "subscribe" && token === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
+  if (mode === "subscribe" && token === env().WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
     return new NextResponse(challenge, { status: 200 });
   }
   return new NextResponse("Verification failed", { status: 403 });
@@ -17,7 +33,18 @@ export async function GET(req: NextRequest) {
 
 // Ongoing traffic — Meta expects a fast 200
 export async function POST(req: NextRequest) {
-  const payload = await req.json();
+  // Read the raw text first: the signature is computed over the exact bytes Meta sent.
+  const rawBody = await req.text();
+  if (!isValidWebhookSignature(rawBody, req.headers.get("x-hub-signature-256"))) {
+    return new NextResponse("Invalid signature", { status: 401 });
+  }
+
+  let payload: WebhookPayload;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new NextResponse("Invalid JSON", { status: 400 });
+  }
 
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
@@ -35,8 +62,8 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ status: "ok" });
 }
 
-async function handleIncomingMessage(message: any) {
-  const from = message.from as string; // e.g. "923001234567"
+async function handleIncomingMessage(message: WebhookMessage) {
+  const from = message.from; // e.g. "923001234567"
   const text = message.type === "text" ? message.text?.body ?? "" : `[${message.type} message]`;
 
   // Prospect.contact is stored in local format (e.g. "0300-1234567"), not
@@ -48,7 +75,7 @@ async function handleIncomingMessage(message: any) {
   const match = candidates.find((p: { contact: string | null }) => normalizeForWhatsApp(p.contact) === from);
 
   if (!match) {
-    console.warn(`[webhook] No CONTACTED prospect found for inbound message from ${from}`);
+    console.warn("[webhook] Inbound message did not match any contacted prospect");
     return;
   }
 
@@ -58,9 +85,9 @@ async function handleIncomingMessage(message: any) {
   });
 }
 
-async function handleStatusUpdate(status: any) {
-  const waMessageId = status.id as string;
-  const newStatus = status.status as string; // "sent" | "delivered" | "read" | "failed"
+async function handleStatusUpdate(status: WebhookStatus) {
+  const waMessageId = status.id;
+  const newStatus = status.status; // "sent" | "delivered" | "read" | "failed"
 
   const prospect = await prisma.legacyProspect.findFirst({ where: { waMessageId } });
   if (!prospect) return;

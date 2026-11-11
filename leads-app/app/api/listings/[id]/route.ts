@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { updateListingSchema } from "@/lib/validations/listing.schema";
+import { prisma } from "@/server/db";
+import { getCurrentUser } from "@/server/auth/session";
+import { updateListingSchema } from "@/server/modules/listings/schema";
 
 export async function PATCH(
   request: NextRequest,

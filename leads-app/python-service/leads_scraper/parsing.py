@@ -1,7 +1,7 @@
 """Pure parsers for portal values. No I/O; covered by tests/test_parsing.py."""
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 _NUM = r"(\d+(?:[.,]\d+)*)"
@@ -121,7 +121,7 @@ def parse_listed_at(raw, scraped_at: datetime) -> tuple[datetime, str, bool]:
     so the row is kept (SPEC_01 3.4).
     """
     if scraped_at.tzinfo is None:
-        scraped_at = scraped_at.replace(tzinfo=timezone.utc)
+        scraped_at = scraped_at.replace(tzinfo=UTC)
     if raw is None or raw == "" or isinstance(raw, bool):
         return scraped_at, ESTIMATED, False
 
@@ -130,7 +130,7 @@ def parse_listed_at(raw, scraped_at: datetime) -> tuple[datetime, str, bool]:
         if ts > 1e12:  # milliseconds
             ts /= 1000
         if ts > 0:
-            return datetime.fromtimestamp(ts, tz=timezone.utc), EXACT, True
+            return datetime.fromtimestamp(ts, tz=UTC), EXACT, True
         return scraped_at, ESTIMATED, False
 
     text = str(raw).strip()
@@ -164,8 +164,8 @@ def _parse_iso(text: str) -> datetime | None:
     except ValueError:
         return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)  # naive portal timestamps are treated as UTC
-    return dt.astimezone(timezone.utc)
+        dt = dt.replace(tzinfo=UTC)  # naive portal timestamps are treated as UTC
+    return dt.astimezone(UTC)
 
 
 def parse_int(value, zero_is_null: bool = False) -> int | None:
@@ -207,7 +207,7 @@ def epoch_to_dt(value) -> datetime | None:
     if value in (None, "", 0):
         return None
     try:
-        return datetime.fromtimestamp(float(value), tz=timezone.utc)
+        return datetime.fromtimestamp(float(value), tz=UTC)
     except (TypeError, ValueError, OSError):
         return None
 
