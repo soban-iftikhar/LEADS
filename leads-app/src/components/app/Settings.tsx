@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button, Field, Icon, Modal, Section, Switch, TextInput, useToast } from "@/components/ui";
-import { ApiError, changePassword, deleteAccount, logout, setNotificationSettings, updateMe } from "@/lib/api";
+import { Button, Field, Icon, Modal, Section, Select, Switch, TextInput, useToast } from "@/components/ui";
+import { ApiError, changePassword, deleteAccount, logout, setCity, setNotificationSettings, updateMe } from "@/lib/api";
 import { CUSTOMER_KIND } from "@/lib/labels";
+import type { RegionOption } from "@/server/modules/config/regions";
 import type { Me, NotificationSettings } from "@/types/api";
 import { PageHeader } from "./PageHeader";
 
@@ -13,18 +14,18 @@ const PREFS: { key: keyof NotificationSettings; label: string; sub: string }[] =
   { key: "newLeadWhatsapp", label: "New lead on WhatsApp", sub: "Get each lead the moment it arrives" },
   { key: "dailySummary", label: "Daily summary", sub: "One message at 9 am with yesterday's leads" },
   { key: "listingUpdates", label: "Listing updates", sub: "When a listing is approved or needs info" },
-  { key: "emailCopies", label: "Email copies", sub: "Also send these by email" },
   { key: "packageEnding", label: "Package ending", sub: "3 days before a package ends" },
+  { key: "emailCopies", label: "Email copies", sub: "Also send these by email" },
 ];
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** "+92 300 •••4567" can't be edited back; the field starts empty with the masked number as placeholder. */
-function Profile({ me }: { me: Me }) {
+function Profile({ me, regions, city }: { me: Me; regions: RegionOption[]; city: string | null }) {
   const router = useRouter();
   const toast = useToast();
   const agency = me.customer.kind === "AGENCY";
-  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email });
+  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email, city: city ?? "" });
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof v, val: string) => {
@@ -37,6 +38,7 @@ function Profile({ me }: { me: Me }) {
     if (v.displayName.trim().length < (agency ? 2 : 3)) fe.displayName = agency ? "What is your agency called?" : "Please enter your full name.";
     if (agency && v.contactPerson.trim().length < 3) fe.contactPerson = "Please enter your full name.";
     if (!EMAIL.test(v.email.trim())) fe.email = "Enter a valid email, like you@example.com.";
+    if (!agency && regions.length && !v.city) fe.city = "Pick your city.";
     if (Object.values(fe).some(Boolean)) return setErrs(fe);
     setBusy(true);
     try {
@@ -46,6 +48,7 @@ function Profile({ me }: { me: Me }) {
         ...(agency ? { contactPerson: v.contactPerson.trim() } : {}),
         ...(emailChanged ? { email: v.email.trim() } : {}),
       });
+      if (!agency && v.city && v.city !== city) await setCity(v.city);
       if (emailChanged) {
         // the new address needs its code before the app opens again
         router.push("/signup/verify?next=%2Fsettings");
@@ -75,8 +78,20 @@ function Profile({ me }: { me: Me }) {
           <TextInput autoComplete={agency ? "organization" : "name"} value={v.displayName} onChange={(e) => set("displayName", e.target.value)} />
         </Field>
         {agency && (
-          <Field label="Your name" error={errs.contactPerson}>
+          <Field label="Your name" hint="The person we talk to." error={errs.contactPerson}>
             <TextInput autoComplete="name" value={v.contactPerson} onChange={(e) => set("contactPerson", e.target.value)} />
+          </Field>
+        )}
+        {!agency && (
+          <Field label="City" error={errs.city}>
+            <Select value={v.city} onChange={(e) => set("city", e.target.value)}>
+              {!v.city && <option value="">Pick a city</option>}
+              {regions.map((r) => (
+                <option key={r.slug} value={r.slug}>
+                  {r.name}
+                </option>
+              ))}
+            </Select>
           </Field>
         )}
         <div className="field">
@@ -88,9 +103,9 @@ function Profile({ me }: { me: Me }) {
               {me.user.phoneVerified ? "Change" : "Add"}
             </Link>
           </div>
-          <div className="hint">{me.user.phoneVerified ? "Leads are sent here." : "Leads are sent here. Verify it to submit listings and start your free trial."}</div>
+          <div className="hint">{me.user.phoneVerified ? "Leads are sent here. Changing it needs a new code." : "Leads are sent here. Verify it to submit listings and start your free trial."}</div>
         </div>
-        <Field label="Email" hint="You log in with this. Changing it asks for a new code." error={errs.email}>
+        <Field label="Email" hint="You log in with this." error={errs.email}>
           <TextInput type="email" autoComplete="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
         </Field>
         <button type="submit" hidden />
@@ -261,11 +276,11 @@ function Account({ me }: { me: Me }) {
   );
 }
 
-export function SettingsView({ me, prefs }: { me: Me; prefs: NotificationSettings }) {
+export function SettingsView({ me, prefs, regions, city }: { me: Me; prefs: NotificationSettings; regions: RegionOption[]; city: string | null }) {
   return (
     <>
       <PageHeader title="Settings" sub={`${me.customer.displayName} · ${CUSTOMER_KIND[me.customer.kind]} account`} />
-      <Profile me={me} />
+      <Profile me={me} regions={regions} city={city} />
       <Prefs initial={prefs} />
       <Password />
       <Account me={me} />
