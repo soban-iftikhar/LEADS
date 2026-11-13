@@ -59,3 +59,9 @@
 .mkt .zoomin{min-width:0}
 .mkt header .nl,.mkt header .btn{white-space:nowrap}
 @media (max-width:480px){.mkt header .b-sm{padding:0 14px;font-size:13.5px}.mkt header .nl{padding:0 8px}}
+
+/* auth */
+.auth-ui .tab{display:inline-flex;align-items:center;text-decoration:none}
+.auth-ui .banner.quiet{background:var(--surface-2);color:var(--ink)}
+.auth-ui .btn[aria-disabled="true"]{opacity:.7;cursor:progress;transform:none}
+.auth-ui .lbl-side{font-weight:500;color:var(--ink-3);font-size:13px}

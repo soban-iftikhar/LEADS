@@ -555,7 +555,8 @@ export function register(input: { kind: CustomerKind; displayName: string; conta
 export function verifyPhone(userId: string, otp: string) {
   const u = userById(userId);
   if (u.otpTries >= 5) throw new MockError(429, "Too many tries. Send a new code.");
-  if (otp !== u.otp) {
+  // mock: any 6 digits work except 000000 (lets the wrong-code state be tried)
+  if (!/^\d{6}$/.test(otp) || otp === "000000") {
     u.otpTries++;
     throw new MockError(422, "That code didn't match.", { otp: "That code didn't match." });
   }
