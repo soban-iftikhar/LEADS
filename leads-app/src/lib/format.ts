@@ -145,3 +145,27 @@ export function dayBucket(iso: string, now: Date = new Date()): "Today" | "Yeste
 export function firstName(full: string): string {
   return full.trim().split(/\s+/)[0] ?? "";
 }
+
+/** "13 Nov, 10:42" (24 h, used for message and activity stamps). */
+export function formatStamp(iso: string, now: Date = new Date(), comma = true): string {
+  const t = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+  return `${formatDate(iso, now)}${comma ? "," : ""} ${t}`;
+}
+
+/** "Sat, 15 Nov · 4:00 pm". */
+export function formatFollowUp(iso: string): string {
+  const d = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" }).format(new Date(iso));
+  return `${d} · ${formatTime(iso)}`;
+}
+
+/** ISO -> value for <input type="datetime-local"> in Karachi time. */
+export function toLocalInput(iso: string): string {
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date(iso));
+  const g = (t: string) => p.find((x) => x.type === t)?.value ?? "00";
+  return `${g("year")}-${g("month")}-${g("day")}T${g("hour") === "24" ? "00" : g("hour")}:${g("minute")}`;
+}
+
+/** <input type="datetime-local"> value (Karachi, UTC+5, no DST) -> ISO. */
+export function fromLocalInput(v: string): string {
+  return new Date(`${v}:00+05:00`).toISOString();
+}
