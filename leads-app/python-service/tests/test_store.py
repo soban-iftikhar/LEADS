@@ -82,7 +82,7 @@ def _phone_values(obj, key=""):
     elif isinstance(obj, list):
         for v in obj:
             yield from _phone_values(v, key)
-    elif isinstance(obj, (str, int)) and PHONE_KEY_RE.search(key):
+    elif isinstance(obj, str | int) and PHONE_KEY_RE.search(key):
         yield obj
 
 
