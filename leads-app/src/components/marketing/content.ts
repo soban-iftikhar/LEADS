@@ -11,29 +11,28 @@ export const FAQS = [
 
 const ORIGIN = process.env.APP_URL ?? "http://localhost:3000";
 
-export function orgJsonLd() {
+/** `cities`: active regions from the config table. */
+export function orgJsonLd(cities: string[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "LEADS",
     url: ORIGIN,
     logo: `${ORIGIN}/icon.svg`,
-    areaServed: ["Islamabad", "Rawalpindi"],
+    areaServed: cities,
     address: { "@type": "PostalAddress", addressLocality: "Islamabad", addressCountry: "PK" },
   };
 }
 
-export function serviceJsonLd() {
+/** `cities`: active regions from the config table. */
+export function serviceJsonLd(cities: string[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     name: "Buyer leads for property sellers",
     serviceType: "Real estate lead generation",
     provider: { "@type": "Organization", name: "LEADS" },
-    areaServed: [
-      { "@type": "City", name: "Islamabad" },
-      { "@type": "City", name: "Rawalpindi" },
-    ],
+    areaServed: cities.map((name) => ({ "@type": "City", name })),
     description: "We message people who might buy your house or plot and send you only the ones who reply yes. Undelivered leads are refunded after 60 days.",
   };
 }
