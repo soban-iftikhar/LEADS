@@ -1,0 +1,194 @@
+/* =============================================================================
+   LEADS design tokens — "Signboard" theme
+   The yellow-and-black "plot for sale" boards seen on every Islamabad street.
+
+   Source of truth for colours, type, spacing, radii and shadows.
+   Imported once from app/globals.css.
+   Theme switch: set data-theme="dark" on <html>. Default is light.
+
+   HARD RULES
+   - No red and no pink anywhere. Errors use --err (burnt amber/brown).
+   - --m (signboard yellow) is a FILL only. Never use it for text on a light
+     background; use --m-ink for yellow-ish text and --m-str for yellow strokes.
+   - ~90% neutral, ~10% yellow on any screen.
+   - Corners are square-ish: 4px controls, 6px cards. Only avatars-in-bot,
+     radio dots, switches and the bot itself stay round.
+   ========================================================================== */
+
+:root {
+  /* surfaces */
+  --bg: #F4F4F1;          /* page */
+  --surface: #FFFFFF;     /* cards, inputs */
+  --surface-2: #ECECE7;   /* subtle fills, table hover, quiet chips */
+  --line: #DEDED7;        /* dividers, card borders */
+  --line-2: #C8C8BF;      /* input borders, stronger dividers */
+  --dots: rgba(23, 21, 15, .06); /* page dot grid */
+
+  /* text */
+  --ink: #17150F;         /* primary text */
+  --ink-2: #45423A;       /* secondary text */
+  --ink-3: #625F55;       /* muted text, labels (AA on --bg) */
+  --hard: #17150F;        /* outlines on illustrations */
+
+  /* brand: signboard yellow */
+  --m: #F2C230;           /* fill: primary buttons, active tab underline, "New" chip */
+  --m-h: #E5B21A;         /* hover of --m */
+  --m-str: #A07800;       /* yellow strokes and icons on light bg */
+  --m-ink: #7A5B00;       /* yellow-ish TEXT on light bg (links, kickers) */
+  --m-soft: #FBF1CF;      /* selected row, focus halo */
+  --m-tint: #F6DE8A;      /* selection outline glow */
+  --m-mid: #D9A919;
+  --on-m: #17150F;        /* text on --m */
+
+  /* status */
+  --err: #9A4510;         /* errors, "Needs info", "Reported" — never red */
+  --err-soft: #F7E6D6;
+  --ok: #3F5E1E;          /* "Live" */
+  --ok-soft: #E7EED9;
+
+  /* dark panel used on marketing pages */
+  --panel: #17150F;
+  --on-panel: #F2EFE6;
+
+  /* illustration (landing + pictograms) */
+  --h-win: #D3E0E6;
+  --g-park: #DCE8C9;
+  --hill-1: #DDE5D2;
+  --hill-2: #CBD8BD;
+  --tree: #8EBF73;
+  --tree-2: #6FA458;
+  --trunk: #6E6B60;
+  --glass: #A9C2D1;
+
+  /* bot (Ghar) */
+  --bot-body: #FFFFFF;
+  --bot-line: #17150F;
+  --bot-face: #FFF3C4;
+  --bot-eye: #17150F;
+
+  /* elevation */
+  --shadow: 0 1px 2px rgba(23, 21, 15, .05), 0 10px 30px rgba(23, 21, 15, .08);
+  --shadow-2: 0 28px 60px -22px rgba(23, 21, 15, .32);
+
+  /* radii */
+  --r-xs: 3px;   /* chips, small badges, checkbox */
+  --r-sm: 4px;   /* buttons, inputs, tabs, avatars, notes */
+  --r-md: 6px;   /* cards / sections, modals */
+  --r-pill: 999px; /* switches only */
+
+  /* spacing (4px grid) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 28px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+
+  /* layout */
+  --app-max: 1200px;      /* app content width */
+  --site-max: 1360px;     /* marketing width */
+  --topbar-h: 72px;       /* 64px under 860px */
+
+  /* type */
+  --font-sans: var(--font-geist), 'Geist', system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace;  /* numbers, phones, IDs, money */
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #121110;
+  --surface: #1A1916;
+  --surface-2: #22201C;
+  --line: #2E2B26;
+  --line-2: #3D3A33;
+  --dots: rgba(242, 194, 48, .07);
+
+  --ink: #F2EFE6;
+  --ink-2: #C9C4B6;
+  --ink-3: #9D988B;
+  --hard: #000000;
+
+  --m: #F2C230;
+  --m-h: #FFD44D;
+  --m-str: #F2C230;
+  --m-ink: #F5CF5A;
+  --m-soft: #2A2410;
+  --m-tint: #4A3D12;
+  --m-mid: #B88E14;
+  --on-m: #121110;
+
+  --err: #F2A266;
+  --err-soft: #2E2014;
+  --ok: #B9D48A;
+  --ok-soft: #1D2414;
+
+  --panel: #1A1916;
+  --on-panel: #F2EFE6;
+
+  --h-win: #E9C77A;
+  --g-park: #1A2216;
+  --hill-1: #151812;
+  --hill-2: #191E15;
+  --tree: #2A3F22;
+  --tree-2: #22361C;
+  --trunk: #3D3A33;
+  --glass: #3F4A50;
+
+  --bot-body: #2C2A25;
+  --bot-line: #F2EFE6;
+  --bot-face: #FFE58A;
+  --bot-eye: #17150F;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .45);
+  --shadow-2: 0 28px 60px -22px rgba(0, 0, 0, .8);
+
+  color-scheme: dark;
+}
+
+/* ---- type scale (px) --------------------------------------------------------
+   Display (landing h1)   clamp(46, 5.4vw, 88) / 900 / -0.06em / lh .94
+   Section h2 (landing)   clamp(36, 4.8vw, 66) / 800 / -0.045em / lh 1
+   Page title (app h1)    28 / 800 / -0.035em
+   Card title (h2)        16 / 700 / -0.01em
+   Stat value             24 / 800 / -0.03em   (34 on Package page)
+   Body                   15 (app) · 16 (marketing) / 400 / lh 1.5–1.6
+   Small / meta           13–13.5 / 500
+   Table header           12 / 700 / uppercase / +0.05em / --ink-3
+   Mono (numbers)         Geist Mono, tabular-nums
+   ----------------------------------------------------------------------------- */
+
+/* page background used on every screen */
+.page-bg {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dots) 1.1px, transparent 1.3px);
+  background-size: 26px 26px;
+}
+
+/* ---- illustration extras used by the landing scene (same values as screens/landing.html) ---- */
+:root {
+  --panel-2: rgba(242, 239, 230, .09);
+  --g-ground: #E6E6E0; --g-slab-l: #D3D3CB; --g-slab-r: #C2C2B8; --g-road: #FAFAF8; --g-dash: #CFCFC6;
+  --h-top: #FFFFFF; --h-par: #F0F0EB; --h-left: #ECECE7; --h-right: #D9D9D1; --h-edge: #B8B8AE; --h-door: #6E6B60; --tank: #1E1C17;
+  --mosque: #9DAE8C; --tyre: #1E1C17;
+}
+[data-theme="dark"] {
+  --panel-2: rgba(242, 239, 230, .06);
+  --g-ground: #1A1916; --g-slab-l: #141310; --g-slab-r: #0F0E0C; --g-road: #23211D; --g-dash: #3D3A33;
+  --h-top: #2C2A25; --h-par: #25231F; --h-left: #211F1B; --h-right: #1A1916; --h-edge: #3D3A33; --h-door: #3D3A33; --tank: #080706;
+  --mosque: #2B3324; --tyre: #080706;
+}
+
+/* scene props: stars/moon, the four street cars, and the moving van (canvas reads these) */
+:root {
+  --star: #F5E6B8;
+  --car-a-top: #FFFFFF; --car-a-side: #E4E4DE; --car-a-front: #CFCFC6; --car-a-light: #F2D27A;
+  --car-b-top: #3B3933; --car-b-side: #27251F; --car-b-front: #1E1C17; --car-b-light: #F0A35E;
+  --car-c-top: #F4CF5C; --car-c-side: #D9AE2E; --car-c-front: #BF9520; --car-c-light: #FFF4C8;
+  --car-d-top: #CFCFC6; --car-d-side: #B8B8AE; --car-d-front: #88887E; --car-d-light: #F0A35E;
+  --van-road: #E2E2DA; --van-lane: #FAFAF8; --van-post: #B8B8AE; --van-node: #FFFFFF; --van-node-line: #B8B8AE;
+  --van-done: #17150F; --van-done-txt: #F2C230; --van-txt: #625F55; --van-body: #F2C230; --van-body-2: #17150F;
+  --van-cab: #E5B21A; --van-glass: #A9C2D1; --van-tyre: #1E1C17; --van-hub: #C8C8BF; --van-mark: #17150F;
+  --van-puff: 98, 95, 85; --van-lamp: #F2D27A;
+}
+[data-theme="dark"] {
+  --van-road: #23211D; --van-lane: #3D3A33; --van-post: #3D3A33; --van-node: #1A1916; --van-node-line: #4A463E;
+  --van-done: #F2C230; --van-done-txt: #121110; --van-txt: #9D988B; --van-body: #F2C230; --van-body-2: #B88E14;
+  --van-cab: #FFD44D; --van-glass: #3F4A50; --van-tyre: #080706; --van-hub: #9D988B; --van-mark: #121110;
+  --van-puff: 242, 239, 230;
+}

@@ -5,3 +5,6 @@ docs/
 
 # Production secrets
 .env.prod
+
+# Design handoff (local only)
+leads-design/

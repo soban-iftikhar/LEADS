@@ -7,6 +7,7 @@ Two guards stop a second run for the same day:
 """
 
 import logging
+import math
 import os
 import signal
 import subprocess
@@ -28,6 +29,7 @@ PKT = ZoneInfo("Asia/Karachi")
 LOCK_TTL_SECONDS = 21600          # 6 h
 WINDOW_HOURS = get_settings().crawl_window_hours
 CATCHUP_AFTER_HOURS = 25
+CATCHUP_MAX_HOURS = 7 * 24        # a catch-up never looks back further than a week
 STALE_RUN_HOURS = 4               # a run still `running` after this is dead
 SPIDER_SOFT_LIMIT = 2 * 3600      # 2 h
 SPIDER_HARD_LIMIT = int(2.5 * 3600)
@@ -183,6 +185,20 @@ def needs_catchup(pool, now: datetime | None = None) -> bool:
         last = conn.execute(
             "SELECT max(started_at) FROM master.crawl_runs WHERE status IN ('success', 'partial')").fetchone()[0]
     return last is None or (now - last) > timedelta(hours=CATCHUP_AFTER_HOURS)
+
+
+def catchup_window_hours(pool, now: datetime | None = None) -> int:
+    """Look back over the whole gap since the last good run (plus 2 h overlap), so a
+    machine that was off for days misses nothing; never less than the daily window,
+    never more than CATCHUP_MAX_HOURS."""
+    now = now or utcnow()
+    with pool.connection() as conn:
+        last = conn.execute(
+            "SELECT max(started_at) FROM master.crawl_runs WHERE status IN ('success', 'partial')").fetchone()[0]
+    if last is None:
+        return WINDOW_HOURS
+    gap = math.ceil((now - last).total_seconds() / 3600) + 2
+    return max(WINDOW_HOURS, min(gap, CATCHUP_MAX_HOURS))
 
 
 # --- running one portal ----------------------------------------------------------
