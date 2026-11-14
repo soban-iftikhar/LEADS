@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent, type ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
 import type { IconName } from "@/components/ui/icons";
+import { logout } from "@/lib/api";
 import { CUSTOMER_KIND } from "@/lib/labels";
 import { RAIL_STORAGE_KEY } from "@/lib/theme";
 import type { Me } from "@/types/api";
@@ -121,6 +122,15 @@ function countUp(root: HTMLElement | null) {
 export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const onLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      router.replace("/login");
+    }
+  };
   const { newLeads, unread } = useBadges();
   const collapsed = useSyncExternalStore(subscribeRail, readCollapsed, () => false);
   // the path we are leaving; the page is faded out only while we are still on it
@@ -257,16 +267,24 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
                 Expand
               </span>
             </button>
-            <Link href="/settings" className="rme" aria-label={`Account: ${accountName}, ${kind}`}>
-              <span className="avatar">{me.customer.initials}</span>
-              <span className="lbl2">
-                <b>{accountName}</b>
-                <small>{kind}</small>
-              </span>
-              <span className="tip" aria-hidden="true">
-                {accountName} · {kind}
-              </span>
-            </Link>
+            <div className="rme-row">
+              <Link href="/settings" className="rme" aria-label={`Account: ${accountName}, ${kind}`}>
+                <span className="avatar">{me.customer.initials}</span>
+                <span className="lbl2">
+                  <b>{accountName}</b>
+                  <small>{kind}</small>
+                </span>
+                <span className="tip" aria-hidden="true">
+                  {accountName} · {kind}
+                </span>
+              </Link>
+              <button type="button" className="rout" aria-label="Log out" disabled={loggingOut} onClick={onLogout}>
+                <Icon name="out" size={19} />
+                <span className="tip" aria-hidden="true">
+                  Log out
+                </span>
+              </button>
+            </div>
           </div>
         </aside>
 

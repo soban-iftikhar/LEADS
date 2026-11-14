@@ -10,7 +10,7 @@ export function MarketingHeader({ signedIn, home = true }: { signedIn: boolean; 
       <div className="wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, minHeight: 76 }}>
         <Link href="/" className="logo-a" aria-label="LEADS home" style={{ display: "flex", alignItems: "center", gap: 11, textDecoration: "none", color: "var(--ink)" }}>
           <LogoMark ping />
-          <span style={{ fontWeight: 800, fontSize: 25, letterSpacing: "-.05em" }}>leads</span>
+          <span className="logo-t" style={{ fontWeight: 800, fontSize: 25, letterSpacing: "-.05em" }}>leads</span>
         </Link>
         <nav aria-label="Main" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div className="links" style={{ gap: 2, marginRight: 8 }}>

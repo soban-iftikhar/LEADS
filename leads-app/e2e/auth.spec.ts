@@ -17,7 +17,7 @@ test("login lands on the overview, logout ends the session", async ({ page }) =>
   await loginAsDemo(page);
   await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), / })).toBeVisible();
   await page.goto("/settings", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Log out" }).click();
+  await page.locator("#account").getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
@@ -70,4 +70,20 @@ test("forgot password sends a link that works once", async ({ page }) => {
   await page.getByLabel("Email").fill("demo@leads.pk");
   await page.getByRole("button", { name: "Send reset link" }).click();
   await expect(page.getByText("If that email has an account, we sent a link.")).toBeVisible();
+});
+
+test("log out from the rail footer, expanded and collapsed", async ({ page }) => {
+  await loginAsDemo(page);
+  await page.mouse.move(700, 400);
+  await page.keyboard.press("[");
+  await expect(page.locator("html")).toHaveAttribute("data-rail", "col");
+  const out = page.locator(".rail").getByRole("button", { name: "Log out" });
+  await expect(out).toBeVisible();
+  const box = await out.boundingBox();
+  expect(box && box.x + box.width).toBeLessThanOrEqual(96); // inside the 84px rail
+  await page.keyboard.press("[");
+  await out.click();
+  await expect(page).toHaveURL(/\/login/);
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
 });
