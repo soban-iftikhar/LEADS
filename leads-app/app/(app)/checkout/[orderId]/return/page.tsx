@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaymentReturn } from "@/components/app/PaymentReturn";
-import { ApiError, getOrder } from "@/lib/api";
+import { ApiError, getMe, getOrder } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Confirming payment", robots: { index: false } };
 
@@ -12,5 +12,6 @@ export default async function ReturnPage({ params }: { params: Promise<{ orderId
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   });
-  return <PaymentReturn orderId={orderId} />;
+  const me = await getMe();
+  return <PaymentReturn orderId={orderId} email={me.user.email} />;
 }
