@@ -326,7 +326,27 @@ function seed(): DB {
     N("ORDER_STARTED", "Growth package started", "100 leads over 60 days, ends " + new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Karachi" }).format(new Date(now + 23 * DAY)), "/packages", now - 37 * DAY, true),
   ];
 
-  return { users: [user], listings, leads, orders, notifications };
+  // Owner demo (owner@leads.pk): the one G-13 house, its package and its leads, as on the ow-* screens
+  const O = "cus_owner";
+  const owner: User = { id: "usr_owner", customerId: O, email: "owner@leads.pk", kind: "SELLER", displayName: "Soban Iftikhar", contactPerson: null, phoneVerified: true, deleted: false };
+  const owListing: Listing = { ...structuredClone(listings[0]), id: "lst_ow_g13", customerId: O, slug: `${listings[0].slug}-ow` };
+  const owOrders: Order[] = orders.filter((o) => o.listingId === "lst_g13").map((o) => ({ ...structuredClone(o), id: `${o.id}_ow`, customerId: O, listingId: owListing.id }));
+  const owLeads: Lead[] = leads
+    .filter((l) => l.listingId === "lst_g13")
+    .map((l) => ({ ...structuredClone(l), id: l.id.replace("led_", "led_o"), customerId: O, listingId: owListing.id, orderId: l.orderId ? `${l.orderId}_ow` : null }));
+  const owNotes: Notification[] = [
+    N("LEAD_DELIVERED", `New lead: ${owLeads[0].buyerName}`, `10 Marla house, G-13/2 · ${owLeads[0].said ?? ""}`, `/leads/${owLeads[0].id}`, now - 12 * MIN, false),
+    N("LISTING_APPROVED", "10 Marla house is live", "G-13/2 · buyers can now get your listing", `/listings/${owListing.id}`, now - 31 * DAY, true),
+    N("ORDER_STARTED", "Growth package started", "100 leads over 60 days", "/packages", now - 37 * DAY, true),
+  ].map((n) => ({ ...n, customerId: O }));
+
+  return {
+    users: [user, owner],
+    listings: [...listings, owListing],
+    leads: [...leads, ...owLeads],
+    orders: [...orders, ...owOrders],
+    notifications: [...notifications, ...owNotes],
+  };
 }
 
 // Survives hot reloads in dev; one copy per server process.
@@ -477,14 +497,14 @@ function toOrderCard(o: Order): OrderCard {
 export type RealUser = { id: string; email: string; kind: CustomerKind; displayName: string; contactPerson: string | null; phoneVerified: boolean };
 
 /**
- * Makes sure the mock store knows this real user. The first real account with the demo email
- * takes over the seeded demo data; every other account starts empty.
+ * Makes sure the mock store knows this real user. The first real account with a demo email
+ * (demo@leads.pk = agency, owner@leads.pk = owner) takes over that seeded data; every other account starts empty.
  */
 export function syncUser(r: RealUser): void {
   const d = db();
   let u = d.users.find((x) => x.id === r.id);
   if (!u) {
-    const demo = d.users.find((x) => x.id === "usr_demo" && x.email === r.email.toLowerCase());
+    const demo = d.users.find((x) => (x.id === "usr_demo" || x.id === "usr_owner") && x.email === r.email.toLowerCase());
     if (demo) {
       demo.id = r.id;
       u = demo;

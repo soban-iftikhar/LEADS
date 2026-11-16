@@ -169,3 +169,10 @@
 .devgrid .tok-v{font-size:11px;color:var(--ink-3)}
 .devgrid .tok-type{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline}
 @media (max-width:560px){.devgrid .tok-type{grid-template-columns:1fr;gap:2px}}
+
+/* app shell */
+.app-ui .srch-f{margin-left:auto}
+.app-ui .top2 .srch-f .srch{margin-left:0}
+.app-ui .rb,.app-ui .ri,.app-ui .radd,.app-ui .rme{text-decoration:none}
+.app-ui .ri:focus-visible,.app-ui .radd:focus-visible,.app-ui .rme:focus-visible,.app-ui .rb:focus-visible{outline:2.5px solid var(--m);outline-offset:2px}
+@media (max-width:860px){.app-ui .srch-f{display:none}.app-ui .top2 .ibtn{margin-left:auto}}

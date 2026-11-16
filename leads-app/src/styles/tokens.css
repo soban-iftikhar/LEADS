@@ -205,6 +205,8 @@
   --rail-head: #F2EFE6;  /* logo word, account name */
   --rail-hover: rgba(242, 239, 230, .07);
   --rail-add: rgba(242, 194, 48, .12); /* "Add listing" row */
+  --rail-add-h: rgba(242, 194, 48, .22);
+  --rail-sep: rgba(242, 239, 230, .08);
 }
 [data-theme="dark"] {
   --rail-bg: #1F1D19;
