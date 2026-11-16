@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Button, Chip, Icon, Note, RadioCard, Section, useToast } from "@/components/ui";
 import { toneFor } from "@/components/ui/Avatar";
+import { SetCrumb } from "@/components/app/AppShell";
 import { ApiError, patchLead } from "@/lib/api";
 import { formatBudget, formatDate, formatFollowUp, formatPhone, formatStamp, fromLocalInput, toLocalInput } from "@/lib/format";
 import { CUSTOMER_STAGE, LEAD_SOURCE, leadChip } from "@/lib/labels";
@@ -93,6 +94,7 @@ export function LeadDetailView({ lead: initial, displayName, reportOpen, now }: 
   const isForm = lead.source === "CAMPAIGN_FORM";
   return (
     <>
+      <SetCrumb title={`Lead · ${lead.buyerName}`} />
       <Link href="/leads" className="lnk" style={{ display: "inline-flex", gap: 6, alignItems: "center", color: "var(--ink-2)" }}>
         ← Leads
       </Link>
@@ -153,7 +155,7 @@ export function LeadDetailView({ lead: initial, displayName, reportOpen, now }: 
               <label htmlFor="lead-fu" className="muted" style={{ fontSize: 13 }}>
                 Follow up on
               </label>
-              <span className="sel fu">
+              <span className="sel fu-pick">
                 <Icon name="cal" size={16} />
                 <span aria-hidden="true">{lead.followUpAt ? formatFollowUp(lead.followUpAt) : "Pick a time"}</span>
                 {/* native picker sits invisibly on top so the pill opens it */}
@@ -176,7 +178,7 @@ export function LeadDetailView({ lead: initial, displayName, reportOpen, now }: 
               <dt>How they came</dt>
               <dd>{LEAD_SOURCE[lead.source]}</dd>
               <dt>Package</dt>
-              <dd>{lead.order ? `${lead.order.planName} · ${lead.listing.title}` : "—"}</dd>
+              <dd>{lead.order ? `${lead.order.planName} · ${lead.order.deliveredCount}/${lead.order.leadCount}` : "—"}</dd>
               <dt>Received</dt>
               <dd>{formatStamp(lead.deliveredAt, n)}</dd>
               <dt>Lead ID</dt>

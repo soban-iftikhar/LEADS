@@ -94,10 +94,10 @@
 .app-ui .convo{display:flex;flex-direction:column;gap:6px}
 .app-ui .acts-b{padding-top:6px;padding-bottom:6px}
 .app-ui .radio-sm{padding:10px 12px}
-.app-ui .sel.fu{position:relative;cursor:pointer}
-.app-ui .sel.fu input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:0}
-.app-ui .sel.fu:focus-within{outline:2.5px solid var(--m);outline-offset:2px}
-.app-ui .dl dd a{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2)}
+.app-ui .sel.fu-pick{position:relative;cursor:pointer}
+.app-ui .sel.fu-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:0}
+.app-ui .sel.fu-pick:focus-within{outline:2.5px solid var(--m);outline-offset:2px}
+.app-ui .dl dd a{text-decoration:none}.app-ui .dl dd a:hover{text-decoration:underline;text-underline-offset:3px}
 .app-ui ol.steps{list-style:none;margin:0;padding:0}
 .app-ui ol.steps>li{flex:1;display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:var(--ink-3);position:relative}
 .app-ui ol.steps>li::before{content:"";position:absolute;top:13px;left:28px;right:0;height:2px;background:var(--line-2)}
@@ -194,3 +194,17 @@
 .app-ui .paid p{margin:0;color:var(--ink-2);font-size:16px;max-width:440px}
 .app-ui .paid .note{text-align:left;width:100%}
 .app-ui .paid-tile{width:72px;height:72px;border-radius:6px;background:var(--m);color:var(--on-m);display:flex;align-items:center;justify-content:center}
+/* leads toolbar: compact like the reference (select sized to "All listings", search 230px) */
+.app-ui .between>.toolbar{flex:1 1 300px;justify-content:flex-end;flex-wrap:nowrap;min-width:0}
+.app-ui .toolbar .sel{gap:6px}
+.app-ui .toolbar .sel select{width:84px;text-overflow:ellipsis}
+.app-ui .toolbar .srch2{flex:0 1 230px;min-width:140px}
+@media (max-width:640px){.app-ui .between>.toolbar{flex-direction:column;align-items:flex-start;flex-basis:100%}.app-ui .toolbar .srch2{flex:none;width:234px}.app-ui .tbl td{white-space:nowrap}}
+
+/* overview: rows are links (lead page / leads filter), call button stays separate */
+.app-ui .callc .cl-a{display:flex;align-items:center;gap:10px;flex:1;min-width:0;color:inherit;text-decoration:none}
+.app-ui .callc .cl-a small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-ui .callc .cl-a:focus-visible,.app-ui .callc .ph-ic:focus-visible{outline:2.5px solid var(--on-m);outline-offset:2px;border-radius:4px}
+.app-ui .bkr,.app-ui .pipe2 .r,.app-ui .fu{color:inherit;text-decoration:none}
+.app-ui .bkr:hover .bkn,.app-ui .fu:hover b{text-decoration:underline;text-underline-offset:3px}
+.app-ui .pipe2 .r:hover span:first-child{text-decoration:underline;text-underline-offset:3px}

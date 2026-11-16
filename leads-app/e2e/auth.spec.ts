@@ -15,7 +15,7 @@ test("guarded page sends you to login and back", async ({ page }) => {
 
 test("login lands on the overview, logout ends the session", async ({ page }) => {
   await loginAsDemo(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), / })).toBeVisible();
   await page.goto("/settings", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/login/);

@@ -3,15 +3,15 @@ import { cx } from "./cx";
 type Kind = "HOUSE" | "PLOT" | "FLAT" | "COMMERCIAL";
 
 /** Outlined house or plot-with-flag. Shows the cover photo instead once there is one. */
-export function ListingPic({ kind, hot, size = 46, coverUrl }: { kind: Kind; hot?: boolean; size?: number; coverUrl?: string | null }) {
+export function ListingPic({ kind, hot, size = 46, coverUrl, className }: { kind: Kind; hot?: boolean; size?: number; coverUrl?: string | null; className?: string }) {
   if (coverUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- Cloudinary URLs are already sized; next/image adds nothing here
-      <img className="pic pic-photo" src={coverUrl} alt="" width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />
+      <img className={cx("pic pic-photo", className)} src={coverUrl} alt="" width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />
     );
   }
   return (
-    <span className={cx("pic", kind === "PLOT" ? "plot" : "house", hot && "hot")} aria-hidden="true" style={{ width: size, height: size }}>
+    <span className={cx("pic", className, kind === "PLOT" ? "plot" : "house", hot && "hot")} aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 48 48" width="100%" height="100%">
         <g className="ph">
           <path d="M9 23 24 11l15 12z" className="rf" />

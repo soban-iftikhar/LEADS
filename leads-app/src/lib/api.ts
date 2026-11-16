@@ -5,6 +5,7 @@ import * as M from "@/mocks/actions";
 import type { MockResult } from "@/mocks/actions";
 import type {
   CustomerKind,
+  FollowUpKind,
   CustomerStage,
   DashboardSummary,
   DocumentKind,
@@ -104,7 +105,7 @@ export const getLeads = (q: LeadQuery): Promise<Paged<LeadListItem> & { counts: 
 // TODO(api): GET /api/leads/[id]
 export const getLead = (id: string): Promise<LeadDetail> => unwrap(M.mLead(id));
 // TODO(api): PATCH /api/leads/[id]
-export const patchLead = (id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null }): Promise<LeadDetail> => unwrap(M.mPatchLead(id, patch));
+export const patchLead = (id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null; followUpKind?: FollowUpKind | null }): Promise<LeadDetail> => unwrap(M.mPatchLead(id, patch));
 // TODO(api): POST /api/leads/[id]/report
 export const reportLead = (id: string, reason: ReportReason, details?: string): Promise<{ report: { status: "OPEN" } }> => unwrap(M.mReportLead(id, reason, details));
 /** Download link, not a fetch. TODO(api): GET /api/leads/export.csv (mocked by the route handler of the same path). */

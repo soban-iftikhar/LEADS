@@ -3,6 +3,7 @@
 // Shapes match src/types/api.ts exactly. Every read is scoped to the signed-in customer.
 import "server-only";
 import type {
+  FollowUpKind,
   CustomerKind,
   CustomerStage,
   DashboardSummary,
@@ -37,6 +38,16 @@ import type {
 const MIN = 60_000;
 const DAY = 86_400_000;
 const iso = (t: number) => new Date(t).toISOString();
+/** Calendar day in Asia/Karachi (UTC+5, no DST). */
+const karachiDay = (t: number) => {
+  const d = new Date(t + 5 * 3_600_000);
+  return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate(), dow: (d.getUTCDay() + 6) % 7 };
+};
+/** UTC ms of 00:00 Karachi on the day containing t. */
+const karachiMidnight = (t: number) => {
+  const k = karachiDay(t);
+  return Date.UTC(k.y, k.m, k.d) - 5 * 3_600_000;
+};
 const daysLeft = (end: string) => Math.max(0, Math.ceil((new Date(end).getTime() - Date.now()) / DAY));
 let seq = 1000;
 const uid = (p: string) => `${p}_${(++seq).toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -131,6 +142,7 @@ type Lead = {
   deliveredAt: string;
   note: string | null;
   followUpAt: string | null;
+  followUpKind: FollowUpKind | null;
   conversation: { direction: "OUT" | "IN"; body: string; at: string }[];
   activity: { at: string; text: string }[];
   report: { status: "OPEN" | "UPHELD" | "REJECTED"; reason: ReportReason; details: string | null } | null;
@@ -282,6 +294,7 @@ function seed(): DB {
       deliveredAt: iso(at),
       note: null,
       followUpAt: null,
+      followUpKind: null,
       conversation: [
         { direction: "OUT", body: `Assalam o alaikum. A ${l.sizeValue} ${l.sizeUnit === "KANAL" ? "Kanal" : "Marla"} ${l.category === "PLOT" ? "plot" : "house"} in ${loc.name} is for sale${l.bedrooms ? `, ${l.bedrooms} bed` : ""}, PKR ${(Number(l.pricePkr) / 10_000_000).toFixed(1)} Cr. Interested?`, at: iso(sent) },
         ...(said ? [{ direction: "IN" as const, body: said.replace(/^"|"$/g, ""), at: iso(at) }] : []),
@@ -296,6 +309,12 @@ function seed(): DB {
   };
   BUYERS.forEach(([name, phone, said, bmin, bmax, tl], n) => {
     leads.push(mkLead(n, name, phone, said, bmin, bmax, tl, listingFor[n], stages[n], now - when[n], n === 7 ? "REPORTED" : "ACTIVE"));
+  });
+  // today's follow-ups, as on the overview screens
+  const k = karachiDay(now);
+  ([[4, 16, 0, "VISIT"], [5, 18, 0, "CALL"], [6, 19, 30, "CALL"]] as const).forEach(([n, h, m, kind]) => {
+    leads[n].followUpAt = iso(Date.UTC(k.y, k.m, k.d, h - 5, m));
+    leads[n].followUpKind = kind;
   });
   // older delivered leads so the list has pages
   const moreStages: CustomerStage[] = ["CONTACTED", "CONTACTED", "VIEWING", "CLOSED_LOST", "CONTACTED", "VIEWING", "CLOSED_WON", "CONTACTED"];
@@ -332,9 +351,16 @@ function seed(): DB {
   const owner: User = { id: "usr_owner", customerId: O, email: "owner@leads.pk", kind: "SELLER", displayName: "Soban Iftikhar", contactPerson: null, phoneVerified: true, deleted: false };
   const owListing: Listing = { ...structuredClone(listings[0]), id: "lst_ow_g13", customerId: O, slug: `${listings[0].slug}-ow` };
   const owOrders: Order[] = orders.filter((o) => o.listingId === "lst_g13").map((o) => ({ ...structuredClone(o), id: `${o.id}_ow`, customerId: O, listingId: owListing.id }));
+  // the eight headline buyers (as on the ow-* screens) plus the older G-13 ones
+  const owOrder = owOrders.find((o) => o.status === "ACTIVE") ?? null;
   const owLeads: Lead[] = leads
-    .filter((l) => l.listingId === "lst_g13")
-    .map((l) => ({ ...structuredClone(l), id: l.id.replace("led_", "led_o"), customerId: O, listingId: owListing.id, orderId: l.orderId ? `${l.orderId}_ow` : null }));
+    .filter((l, i) => i < BUYERS.length || l.listingId === "lst_g13")
+    .map((l) => {
+      const c: Lead = { ...structuredClone(l), id: l.id.replace("led_", "led_o"), customerId: O, listingId: owListing.id, orderId: owOrder?.id ?? null };
+      if (owOrder) c.activity[0] = { ...c.activity[0], text: `Lead delivered to you · counts toward Growth package (${owOrder.deliveredCount}/${owOrder.leadCount})` };
+      c.conversation = c.conversation.map((m) => (m.direction === "OUT" ? { ...m, body: leads[0].conversation[0].body } : m));
+      return c;
+    });
   const owNotes: Notification[] = [
     N("LEAD_DELIVERED", `New lead: ${owLeads[0].buyerName}`, `10 Marla house, G-13/2 · ${owLeads[0].said ?? ""}`, `/leads/${owLeads[0].id}`, now - 12 * MIN, false),
     N("LISTING_APPROVED", "10 Marla house is live", "G-13/2 · buyers can now get your listing", `/listings/${owListing.id}`, now - 31 * DAY, true),
@@ -541,17 +567,82 @@ export function forget(userId: string): void {
 
 export function dashboardSummary(userId: string): DashboardSummary {
   const u = userById(userId);
-  const orders = db().orders.filter((o) => o.customerId === u.customerId).map((o) => toOrderCard(o)).filter((o) => o.status === "ACTIVE");
-  const next = [...orders].sort((a, b) => (a.windowEndsAt ?? "").localeCompare(b.windowEndsAt ?? ""))[0];
-  const newLeads = db().leads.filter((l) => l.customerId === u.customerId && l.customerStage === "NEW" && l.status !== "REPORTED");
-  const oldest = newLeads.map((l) => l.deliveredAt).sort()[0] ?? null;
+  const now = Date.now();
+  const active = db()
+    .orders.filter((o) => o.customerId === u.customerId)
+    .filter((o) => (settle(o), o.status === "ACTIVE" && o.windowStartsAt && o.windowEndsAt));
+  const activeOrders = active.map((o) => {
+    const l = db().listings.find((x) => x.id === o.listingId)!;
+    const plan = PLANS.find((p) => p.id === o.planId)!;
+    const start = new Date(o.windowStartsAt!).getTime();
+    const dayOfWindow = Math.min(plan.deliveryDays, Math.max(1, Math.floor((now - start) / DAY) + 1));
+    return {
+      id: o.id,
+      listingId: l.id,
+      listingTitle: titleOf(l),
+      localityName: locality(l.localityId)?.name ?? "",
+      planName: plan.name,
+      leadCount: o.leadCount,
+      deliveredCount: o.deliveredCount,
+      windowStartsAt: o.windowStartsAt!,
+      windowEndsAt: o.windowEndsAt!,
+      daysLeft: daysLeft(o.windowEndsAt!),
+      dayOfWindow,
+      expectedByToday: Math.round((o.leadCount * dayOfWindow) / plan.deliveryDays),
+    };
+  });
+  // projected finish: each package at its own rate so far; the latest one wins
+  let projected: number | null = null;
+  for (const o of activeOrders) {
+    if (!o.deliveredCount) continue;
+    const start = new Date(o.windowStartsAt).getTime();
+    const t = start + ((o.leadCount / o.deliveredCount) * o.dayOfWindow - 1) * DAY;
+    projected = Math.max(projected ?? 0, t);
+  }
+
+  const mine = db().leads.filter((l) => l.customerId === u.customerId);
+  const live = mine.filter((l) => l.status !== "REPORTED");
+  const today0 = karachiMidnight(now);
+  const at = (l: Lead) => new Date(l.deliveredAt).getTime();
+  const monday = today0 - karachiDay(now).dow * DAY;
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+  const days = labels.map((label, i) => {
+    const from = monday + i * DAY;
+    return { date: iso(from), label, count: mine.filter((l) => at(l) >= from && at(l) < from + DAY).length };
+  });
+  const waiting = live.filter((l) => l.customerStage === "NEW").sort((a, b) => a.deliveredAt.localeCompare(b.deliveredAt));
+  const followUpsToday = mine
+    .filter((l) => l.followUpAt && new Date(l.followUpAt).getTime() >= today0 && new Date(l.followUpAt).getTime() < today0 + DAY)
+    .sort((a, b) => a.followUpAt!.localeCompare(b.followUpAt!))
+    .map((l) => ({
+      leadId: l.id,
+      buyerName: l.buyerName,
+      listingTitle: ((x) => `${x.title} · ${x.localityName}`)(toLeadItem(l).listing),
+      at: l.followUpAt!,
+      // TODO(api): no picker for the kind in the design yet; a viewing-stage lead defaults to a visit
+      kind: l.followUpKind ?? (l.customerStage === "VIEWING" ? ("VISIT" as const) : ("CALL" as const)),
+    }));
+
   return {
-    activeOrders: orders.length,
-    delivered: orders.reduce((s, o) => s + o.deliveredCount, 0),
-    bought: orders.reduce((s, o) => s + o.leadCount, 0),
-    nextEnding: next && next.windowEndsAt ? { orderId: next.id, windowEndsAt: next.windowEndsAt, daysLeft: next.daysLeft ?? 0, listingTitle: next.listing.title } : null,
-    leadsToCall: newLeads.length,
-    oldestNewLeadAt: oldest,
+    activeOrders,
+    totals: {
+      delivered: activeOrders.reduce((n, o) => n + o.deliveredCount, 0),
+      bought: activeOrders.reduce((n, o) => n + o.leadCount, 0),
+      expectedByToday: activeOrders.reduce((n, o) => n + o.expectedByToday, 0),
+      projectedEndDate: projected === null ? null : iso(projected),
+    },
+    today: mine.filter((l) => at(l) >= today0).length,
+    thisWeek: { days, total: days.reduce((n, d) => n + d.count, 0) },
+    pipeline: {
+      new: live.filter((l) => l.customerStage === "NEW").length,
+      contacted: live.filter((l) => l.customerStage === "CONTACTED").length,
+      viewing: live.filter((l) => l.customerStage === "VIEWING").length,
+      won: live.filter((l) => l.customerStage === "CLOSED_WON").length,
+      lost: live.filter((l) => l.customerStage === "CLOSED_LOST").length,
+    },
+    reportsUnderCheck: mine.filter((l) => l.status === "REPORTED").length,
+    waiting: { count: waiting.length, oldestAt: waiting[0]?.deliveredAt ?? null, items: waiting.slice(0, 3).map(toLeadItem) },
+    followUpsToday,
   };
 }
 
@@ -602,6 +693,7 @@ export function getLead(userId: string, id: string): LeadDetail {
     ...toLeadItem(l),
     note: l.note,
     followUpAt: l.followUpAt,
+    followUpKind: l.followUpKind,
     order: o && plan ? { id: o.id, planName: plan.name, deliveredCount: o.deliveredCount, leadCount: o.leadCount } : null,
     conversation: l.conversation,
     activity: [...l.activity].sort((a, b) => b.at.localeCompare(a.at)),
@@ -610,7 +702,7 @@ export function getLead(userId: string, id: string): LeadDetail {
   };
 }
 
-export function patchLead(userId: string, id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null }) {
+export function patchLead(userId: string, id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null; followUpKind?: FollowUpKind | null }) {
   const u = userById(userId);
   const l = ownLead(u, id);
   if (patch.customerStage && l.status === "REPORTED") throw new MockError(409, "This lead is under check. You can change its status after we reply.");
@@ -621,6 +713,8 @@ export function patchLead(userId: string, id: string, patch: { customerStage?: C
   }
   if (patch.note !== undefined) l.note = patch.note.slice(0, 2000);
   if (patch.followUpAt !== undefined) l.followUpAt = patch.followUpAt;
+  if (patch.followUpKind !== undefined) l.followUpKind = patch.followUpKind;
+  if (patch.followUpAt === null) l.followUpKind = null;
   return getLead(userId, id);
 }
 
