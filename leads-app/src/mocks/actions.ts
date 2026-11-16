@@ -63,6 +63,10 @@ export const mPendingPhone = async () =>
     return pendingPhone(s.user);
   });
 
+// owner city: TODO(api) not in the contract yet (Me has no city; PATCH /api/me takes no city)
+export const mCity = async () => run(async () => S.cityOf(await uidOrThrow()));
+export const mSetCity = async (city: string) => run(async () => S.setCity(await uidOrThrow(), city));
+
 // dashboard
 export const mSummary = async () => run(async () => S.dashboardSummary(await uidOrThrow()));
 

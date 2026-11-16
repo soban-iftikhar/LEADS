@@ -98,6 +98,8 @@ type User = {
   contactPerson: string | null;
   phoneVerified: boolean;
   deleted: boolean;
+  /** Owner profile city (region slug). TODO(api): not in Me / PATCH /api/me yet. */
+  city?: string | null;
 };
 
 type Listing = {
@@ -338,7 +340,7 @@ function seed(): DB {
   });
   const notifications: Notification[] = [
     N("LEAD_DELIVERED", "New lead: Bilal Ahmed", '10 Marla house, G-13/2 · "Ji, interested. Corner hai?"', `/leads/${leads[0].id}`, now - 12 * MIN, false),
-    N("LEAD_DELIVERED", "New lead: Sana Khan", "5 Marla house, Bahria Town Ph 8", `/leads/${leads[1].id}`, now - 2 * 60 * MIN, false),
+    N("LEAD_DELIVERED", "New lead: Sana Khan", '5 Marla house, Bahria Town Ph 8 · "Kab dekh sakte hain?"', `/leads/${leads[1].id}`, now - 2 * 60 * MIN, false),
     N("LEAD_DELIVERED", "New lead: Usman Farooq", "1 Kanal plot, DHA Phase 2", `/leads/${leads[2].id}`, now - 26 * 60 * MIN, true),
     N("LISTING_IN_REVIEW", "7 Marla house is in review", "Gulraiz · usually done within 24 hours", "/listings/lst_gulraiz", now - 2 * DAY + 2 * 60 * MIN, true),
     N("LISTING_NEEDS_INFO", "8 Marla house needs info", "B-17 · upload the ownership document", "/listings/lst_b17", now - 8 * DAY, true),
@@ -348,7 +350,7 @@ function seed(): DB {
 
   // Owner demo (owner@leads.pk): the one G-13 house, its package and its leads, as on the ow-* screens
   const O = "cus_owner";
-  const owner: User = { id: "usr_owner", customerId: O, email: "owner@leads.pk", kind: "SELLER", displayName: "Soban Iftikhar", contactPerson: null, phoneVerified: true, deleted: false };
+  const owner: User = { id: "usr_owner", customerId: O, email: "owner@leads.pk", kind: "SELLER", displayName: "Soban Iftikhar", contactPerson: null, phoneVerified: true, deleted: false, city: "islamabad" };
   const owListing: Listing = { ...structuredClone(listings[0]), id: "lst_ow_g13", customerId: O, slug: `${listings[0].slug}-ow` };
   const owOrders: Order[] = orders.filter((o) => o.listingId === "lst_g13").map((o) => ({ ...structuredClone(o), id: `${o.id}_ow`, customerId: O, listingId: owListing.id }));
   // the eight headline buyers (as on the ow-* screens) plus the older G-13 ones
@@ -561,6 +563,16 @@ export function hasActivePackage(userId: string): boolean {
 export function forget(userId: string): void {
   const u = db().users.find((x) => x.id === userId);
   if (u) u.deleted = true;
+}
+
+// ---------------------------------------------------------------- profile city (owner)
+
+export function cityOf(userId: string): string | null {
+  return userById(userId).city ?? null;
+}
+export function setCity(userId: string, city: string): string {
+  userById(userId).city = city;
+  return city;
 }
 
 // ---------------------------------------------------------------- dashboard

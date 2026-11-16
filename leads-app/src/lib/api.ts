@@ -88,6 +88,9 @@ export const getMe = (): Promise<Me> => unwrap(M.mMe());
 export const getPendingPhone = (): Promise<string | null> => unwrap(M.mPendingPhone());
 export const updateMe = (b: { displayName?: string; contactPerson?: string; email?: string }) => patch<Me>("/api/me", b);
 export const changePassword = (currentPassword: string, newPassword: string) => patch<void>("/api/me/password", { currentPassword, newPassword });
+// TODO(api): owner City (SCREENS C14) has no field in Me or PATCH /api/me; mock until the contract adds it
+export const getCity = (): Promise<string | null> => unwrap(M.mCity());
+export const setCity = (city: string): Promise<string> => unwrap(M.mSetCity(city));
 export const getNotificationSettings = (): Promise<NotificationSettings> => unwrap(M.mGetPrefs());
 export const setNotificationSettings = (b: Partial<NotificationSettings>) => patch<NotificationSettings>("/api/me/notification-settings", b);
 export const deleteAccount = (password: string) => apiFetch<void>("/api/me", { method: "DELETE", body: JSON.stringify({ password }) });
