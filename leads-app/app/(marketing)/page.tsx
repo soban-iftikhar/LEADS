@@ -56,7 +56,7 @@ const CALLS = [
 
 const STEPS = [
   { n: "01", who: "You", ink: true, d: "", anim: "a-build", ad: 0, title: "Add your property", text: "Price, size, location and a few good photos. We check it before it goes live, so buyers trust it.", icon: "M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5M12 11v6M9 14h6" },
-  { n: "02", who: "LEADS", ink: false, d: "d1", anim: "a-scan", ad: 300, title: "We find likely buyers", text: "People who own similar homes nearby are often ready to move. We find them and pick the best matches.", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 1 0 0-14zM20 20l-4-4" },
+  { n: "02", who: "LEADS", ink: false, d: "d1", anim: "a-scan", ad: 300, title: "We find likely buyers", text: "People who own similar homes nearby often want to move. We pick the best matches.", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 1 0 0-14zM20 20l-4-4" },
   { n: "03", who: "LEADS", ink: false, d: "d2", anim: "a-msg", ad: 600, title: "We message them", text: "A short WhatsApp about your property. We read every reply, so you never have to.", icon: "M4 20l1.3-3.9A8 8 0 1 1 8 19z" },
   { n: "04", who: "You", ink: true, d: "d3", anim: "a-ring", ad: 900, title: "You get the buyer", text: "When someone says yes, you get their name, number and what they said. Then it is your call.", icon: "M5 4h3l1.5 4-2 1.2a11 11 0 0 0 5.3 5.3l1.2-2 4 1.5v3a2 2 0 0 1-2 2A13 13 0 0 1 3 6a2 2 0 0 1 2-2z" },
 ];
@@ -240,7 +240,8 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <h3 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-.03em" }}>{s.title}</h3>
-                      <p style={{ margin: "8px 0 0", fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-2)" }}>{s.text}</p>
+                      {/* three lines reserved so the headings line up across the row */}
+                      <p style={{ margin: "8px 0 0", fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-2)", minHeight: "4.8em" }}>{s.text}</p>
                     </div>
                   </li>
                 ))}
