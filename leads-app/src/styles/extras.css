@@ -176,3 +176,13 @@
 .app-ui .rb,.app-ui .ri,.app-ui .radd,.app-ui .rme{text-decoration:none}
 .app-ui .ri:focus-visible,.app-ui .radd:focus-visible,.app-ui .rme:focus-visible,.app-ui .rb:focus-visible{outline:2.5px solid var(--m);outline-offset:2px}
 @media (max-width:860px){.app-ui .srch-f{display:none}.app-ui .top2 .ibtn{margin-left:auto}}
+
+/* auth: forgot / reset card (design/screens/auth-forgot.html, auth-reset.html) */
+.auth-ui .app-ui.acard-host{min-height:0;background:none;display:block}
+.app-ui .acard{width:min(470px,100%);margin:clamp(28px,8vh,90px) auto;padding:clamp(24px,4vw,44px);background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.app-ui .acard h1{margin:0;font-size:clamp(30px,3.2vw,42px);font-weight:900;letter-spacing:-.05em;line-height:1}
+.app-ui .acard>p{margin:0;color:var(--ink-2);font-size:16px;line-height:1.55}
+.app-ui .acard .back{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-weight:700;font-size:14px;align-self:flex-start}
+.app-ui .acard .meter4{display:flex;gap:6px}
+.app-ui .acard .meter4 i{flex:1;height:5px;background:var(--line);border-radius:1px}
+@media (max-width:480px){.app-ui .acard{border:0;box-shadow:none;background:none;padding:0 16px}}
