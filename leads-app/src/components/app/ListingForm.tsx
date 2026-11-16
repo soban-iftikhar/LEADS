@@ -58,6 +58,7 @@ type Form = {
   localityId: string;
   localityName: string;
   description: string;
+  ownerName: string;
 };
 
 function fromListing(l: ListingDetail | null): Form {
@@ -72,6 +73,7 @@ function fromListing(l: ListingDetail | null): Form {
     localityId: l?.locality.id ?? "",
     localityName: l?.locality.name ?? "",
     description: l?.description ?? "",
+    ownerName: l?.ownerName ?? "",
   };
 }
 
@@ -189,7 +191,7 @@ function AreaCombobox({ region, value, onPick, hint }: { region: "islamabad" | "
   );
 }
 
-export function ListingForm({ listing, now }: { listing: ListingDetail | null; now: string }) {
+export function ListingForm({ listing, now, agency }: { listing: ListingDetail | null; now: string; agency: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const fid = useId();
@@ -559,6 +561,19 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
               }}
             />
           </div>
+          {agency && (
+            <div>
+              <label className="lbl" htmlFor={`${fid}-owner`}>
+                Owner&apos;s name
+              </label>
+              <div className="inp">
+                <input id={`${fid}-owner`} autoComplete="off" aria-describedby={`${fid}-owner-h`} value={f.ownerName} onChange={(e) => set("ownerName", e.target.value, { ownerName: e.target.value })} />
+              </div>
+              <div className="hint" id={`${fid}-owner-h`}>
+                Only our team sees this. Agencies list on behalf of an owner.
+              </div>
+            </div>
+          )}
           <div>
             <label className="lbl" htmlFor={`${fid}-desc`}>
               Description

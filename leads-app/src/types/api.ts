@@ -52,6 +52,7 @@ export type ListingDetail = ListingCard & {
   benchmark: { minPkr: Pkr; maxPkr: Pkr; sampleSize: number } | null;
   reviews: { decision: string; note: string | null; createdAt: string }[];
   timeline: { status: ListingStatus; at: string }[];
+  ownerName: string | null; // agencies only: the owner they list for (only our team sees it)
 };
 
 export type ListingPatch = Partial<{
@@ -67,6 +68,7 @@ export type ListingPatch = Partial<{
   addressText: string;
   description: string;
   amenities: string[];
+  ownerName: string; // agencies only
 }>;
 
 export type ListingCounts = { all: number; live: number; review: number; info: number; rejected: number; draft: number; paused: number; sold: number };
