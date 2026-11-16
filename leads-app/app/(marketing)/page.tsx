@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { Fragment } from "react";
 import { AgencyTabs } from "@/components/marketing/AgencyTabs";
 import { FlowBar } from "@/components/marketing/FlowBar";
@@ -70,7 +71,8 @@ const PLAN_COPY: Record<string, { for: string; feats: string[]; pop: boolean }> 
 async function plans(): Promise<PackagePlan[]> {
   try {
     return (await getPackagePlans()).items;
-  } catch {
+  } catch (e) {
+    unstable_rethrow(e);
     return [];
   }
 }

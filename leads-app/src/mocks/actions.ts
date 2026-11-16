@@ -2,18 +2,19 @@
 
 // Mock transport: server actions that front the in-memory store, so client mutations and
 // server-rendered pages see the same data. TODO(api): remove when the contract endpoints exist.
+import { unstable_rethrow } from "next/navigation";
+import { currentSession } from "@/server/auth/sessions";
+import { AppError } from "@/server/http/errors";
+import { pendingPhone, prefsOf, toMe, userWithProfile } from "@/server/modules/auth/service";
 import type {
-  CustomerKind,
   CustomerStage,
   DocumentKind,
   LeadStageFilter,
   ListingCategory,
   ListingPatch,
-  NotificationSettings,
   PaymentMethod,
   ReportReason,
 } from "@/types/api";
-import { clearMockSession, mockUserId, setMockSession } from "./session";
 import * as S from "./store";
 
 export type MockResult<T> = { ok: true; data: T } | { ok: false; status: number; message: string; errors: Record<string, string> | null };
@@ -22,56 +23,43 @@ async function run<T>(fn: () => T | Promise<T>): Promise<MockResult<T>> {
   try {
     return { ok: true, data: await fn() };
   } catch (e) {
-    if (e instanceof S.MockError) return { ok: false, status: e.status, message: e.message, errors: e.errors };
+    unstable_rethrow(e); // let Next's own control-flow errors (dynamic usage, redirect, notFound) through
+    if (e instanceof S.MockError || e instanceof AppError) return { ok: false, status: e.status, message: e.message, errors: e.errors };
     console.error(e);
     return { ok: false, status: 500, message: "Something went wrong. Please try again.", errors: null };
   }
 }
 
+/** The real signed-in customer, mirrored into the mock store. */
 async function uidOrThrow(): Promise<string> {
-  const id = await mockUserId();
-  if (!id) throw new S.MockError(401, "Please log in.");
-  return id;
+  const s = await currentSession();
+  if (!s) throw new S.MockError(401, "Please log in.");
+  const u = s.user;
+  if (!u.customer) throw new S.MockError(403, "This account can't use the customer app.");
+  S.syncUser({ id: u.id, email: u.email, kind: u.customer.kind, displayName: u.customer.displayName, contactPerson: u.customer.contactPerson, phoneVerified: !!u.phoneVerifiedAt });
+  return u.id;
 }
 
-// auth
-export const mLogin = async (email: string, password: string, remember: boolean) =>
+// identity (real) + counts (mocked modules)
+export const mMe = async () =>
   run(async () => {
-    try {
-      const r = S.login(email, password);
-      await setMockSession(r.userId, remember);
-      return r.me;
-    } catch (e) {
-      // phone not verified: session is still set so /signup/verify works (OTP re-sent)
-      if (e instanceof S.MockError && e.status === 403 && e.errors?.userId) {
-        await setMockSession(e.errors.userId, remember);
-        throw new S.MockError(403, e.message, { requiresPhoneVerification: "true" });
-      }
-      throw e;
-    }
+    const id = await uidOrThrow();
+    const u = await userWithProfile(id);
+    if (!u) throw new S.MockError(401, "Please log in.");
+    return toMe(u, S.counts(id));
   });
-export const mRegister = async (input: { kind: CustomerKind; displayName: string; contactPerson?: string; email: string; phone: string; password: string; acceptTerms: true }) =>
+export const mGetPrefs = async () =>
   run(async () => {
-    const r = S.register(input);
-    await setMockSession(r.userId, false);
-    return { userId: r.userId, phoneMasked: r.phoneMasked };
+    const u = await userWithProfile(await uidOrThrow());
+    if (!u) throw new S.MockError(401, "Please log in.");
+    return prefsOf(u);
   });
-export const mVerifyPhone = async (otp: string) => run(async () => S.verifyPhone(await uidOrThrow(), otp));
-export const mResendOtp = async () => run(async () => S.resendOtp(await uidOrThrow()));
-export const mPhone = async () => run(async () => S.phoneOf(await uidOrThrow()));
-export const mLogout = async () => run(async () => clearMockSession());
-export const mForgot = async (email: string) => run(() => (void email, {}));
-export const mReset = async (token: string, password: string) => run(() => S.resetPassword(token, password));
-export const mVerifyEmail = async (token: string) => run(() => S.verifyEmailToken(token));
-export const mMe = async () => run(async () => S.me(await uidOrThrow()));
-export const mUpdateMe = async (patch: { displayName?: string; contactPerson?: string; email?: string; phone?: string }) => run(async () => S.updateMe(await uidOrThrow(), patch));
-export const mChangePassword = async (currentPassword: string, newPassword: string) => run(async () => S.changePassword(await uidOrThrow(), currentPassword, newPassword));
-export const mGetPrefs = async () => run(async () => S.getPrefs(await uidOrThrow()));
-export const mSetPrefs = async (patch: Partial<NotificationSettings>) => run(async () => S.setPrefs(await uidOrThrow(), patch));
-export const mDeleteMe = async (password: string) =>
+/** Number waiting for its WhatsApp code, for the code screen. */
+export const mPendingPhone = async () =>
   run(async () => {
-    S.deleteMe(await uidOrThrow(), password);
-    await clearMockSession();
+    const s = await currentSession();
+    if (!s) throw new S.MockError(401, "Please log in.");
+    return pendingPhone(s.user);
   });
 
 // dashboard

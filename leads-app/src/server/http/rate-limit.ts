@@ -38,3 +38,8 @@ export async function rateLimit(
     remaining: Math.max(0, limit - current),
   };
 }
+
+/** Current count for a bucket without adding to it (0 when empty). */
+export async function peekRateLimit(identifier: string): Promise<number> {
+  return Number((await redis().get(`ratelimit:${identifier}`)) ?? 0);
+}

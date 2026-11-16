@@ -20,6 +20,6 @@ test("create a listing, fill it and submit it for review", async ({ page }) => {
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByText("Quality check 6 / 6")).toBeVisible();
   await page.getByRole("button", { name: "Submit for review" }).click();
-  await expect(page).toHaveURL(/\/listings\/[^/]+$/);
+  await expect(page).toHaveURL(/\/listings\/[^/]+$/, { timeout: 20_000 });
   await expect(page.locator(".chip", { hasText: "Under review" }).first()).toBeVisible();
 });

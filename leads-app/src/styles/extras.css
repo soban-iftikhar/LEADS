@@ -150,3 +150,9 @@
 .app-ui .pref:last-child{border-bottom:0}
 .app-ui .sec-b.wrap{flex-wrap:wrap}
 .app-ui .sec[id]{scroll-margin-top:92px}
+.auth-ui .gbtn{gap:12px;background:var(--surface);border-color:var(--line-2)}
+.auth-ui .gbtn:hover{border-color:var(--ink)}
+.auth-ui .roles+.btn{margin-top:26px}
+.app-ui .inp.ro{background:var(--surface-2)}
+.app-ui .inp.ro .ro-v{flex:1;padding:0 14px;font-size:15px;color:var(--ink-2)}
+.app-ui .inp.ro .ro-a{padding:0 14px}

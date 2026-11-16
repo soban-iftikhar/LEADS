@@ -22,7 +22,8 @@ const RULES: Record<GharArea, Rule[]> = {
   auth: [
     [/salam|^hi|hello|hey|aoa/, "Walaikum salam! Ask me about logging in, codes, or account types."],
     [/forgot|reset|password|bhool/, 'Tap "Forgot password?" and we email you a link to set a new one.'],
-    [/code|otp|didn.?t get|nahi aya|not received/, 'Codes come on WhatsApp within a minute. Check the number, then tap "Send a new code" after 30 seconds.'],
+    [/code|otp|didn.?t get|nahi aya|not received/, 'Email codes arrive within a minute; check spam too. WhatsApp codes come to the number you typed. Tap "Send a new code" after 30 seconds.'],
+    [/google/, "Tap Continue with Google on the login or sign-up page. First time, you pick Owner or Agency and you're in."],
     [/owner|agency|which|type/, "Owner: you sell your own house or plot. Agency: you list many properties for clients. Pick one per account."],
     [/free|cost|price|pay/, "Creating an account and listing are free. You only pay for lead packages."],
     [/human|person|call|whatsapp|team|talk|insaan/, "Sure. Our team is on WhatsApp 9am to 9pm. I have flagged your chat."],
