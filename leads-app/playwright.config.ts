@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = Number(process.env.E2E_PORT ?? 3100);
+const PORT = Number(process.env.E2E_PORT ?? 3000);
 // Codes are never sent during tests (AUTH_DELIVERY=log); the tests read them from this log.
 export const SERVER_LOG = process.env.E2E_SERVER_LOG ?? "e2e/.server.log";
 
