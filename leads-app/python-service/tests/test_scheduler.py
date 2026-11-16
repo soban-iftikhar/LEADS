@@ -353,3 +353,41 @@ def test_ilaan_reveals_only_free_numbers():
     assert spider._revealable({**owner, "agentPhone": ""}) is False         # nothing to reveal
     spider.auth_token = None
     assert spider._revealable(owner) is False
+
+
+def test_catchup_window_covers_the_whole_gap_up_to_a_week(db):
+    now = PKT_2AM_UTC
+    assert runs.catchup_window_hours(db, now) == runs.WINDOW_HOURS        # never ran
+    _insert_run(db, "success", now - timedelta(hours=26))
+    assert runs.catchup_window_hours(db, now) == 28                       # gap + 2 h overlap
+    _insert_run(db, "failed", now - timedelta(hours=1))                   # failed runs do not count
+    assert runs.catchup_window_hours(db, now) == 28
+
+
+def test_catchup_window_never_exceeds_a_week(db):
+    now = PKT_2AM_UTC
+    _insert_run(db, "partial", now - timedelta(days=30))
+    assert runs.catchup_window_hours(db, now) == runs.CATCHUP_MAX_HOURS
+
+
+def test_portal_with_errors_and_nothing_saved_is_failed():
+    from leads_scraper.spiders.olx import OLXSpider
+    spider = OLXSpider()
+    assert spider.portal_status() == "success"
+    spider.pages_fetched, spider.errors = 8, [{"error": "Forbidden by robots.txt"}] * 284
+    assert spider.portal_status() == "failed"                             # OLX on 12 Nov: reported success
+    spider.records_collected = 50
+    assert spider.portal_status() == "success"
+
+
+def test_olx_listing_is_kept_when_the_phone_lookup_fails():
+    from types import SimpleNamespace
+    from leads_scraper.spiders.olx import OLXSpider
+    spider = OLXSpider()
+    ctx = {"category": "house", "purpose": "sale", "city": "Islamabad", "url": "https://www.olx.com.pk/item/x-iid-1"}
+    request = SimpleNamespace(url="https://www.olx.com.pk/api/listing/1/contactInfo/",
+                              cb_kwargs={"detail": {"externalID": "1"}, "ctx": ctx})
+    failure = SimpleNamespace(request=request, value=Exception("Forbidden by robots.txt"))
+    items = list(spider.contact_failed(failure))
+    assert len(items) == 1 and items[0]["payload"] == {"detail": {"externalID": "1"}, "contact_info": None}
+    assert items[0]["ctx"]["city"] == "Islamabad" and len(spider.errors) == 1

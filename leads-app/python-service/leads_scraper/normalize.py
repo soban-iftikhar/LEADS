@@ -62,6 +62,9 @@ def _finish(rec: dict, settings) -> dict:
     for key in ("title", "description", "seller_name", "agency_name", "locality", "location_text", "city"):
         rec[key] = p.clean_text(rec.get(key))
     rec["title"] = rec["title"] or "(untitled)"
+    # Some ads carry no street address; fall back to "locality, city" so the row is kept.
+    rec["location_text"] = rec["location_text"] or (
+        ", ".join(x for x in (rec.get("locality"), rec.get("city")) if x) or None)
     rec["content_hash"] = content_hash(rec)
     return rec
 

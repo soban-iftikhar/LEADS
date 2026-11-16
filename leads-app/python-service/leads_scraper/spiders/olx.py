@@ -38,6 +38,13 @@ class OLXSpider(BaseSpider):
         spider = super().from_crawler(crawler, *args, **kwargs)
         spider.access_token = crawler.settings.get("OLX_ACCESS_TOKEN")
         spider.id_token = crawler.settings.get("OLX_ID_TOKEN")
+        refresh = crawler.settings.get("OLX_REFRESH_TOKEN")
+        if refresh:
+            from leads_scraper.olx_auth import renew
+            fresh = renew(refresh)
+            if fresh and fresh.get("access_token"):
+                spider.access_token = fresh["access_token"]
+                spider.id_token = fresh.get("id_token") or spider.id_token
         return spider
 
     # Request resolution (targeted vs general)
@@ -158,7 +165,7 @@ class OLXSpider(BaseSpider):
                 headers={"Accept": "application/json", "Referer": response.url,
                          "X-Requested-With": "XMLHttpRequest"},
                 cookies={"kc_access_token": self.access_token, "kc_id_token": self.id_token},
-                errback=self.handle_error,
+                errback=self.contact_failed,
                 meta={"handle_httpstatus_list": [401, 403]},
                 dont_filter=True,
             )
@@ -172,6 +179,12 @@ class OLXSpider(BaseSpider):
         return f"{current_url}{separator}page={next_page}"
 
     # Contact info API
+
+    def contact_failed(self, failure):
+        """The phone lookup failed or was not allowed: keep the listing, without a phone."""
+        self.handle_error(failure)
+        kw = failure.request.cb_kwargs
+        yield self.raw_item({"detail": kw["detail"], "contact_info": None}, **kw["ctx"])
 
     def parse_contact_info(self, response, detail, ctx):
         if response.status in (401, 403):

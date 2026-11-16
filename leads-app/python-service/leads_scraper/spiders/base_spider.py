@@ -158,6 +158,12 @@ class BaseSpider(scrapy.Spider):
             return f"mostly blocked: {len(self.errors)} requests failed, {self.records_collected} listings saved"
         return None
 
+    def portal_status(self) -> str:
+        """failed when nothing was saved and requests failed; the run then counts it as failed."""
+        if self.errors and self.records_collected == 0:
+            return "failed"
+        return "success"
+
     def closed(self, reason):
         self.logger.info(
             f"[{self.platform_name}] finished ({reason}): collected={self.records_collected} "
@@ -172,7 +178,7 @@ class BaseSpider(scrapy.Spider):
         """Write this portal's result to master.crawl_run_portals (SPEC_01 3.6)."""
         from leads.db import close_pool, get_pool
         error = self.blocked_reason()
-        status = "failed" if (self.pages_fetched == 0 and self.errors) else "success"
+        status = self.portal_status()
         try:
             with get_pool().connection() as conn:
                 conn.execute(
