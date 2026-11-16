@@ -11,6 +11,7 @@ import { PhoneMock } from "@/components/marketing/PhoneMock";
 import { PromiseSlider } from "@/components/marketing/PromiseSlider";
 import { Reveals } from "@/components/marketing/Reveals";
 import { FAQS, faqJsonLd, orgJsonLd, serviceJsonLd } from "@/components/marketing/content";
+import { activeRegions } from "@/server/modules/config/regions";
 import { getPackagePlans } from "@/lib/api";
 import { groupPk } from "@/lib/format";
 import { getViewer } from "@/lib/viewer";
@@ -63,10 +64,20 @@ const STEPS = [
 const GET_LIST = ["Their name and phone number", "Their reply, word for word", "Their budget and when they want to buy", "A bad lead? Report it and we give it back"];
 
 const PLAN_COPY: Record<string, { for: string; feats: string[]; pop: boolean }> = {
-  Starter: { for: "One house, first time", feats: ["One property", "60-day delivery", "Money back for missed leads"], pop: false },
+  Starter: { for: "Try it on one property", feats: ["One property", "60-day delivery", "Money back for missed leads"], pop: false },
   Growth: { for: "For a faster sale", feats: ["One property", "Matched first", "60-day delivery", "Money back for missed leads"], pop: true },
-  Agency: { for: "Many listings, one account", feats: ["Spread across your listings", "60-day delivery", "Money back for missed leads"], pop: false },
+  Pro: { for: "Big property, fast sale", feats: ["One property", "Matched first", "60-day delivery", "Money back for missed leads"], pop: false },
 };
+
+/** Active cities for the structured data; the page still renders if the database is down. */
+async function cities(): Promise<string[]> {
+  try {
+    return (await activeRegions()).map((r) => r.name);
+  } catch (e) {
+    unstable_rethrow(e);
+    return [];
+  }
+}
 
 async function plans(): Promise<PackagePlan[]> {
   try {
@@ -78,12 +89,12 @@ async function plans(): Promise<PackagePlan[]> {
 }
 
 export default async function LandingPage() {
-  const [viewer, planList] = await Promise.all([getViewer(), plans()]);
+  const [viewer, planList, cityList] = await Promise.all([getViewer(), plans(), cities()]);
   const signedIn = !!viewer;
   const startHref = signedIn ? "/listings/new" : "/signup";
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(), serviceJsonLd(), faqJsonLd()]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(cityList), serviceJsonLd(cityList), faqJsonLd()]) }} />
       <Reveals rootId="mkt-page" />
       <div id="mkt-page">
         <MarketingHeader signedIn={signedIn} />

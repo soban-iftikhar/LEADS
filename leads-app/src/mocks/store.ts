@@ -84,7 +84,7 @@ const LOCALITIES: (Locality & { regionId: string })[] = [
 const PLANS: PackagePlan[] = [
   { id: "plan_starter", name: "Starter", leadCount: 25, pricePkr: "12500", pricePerLeadPkr: "500", deliveryDays: 60 },
   { id: "plan_growth", name: "Growth", leadCount: 100, pricePkr: "40000", pricePerLeadPkr: "400", deliveryDays: 60 },
-  { id: "plan_agency", name: "Agency", leadCount: 250, pricePkr: "87500", pricePerLeadPkr: "350", deliveryDays: 60 },
+  { id: "plan_pro", name: "Pro", leadCount: 250, pricePkr: "87500", pricePerLeadPkr: "350", deliveryDays: 60 },
 ];
 
 // ---------------------------------------------------------------- state shapes

@@ -12,7 +12,7 @@ const AUD = {
     rows: [{ name: "10 Marla house", loc: "G-13/2, Islamabad", leads: "12", kind: "HOUSE" as const, hot: true }],
   },
   agency: {
-    points: ["All your listings in one account", "One inbox, every lead tagged by property", "One package, split across listings as you like"],
+    points: ["All your listings in one account", "One inbox, every lead tagged by property", "A package per listing, all tracked in one place"],
     title: "Al-Noor Estate · 24 listings",
     meta: "This month",
     rows: [

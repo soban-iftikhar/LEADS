@@ -20,6 +20,7 @@ import { formatPkr, formatRelative, groupPk } from "@/lib/format";
 import type { DocumentKind, ListingCategory, ListingDetail, ListingPatch, Locality, QualityCheck, SizeUnit } from "@/types/api";
 import { QualityStrip } from "./QualityStrip";
 
+// TODO(api): ids match the mock store; read config.regions (active) once the listings API is real
 const REGIONS = [
   { id: "reg_isb", slug: "islamabad" as const, name: "Islamabad" },
   { id: "reg_rwp", slug: "rawalpindi" as const, name: "Rawalpindi" },
