@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# leads-app
 
-## Getting Started
+The LEADS web app (Next.js 16, App Router, TypeScript strict) and, in `python-service/`, the
+crawler and background workers. Both use the same PostgreSQL database; they never call each other
+over HTTP (the web app writes `ops.job_requests` rows, the workers pick them up).
 
-First, run the development server:
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d                       # from the repo root: postgres + redis
+cp .env.example .env                       # fill in the secrets it lists
+npm install
+npm run db:deploy                          # apply migrations
+(cd python-service && python scripts/seed_config.py)   # cities, areas, portals, package plans
+npm run db:seed:dev                        # demo accounts and data (development only)
+npm run dev                                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Demo logins: `demo@leads.pk` (agency) and `owner@leads.pk` (owner), password `password1`.
+For the first admin: `npm run admin:create -- --email you@example.com --name "Your Name"`
+(prints a one-time password and the authenticator setup link).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Set `AUTH_DELIVERY=log` to print email and WhatsApp codes to the server log instead of sending
+them, and `PAYMENT_PROVIDER=sandbox` to confirm card and wallet payments on the spot.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Checks
 
-## Learn More
+```bash
+npm run typecheck && npm run lint && npm test   # unit tests
+npm run test:integration                        # database constraints (leads_test database)
+npm run test:e2e                                # Playwright, against a dev server
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Path | What lives there |
+|---|---|
+| `app/(marketing)`, `app/(auth)`, `app/(app)` | pages: public site, sign-in screens, the signed-in customer app |
+| `app/api/**/route.ts` | API handlers, each a thin `route({ auth, body, query, handler })` |
+| `src/server/` | server-only code: auth, HTTP plumbing, business modules (see its README) |
+| `src/components/` | UI: `ui/` primitives, `app/`, `auth/`, `marketing/` screens |
+| `src/lib/` | code safe in the browser: `api.ts` (API client), formatting, labels |
+| `src/types/api.ts` | the shapes the UI and the API agree on |
+| `prisma/` | schema and migrations for every Postgres schema |
+| `scripts/` | `dev-seed.ts`, `admin-create.ts` |
+| `e2e/`, `test/` | Playwright specs, integration tests |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Auth in one paragraph
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Signing in sets two httpOnly cookies: a 15-minute JWT access token and an opaque refresh token
+(only its hash is stored, in `app.sessions`). Every request checks the session row the JWT names,
+so logout and suspension apply immediately. The refresh token rotates on each use, and a replayed
+old one ends the session. No token is ever readable from page scripts or kept in browser storage.
