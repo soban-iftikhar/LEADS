@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { GoogleComplete } from "@/components/auth/GoogleComplete";
-import { requireGuest } from "@/lib/guards";
+import { requireGuest } from "@/server/pages";
 import { PENDING_COOKIE, unsign, type GoogleClaims } from "@/server/auth/google";
 
 export const metadata: Metadata = { title: "Finish signing up", robots: { index: false } };

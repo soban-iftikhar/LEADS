@@ -1,31 +1,21 @@
-// Typed calls for every endpoint in the UI <-> backend contract.
-// Each call currently goes to the mock store (src/mocks) through a server action; swap the body for
-// apiFetch() once the endpoint exists. Callers never change: same name, same shape.
-import * as M from "@/mocks/actions";
-import type { MockResult } from "@/mocks/actions";
+// Browser client for the LEADS API. Server components never use this: they call the services in
+// src/server directly. Auth lives in httpOnly cookies only, so there is no token to attach here;
+// when the short-lived access token has expired, the first 401 refreshes it once and retries.
 import type {
   CustomerKind,
-  FollowUpKind,
   CustomerStage,
-  DashboardSummary,
   DocumentKind,
-  LeadCounts,
+  FollowUpKind,
   LeadDetail,
-  LeadListItem,
-  LeadStageFilter,
-  ListingCard,
   ListingCategory,
-  ListingCounts,
   ListingDetail,
   ListingPatch,
+  ListingStatus,
   Locality,
   Me,
   NotificationItem,
   NotificationSettings,
-  OrderCard,
   OrderDetail,
-  PackagePlan,
-  Paged,
   PaymentMethod,
   PayResult,
   ReportReason,
@@ -39,28 +29,56 @@ export class ApiError extends Error {
     public errors: Record<string, string> | null = null,
   ) {
     super(message);
+    this.name = "ApiError";
   }
 }
 
-async function unwrap<T>(p: Promise<MockResult<T>>): Promise<T> {
-  const r = await p;
-  if (r.ok) return r.data;
-  throw new ApiError(r.status, r.message, r.errors);
+type Envelope<T> = { success: boolean; data?: T; message?: string; errors?: Record<string, string> | null };
+
+let refreshing: Promise<boolean> | null = null;
+
+/** One refresh at a time, however many calls failed together. */
+function refreshOnce(): Promise<boolean> {
+  refreshing ??= fetch("/api/auth/refresh", { method: "POST", credentials: "same-origin" })
+    .then((r) => r.ok)
+    .catch(() => false)
+    .finally(() => setTimeout(() => (refreshing = null), 0));
+  return refreshing;
 }
 
-/** For real endpoints: same-origin fetch that unwraps { success, data }. */
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, { ...init, headers: { "Content-Type": "application/json", ...init?.headers }, credentials: "same-origin" });
+async function request<T>(path: string, init: RequestInit = {}, retried = false): Promise<T> {
+  const isForm = typeof FormData !== "undefined" && init.body instanceof FormData;
+  const res = await fetch(path, {
+    ...init,
+    credentials: "same-origin",
+    headers: { ...(init.body && !isForm ? { "Content-Type": "application/json" } : {}), ...init.headers },
+  });
+  if (res.status === 401 && !retried && !path.startsWith("/api/auth/")) {
+    if (await refreshOnce()) return request<T>(path, init, true);
+    window.location.assign(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+  }
   if (res.status === 204) return undefined as T;
-  const body = (await res.json().catch(() => null)) as { success: boolean; data?: T; message?: string; errors?: Record<string, string> | null } | null;
+  const body = (await res.json().catch(() => null)) as Envelope<T> | null;
   if (!res.ok || !body?.success) throw new ApiError(res.status, body?.message ?? "Something went wrong. Please try again.", body?.errors ?? null);
   return body.data as T;
 }
 
-// ---------------------------------------------------------------- auth (real endpoints)
+const json = (method: string, data?: unknown): RequestInit => ({ method, body: data === undefined ? undefined : JSON.stringify(data) });
+const get = <T>(path: string, query?: Record<string, string | number | undefined>) => {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(query ?? {})) if (v !== undefined && v !== "") p.set(k, String(v));
+  const s = p.toString();
+  return request<T>(s ? `${path}?${s}` : path);
+};
+const post = <T>(path: string, data?: unknown) => request<T>(path, json("POST", data));
+const patch = <T>(path: string, data: unknown) => request<T>(path, json("PATCH", data));
+const upload = <T>(path: string, fields: Record<string, string | Blob>) => {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
+  return request<T>(path, { method: "POST", body: form });
+};
 
-const post = <T>(path: string, data?: unknown) => apiFetch<T>(path, { method: "POST", body: data === undefined ? undefined : JSON.stringify(data) });
-const patch = <T>(path: string, data: unknown) => apiFetch<T>(path, { method: "PATCH", body: JSON.stringify(data) });
+// ---------------------------------------------------------------- auth
 
 export const login = (email: string, password: string, remember: boolean) => post<{ ok: true }>("/api/auth/login", { email, password, remember });
 export const register = (b: { kind: CustomerKind; displayName: string; contactPerson?: string; email: string; password: string; acceptTerms: true }) => post<{ userId: string }>("/api/auth/register", b);
@@ -73,45 +91,30 @@ export const logout = () => post<void>("/api/auth/logout");
 export const forgotPassword = (email: string) => post<{ ok: true }>("/api/auth/forgot-password", { email });
 export const resetPassword = (token: string, password: string) => post<{ ok: true }>("/api/auth/reset-password", { token, password });
 export const completeGoogleSignup = (b: { kind: CustomerKind; agencyName?: string; acceptTerms: true }) => post<{ ok: true }>("/api/auth/google/complete", b);
+
 /** Google sign-in starts with a full-page navigation, not a fetch. */
-export const googleHref = (opts: { type?: "seller" | "agency"; next?: string } = {}) => {
+export function googleHref(opts: { type?: "seller" | "agency"; next?: string } = {}): string {
   const p = new URLSearchParams();
   if (opts.type) p.set("type", opts.type);
   if (opts.next) p.set("next", opts.next);
   const s = p.toString();
   return `/api/auth/google${s ? `?${s}` : ""}`;
-};
+}
 
-/** Server components read Me through the session directly (no HTTP hop). Client code uses GET /api/me. */
-export const getMe = (): Promise<Me> => unwrap(M.mMe());
-/** The number waiting for its WhatsApp code ("+92 300 1234567"), or null. */
-export const getPendingPhone = (): Promise<string | null> => unwrap(M.mPendingPhone());
-export const updateMe = (b: { displayName?: string; contactPerson?: string; email?: string }) => patch<Me>("/api/me", b);
+// ---------------------------------------------------------------- account
+
+export const updateMe = (b: { displayName?: string; contactPerson?: string; email?: string; city?: string | null }) => patch<Me>("/api/me", b);
 export const changePassword = (currentPassword: string, newPassword: string) => patch<void>("/api/me/password", { currentPassword, newPassword });
-// TODO(api): owner City (SCREENS C14) has no field in Me or PATCH /api/me; mock until the contract adds it
-export const getCity = (): Promise<string | null> => unwrap(M.mCity());
-export const setCity = (city: string): Promise<string> => unwrap(M.mSetCity(city));
-export const getNotificationSettings = (): Promise<NotificationSettings> => unwrap(M.mGetPrefs());
 export const setNotificationSettings = (b: Partial<NotificationSettings>) => patch<NotificationSettings>("/api/me/notification-settings", b);
-export const deleteAccount = (password: string) => apiFetch<void>("/api/me", { method: "DELETE", body: JSON.stringify({ password }) });
-
-// ---------------------------------------------------------------- dashboard
-
-// TODO(api): GET /api/dashboard/summary
-export const getDashboardSummary = (): Promise<DashboardSummary> => unwrap(M.mSummary());
+export const deleteAccount = (password: string) => request<void>("/api/me", json("DELETE", { password }));
 
 // ---------------------------------------------------------------- leads
 
-export type LeadQuery = { stage?: LeadStageFilter; listing?: string; q?: string; page?: number; pageSize?: number };
-// TODO(api): GET /api/leads
-export const getLeads = (q: LeadQuery): Promise<Paged<LeadListItem> & { counts: LeadCounts }> => unwrap(M.mLeads(q));
-// TODO(api): GET /api/leads/[id]
-export const getLead = (id: string): Promise<LeadDetail> => unwrap(M.mLead(id));
-// TODO(api): PATCH /api/leads/[id]
-export const patchLead = (id: string, patch: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null; followUpKind?: FollowUpKind | null }): Promise<LeadDetail> => unwrap(M.mPatchLead(id, patch));
-// TODO(api): POST /api/leads/[id]/report
-export const reportLead = (id: string, reason: ReportReason, details?: string): Promise<{ report: { status: "OPEN" } }> => unwrap(M.mReportLead(id, reason, details));
-/** Download link, not a fetch. TODO(api): GET /api/leads/export.csv (mocked by the route handler of the same path). */
+export type LeadQuery = { stage?: string; listing?: string; q?: string; page?: number; pageSize?: number };
+export const patchLead = (id: string, b: { customerStage?: CustomerStage; note?: string; followUpAt?: string | null; followUpKind?: FollowUpKind | null }) => patch<LeadDetail>(`/api/leads/${id}`, b);
+export const reportLead = (id: string, reason: ReportReason, details?: string) => post<{ report: { status: "OPEN" } }>(`/api/leads/${id}/report`, { reason, details });
+
+/** Download link, not a fetch. */
 export function leadsExportHref(q: LeadQuery): string {
   const p = new URLSearchParams();
   if (q.stage) p.set("stage", q.stage);
@@ -123,48 +126,26 @@ export function leadsExportHref(q: LeadQuery): string {
 
 // ---------------------------------------------------------------- listings
 
-// TODO(api): GET /api/listings/mine
-export const getMyListings = (q: { status?: string; page?: number; pageSize?: number } = {}): Promise<{ items: ListingCard[]; total: number; counts: ListingCounts }> => unwrap(M.mListings(q));
-// TODO(api): POST /api/listings
-export const createListing = (category: ListingCategory): Promise<{ id: string }> => unwrap(M.mCreateListing(category));
-// TODO(api): GET /api/listings/[id]
-export const getListing = (id: string): Promise<ListingDetail> => unwrap(M.mListing(id));
-// TODO(api): PATCH /api/listings/[id]
-export const patchListing = (id: string, patch: ListingPatch): Promise<ListingDetail> => unwrap(M.mPatchListing(id, patch));
-// TODO(api): POST /api/listings/[id]/submit
-export const submitListing = (id: string): Promise<unknown> => unwrap(M.mSubmitListing(id));
-// TODO(api): POST /api/listings/[id]/images (multipart `file`, Cloudinary). The mock keeps a local preview URL.
-export const uploadListingImage = (id: string, previewUrl: string): Promise<{ image: { id: string; url: string; position: number } }> => unwrap(M.mAddImage(id, previewUrl));
-// TODO(api): DELETE /api/listings/[id]/images/[imageId]
-export const deleteListingImage = (id: string, imageId: string): Promise<void> => unwrap(M.mDeleteImage(id, imageId));
-// TODO(api): PATCH /api/listings/[id]/images/order
-export const reorderListingImages = (id: string, ids: string[]): Promise<void> => unwrap(M.mReorderImages(id, ids));
-// TODO(api): POST /api/listings/[id]/documents (multipart `file` + `kind`)
-export const uploadListingDocument = (id: string, kind: DocumentKind, fileName: string): Promise<{ document: { id: string; kind: DocumentKind; fileName: string; uploadedAt: string } }> =>
-  unwrap(M.mAddDocument(id, kind, fileName));
-// TODO(api): POST /api/listings/[id]/pause | /resume | /mark-sold
-export const listingAction = (id: string, action: "pause" | "resume" | "mark-sold"): Promise<unknown> => unwrap(M.mListingAction(id, action));
-// TODO(api): GET /api/localities
-export const getLocalities = (region: "islamabad" | "rawalpindi", q?: string): Promise<{ items: Locality[] }> => unwrap(M.mLocalities(region, q));
+export const createListing = (category: ListingCategory) => post<{ id: string }>("/api/listings", { category });
+export const getListing = (id: string) => get<ListingDetail>(`/api/listings/${id}`);
+export const patchListing = (id: string, b: ListingPatch) => patch<ListingDetail>(`/api/listings/${id}`, b);
+export const submitListing = (id: string) => post<{ status: ListingStatus }>(`/api/listings/${id}/submit`);
+export const listingAction = (id: string, action: "pause" | "resume" | "mark-sold") => post<{ status: ListingStatus }>(`/api/listings/${id}/status`, { action });
+export const uploadListingImage = (id: string, file: File) => upload<{ image: { id: string; url: string; position: number } }>(`/api/listings/${id}/images`, { file });
+export const deleteListingImage = (id: string, imageId: string) => request<void>(`/api/listings/${id}/images/${imageId}`, { method: "DELETE" });
+export const reorderListingImages = (id: string, ids: string[]) => patch<void>(`/api/listings/${id}/images/order`, { ids });
+export const uploadListingDocument = (id: string, kind: DocumentKind, file: File) =>
+  upload<{ document: { id: string; kind: DocumentKind; fileName: string; uploadedAt: string } }>(`/api/listings/${id}/documents`, { file, kind });
+export const getLocalities = (region: string, q?: string) => get<{ items: Locality[] }>("/api/localities", { region, q });
 
 // ---------------------------------------------------------------- orders
 
-// TODO(api): GET /api/package-plans
-export const getPackagePlans = (): Promise<{ items: PackagePlan[] }> => unwrap(M.mPlans());
-// TODO(api): GET /api/orders
-export const getOrders = (scope: "active" | "past"): Promise<{ items: OrderCard[]; totals: { activeOrders: number; delivered: number; bought: number; cashbackPaidLeads: number } }> => unwrap(M.mOrders(scope));
-// TODO(api): POST /api/orders
-export const createOrder = (listingId: string, packagePlanId: string): Promise<{ orderId: string }> => unwrap(M.mCreateOrder(listingId, packagePlanId));
-// TODO(api): GET /api/orders/[id]
-export const getOrder = (id: string): Promise<OrderDetail> => unwrap(M.mOrder(id));
-// TODO(api): POST /api/orders/[id]/pay
-export const payOrder = (id: string, method: PaymentMethod): Promise<PayResult> => unwrap(M.mPay(id, method));
+export const createOrder = (listingId: string, packagePlanId: string) => post<{ orderId: string }>("/api/orders", { listingId, packagePlanId });
+export const getOrder = (id: string) => get<OrderDetail>(`/api/orders/${id}`);
+export const payOrder = (id: string, method: PaymentMethod) => post<PayResult>(`/api/orders/${id}/pay`, { method });
 
 // ---------------------------------------------------------------- notifications
 
-// TODO(api): GET /api/notifications
-export const getNotifications = (q: { type?: string; cursor?: string }): Promise<{ items: NotificationItem[]; nextCursor: string | null; unread: number }> => unwrap(M.mNotifications(q));
-// TODO(api): POST /api/notifications/read-all
-export const readAllNotifications = (): Promise<void> => unwrap(M.mReadAll());
-// TODO(api): PATCH /api/notifications/[id]
-export const readNotification = (id: string): Promise<void> => unwrap(M.mReadOne(id));
+export const getNotifications = (q: { type?: string; cursor?: string }) => get<{ items: NotificationItem[]; nextCursor: string | null; unread: number }>("/api/notifications", q);
+export const readAllNotifications = () => post<void>("/api/notifications/read-all");
+export const readNotification = (id: string) => request<void>(`/api/notifications/${id}`, { method: "PATCH" });

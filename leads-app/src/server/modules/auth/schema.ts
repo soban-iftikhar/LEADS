@@ -11,7 +11,6 @@ export const password = z
   .refine((v) => /\d/.test(v), "Use 8 or more characters with a number.")
   .refine((v) => new TextEncoder().encode(v).length <= 72, "That password is too long.");
 
-
 /** Pakistani mobile, any common way of typing it: 03001234567, 3001234567, +92 300 1234567. */
 export const phone = z
   .string()
@@ -64,6 +63,8 @@ export const updateMeSchema = z.object({
   displayName: z.string().trim().min(2, "Please enter a name.").max(100).optional(),
   contactPerson: z.string().trim().min(3, "Please enter your full name.").max(100).optional(),
   email: email.optional(),
+  /** region slug of the owner's home city; null clears it */
+  city: z.string().trim().max(60).nullable().optional(),
 });
 
 export const prefsSchema = z

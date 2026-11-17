@@ -3,18 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
-import { allAreaSlugs, localityBySlug } from "@/lib/areas";
-import { getViewer } from "@/lib/viewer";
+import { areaBySlugs } from "@/server/modules/catalog/service";
+import { getViewer } from "@/server/pages";
 
 type Params = { city: string; area: string };
 
-export function generateStaticParams() {
-  return allAreaSlugs();
-}
+// areas are rows in config.localities: a new one has a page as soon as an admin adds it
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { city, area } = await params;
-  const loc = localityBySlug(city, area);
+  const loc = await areaBySlugs(city, area);
   if (!loc) return {};
   return {
     title: { absolute: `Sell your property in ${loc.name}, ${loc.region} | LEADS` },
@@ -23,11 +22,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-/** SEO area page. Stub content for now, built from the landing sections. */
+/** SEO landing page for one area of an active city. */
 export default async function AreaPage({ params }: { params: Promise<Params> }) {
   const { city, area } = await params;
-  if (city !== "islamabad" && city !== "rawalpindi") notFound();
-  const loc = localityBySlug(city, area);
+  const loc = await areaBySlugs(city, area);
   if (!loc) notFound();
   const viewer = await getViewer();
   return (

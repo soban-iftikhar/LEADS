@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { codeFor, loginAsDemo, typeCode } from "./helpers";
+import { DEMO_PHONE, codeFor, loginAsDemo, typeCode } from "./helpers";
 
 test("guarded page sends you to login and back", async ({ page }) => {
   await page.goto("/leads?stage=new");
@@ -60,7 +60,7 @@ test("email signup, email code, then WhatsApp from inside the app", async ({ pag
 test("the same WhatsApp number can't verify a second account", async ({ page }) => {
   await loginAsDemo(page);
   await page.goto("/verify-phone?next=%2Fsettings&change=1");
-  await page.fill("#vp-phone", "300 1112233"); // the demo account's own number
+  await page.fill("#vp-phone", DEMO_PHONE); // the demo account's own number
   await page.getByRole("button", { name: "Send me the code" }).click();
   await expect(page.locator(".etx")).toContainText("already verified");
 });

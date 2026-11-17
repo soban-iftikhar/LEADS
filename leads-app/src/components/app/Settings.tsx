@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button, Field, Icon, Modal, Section, Select, Switch, TextInput, useToast } from "@/components/ui";
-import { ApiError, changePassword, deleteAccount, logout, setCity, setNotificationSettings, updateMe } from "@/lib/api";
+import { ApiError, changePassword, deleteAccount, logout, setNotificationSettings, updateMe } from "@/lib/api";
 import { CUSTOMER_KIND } from "@/lib/labels";
-import type { RegionOption } from "@/server/modules/config/regions";
-import type { Me, NotificationSettings } from "@/types/api";
+import type { Me, NotificationSettings, Region } from "@/types/api";
 import { PageHeader } from "./PageHeader";
 
 const PREFS: { key: keyof NotificationSettings; label: string; sub: string }[] = [
@@ -21,11 +20,11 @@ const PREFS: { key: keyof NotificationSettings; label: string; sub: string }[] =
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** "+92 300 •••4567" can't be edited back; the field starts empty with the masked number as placeholder. */
-function Profile({ me, regions, city }: { me: Me; regions: RegionOption[]; city: string | null }) {
+function Profile({ me, regions }: { me: Me; regions: Region[] }) {
   const router = useRouter();
   const toast = useToast();
   const agency = me.customer.kind === "AGENCY";
-  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email, city: city ?? "" });
+  const [v, setV] = useState({ displayName: me.customer.displayName, contactPerson: me.customer.contactPerson ?? "", email: me.user.email, city: me.customer.city ?? "" });
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof v, val: string) => {
@@ -47,8 +46,8 @@ function Profile({ me, regions, city }: { me: Me; regions: RegionOption[]; city:
         displayName: v.displayName.trim(),
         ...(agency ? { contactPerson: v.contactPerson.trim() } : {}),
         ...(emailChanged ? { email: v.email.trim() } : {}),
+        ...(!agency && v.city && v.city !== me.customer.city ? { city: v.city } : {}),
       });
-      if (!agency && v.city && v.city !== city) await setCity(v.city);
       if (emailChanged) {
         // the new address needs its code before the app opens again
         router.push("/signup/verify?next=%2Fsettings");
@@ -276,11 +275,11 @@ function Account({ me }: { me: Me }) {
   );
 }
 
-export function SettingsView({ me, prefs, regions, city }: { me: Me; prefs: NotificationSettings; regions: RegionOption[]; city: string | null }) {
+export function SettingsView({ me, prefs, regions }: { me: Me; prefs: NotificationSettings; regions: Region[] }) {
   return (
     <>
       <PageHeader title="Settings" sub={`${me.customer.displayName} · ${CUSTOMER_KIND[me.customer.kind]} account`} />
-      <Profile me={me} regions={regions} city={city} />
+      <Profile me={me} regions={regions} />
       <Prefs initial={prefs} />
       <Password />
       <Account me={me} />

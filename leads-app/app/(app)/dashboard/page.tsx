@@ -7,8 +7,10 @@ import { OverviewListings } from "@/components/app/OverviewListings";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PhoneNudge } from "@/components/app/PhoneNudge";
 import { Button, Empty, Section } from "@/components/ui";
-import { getDashboardSummary, getListing, getMe, getMyListings } from "@/lib/api";
 import { firstName, formatLongDay } from "@/lib/format";
+import { dashboardSummary } from "@/server/modules/dashboard/service";
+import { getMyListing, listMyListings } from "@/server/modules/listings/service";
+import { requireCustomer } from "@/server/pages";
 import type { ListingCard, Me } from "@/types/api";
 
 export const metadata: Metadata = { title: "Overview", robots: { index: false } };
@@ -74,17 +76,17 @@ function Welcome({ me, listings }: { me: Me; listings: ListingCard[] }) {
 }
 
 export default async function DashboardPage() {
-  const me = await getMe();
+  const { me, owner: viewer } = await requireCustomer("/dashboard");
   const now = new Date();
   if (me.counts.listings === 0) return <Welcome me={me} listings={[]} />;
   const owner = me.customer.kind === "SELLER";
   const title = `${greeting(now)}, ${firstName(me.customer.contactPerson ?? me.customer.displayName)}`;
   let data;
   try {
-    const [summary, listings] = await Promise.all([getDashboardSummary(), getMyListings({ pageSize: 50 })]);
-    const mine = listings.items.filter((l) => l.status !== "ARCHIVED");
+    const [summary, listings] = await Promise.all([dashboardSummary(me.user.id), listMyListings(viewer, { page: 1, pageSize: 50 })]);
+    const mine = listings.items;
     // owner: one property card needs beds, so load the full listing
-    const property = owner && mine[0] ? await getListing(mine[0].id) : null;
+    const property = owner && mine[0] ? await getMyListing(viewer, mine[0].id) : null;
     data = { summary, listings: mine, property };
   } catch (e) {
     unstable_rethrow(e);

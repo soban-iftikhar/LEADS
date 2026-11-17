@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { requireGuest } from "@/lib/guards";
+import { requireGuest } from "@/server/pages";
 import { safeNext } from "@/lib/redirects";
 import { googleEnabled } from "@/server/auth/google";
 

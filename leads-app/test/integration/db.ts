@@ -4,7 +4,7 @@ import { prisma } from "@/server/db";
 export async function resetIdentity(): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE app.recovery_codes, app.sessions, app.verification_tokens, app.customer_profiles,
-             app.buyer_profiles, app.users, ops.audit_log CASCADE`);
+             app.buyer_profiles, app.listings, app.users, ops.audit_log CASCADE`);
 }
 
 export async function insertUser(fields: {

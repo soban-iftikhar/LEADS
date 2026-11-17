@@ -25,6 +25,8 @@ model Region {
   portalMaps     PortalRegionMap[]
   segments       CrawlSegment[]
   masterListings MasterListing[]
+  listings       Listing[]
+  customers      CustomerProfile[]
 
   @@map("regions")
   @@schema("config")
@@ -44,6 +46,7 @@ model Locality {
   parent         Locality?       @relation("LocalityTree", fields: [parentId], references: [id])
   children       Locality[]      @relation("LocalityTree")
   masterListings MasterListing[]
+  listings       Listing[]
 
   @@unique([regionId, slug])
   @@map("localities")
@@ -185,7 +188,6 @@ model User {
   deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(6) // PII anonymised on delete
   totpSecretEnc     String?             @map("totp_secret_enc") // AES-256-GCM with TOTP_ENC_KEY
   totpEnabledAt     DateTime?           @map("totp_enabled_at") @db.Timestamptz(6)
-  legacyId          String?             @unique @map("legacy_id") // public.users.id, until legacy tables are dropped
   createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   recoveryCodes     RecoveryCode[]
@@ -224,7 +226,7 @@ enum UserStatus {
 model Session {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId            String    @map("user_id") @db.Uuid
-  tokenHash         String    @unique @map("token_hash")
+  tokenHash         String    @unique @map("token_hash") // SHA-256 of the current refresh token
   expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
   revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
   userAgent         String?   @map("user_agent")
@@ -234,7 +236,10 @@ model Session {
   absoluteExpiresAt DateTime  @map("absolute_expires_at") @db.Timestamptz(6) // hard cap regardless of activity
   stepUpAt          DateTime? @map("step_up_at") @db.Timestamptz(6) // last password/TOTP re-check
   twoFactorPassed   Boolean   @default(false) @map("two_factor_passed") // admin sessions unusable until true
-  revokedReason     String?   @map("revoked_reason") // logout | logout_all | password_changed | password_reset | suspended | deleted | admin | rotated
+  revokedReason     String?   @map("revoked_reason") // logout | logout_all | password_changed | password_reset | suspended | deleted | admin | refresh_reuse (CHECK)
+  remember          Boolean   @default(false) // persistent cookies ("Keep me logged in") vs browser-session cookies
+  previousTokenHash String?   @unique @map("previous_token_hash") // refresh token replaced by the last rotation
+  rotatedAt         DateTime? @map("rotated_at") @db.Timestamptz(6)
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, revokedAt])
@@ -309,8 +314,10 @@ model CustomerProfile {
   propertyTypes     String[]     @map("property_types")
   // { newLeadWhatsapp, dailySummary, listingUpdates, emailCopies, packageEnding }; missing keys use the defaults in code
   notificationPrefs Json         @default("{}") @map("notification_prefs")
+  regionId          String?      @map("region_id") @db.Uuid // owner's home city
   createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region            Region?      @relation(fields: [regionId], references: [id])
 
   @@map("customer_profiles")
   @@schema("app")
@@ -343,39 +350,45 @@ model BuyerProfile {
 // =============================================================================
 
 model Listing {
-  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customerId      String          @map("customer_id") @db.Uuid
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId      String               @map("customer_id") @db.Uuid
   source          ListingSource
-  masterListingId String?         @map("master_listing_id") @db.Uuid
-  slug            String          @unique
+  masterListingId String?              @map("master_listing_id") @db.Uuid
+  slug            String               @unique
   title           String
   description     String?
-  category        String
-  purpose         String
-  pricePkr        BigInt          @map("price_pkr")
-  sizeValue       Decimal         @map("size_value") @db.Decimal(12, 2)
-  sizeUnit        String          @map("size_unit")
-  sizeSqft        Decimal         @map("size_sqft") @db.Decimal(12, 2)
-  regionId        String          @map("region_id") @db.Uuid
-  localityId      String          @map("locality_id") @db.Uuid
-  addressText     String?         @map("address_text")
-  lat             Decimal?        @db.Decimal(9, 6)
-  lng             Decimal?        @db.Decimal(9, 6)
+  category        String // HOUSE | PLOT | FLAT | COMMERCIAL
+  purpose         String               @default("SALE")
+  // price, size and locality may be empty while DRAFT; a CHECK in the migration requires them afterwards
+  pricePkr        BigInt?              @map("price_pkr")
+  sizeValue       Decimal?             @map("size_value") @db.Decimal(12, 2)
+  sizeUnit        String               @map("size_unit") // MARLA | KANAL | SQFT | SQYD
+  sizeSqft        Decimal?             @map("size_sqft") @db.Decimal(12, 2)
+  regionId        String               @map("region_id") @db.Uuid
+  localityId      String?              @map("locality_id") @db.Uuid
+  addressText     String?              @map("address_text")
+  lat             Decimal?             @db.Decimal(9, 6)
+  lng             Decimal?             @db.Decimal(9, 6)
   bedrooms        Int?
   bathrooms       Int?
   amenities       String[]
-  status          ListingStatus   @default(DRAFT)
-  criteriaVersion Int?            @map("criteria_version")
-  criteriaResult  Json?           @map("criteria_result") @db.JsonB
-  rejectionReason String?         @map("rejection_reason")
-  publishedAt     DateTime?       @map("published_at") @db.Timestamptz(6)
-  soldAt          DateTime?       @map("sold_at") @db.Timestamptz(6)
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  customer        User            @relation(fields: [customerId], references: [id])
-  masterListing   MasterListing?  @relation(fields: [masterListingId], references: [id])
+  ownerName       String?              @map("owner_name") // agencies: the owner they list for; staff only
+  status          ListingStatus        @default(DRAFT)
+  criteriaVersion Int?                 @map("criteria_version")
+  criteriaResult  Json?                @map("criteria_result") @db.JsonB
+  rejectionReason String?              @map("rejection_reason")
+  publishedAt     DateTime?            @map("published_at") @db.Timestamptz(6)
+  soldAt          DateTime?            @map("sold_at") @db.Timestamptz(6)
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer        User                 @relation(fields: [customerId], references: [id])
+  region          Region               @relation(fields: [regionId], references: [id])
+  locality        Locality?            @relation(fields: [localityId], references: [id])
+  masterListing   MasterListing?       @relation(fields: [masterListingId], references: [id])
   images          ListingImage[]
+  documents       ListingDocument[]
   reviews         ListingReview[]
+  statusEvents    ListingStatusEvent[]
   savedBy         SavedListing[]
   orders          Order[]
   campaigns       Campaign[]
@@ -418,6 +431,42 @@ model ListingImage {
 
   @@unique([listingId, position])
   @@map("listing_images")
+  @@schema("app")
+}
+
+// Proof of ownership. Stored as an authenticated (non-public) Cloudinary asset.
+model ListingDocument {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId    String       @map("listing_id") @db.Uuid
+  kind         DocumentKind
+  fileName     String       @map("file_name")
+  cloudinaryId String       @map("cloudinary_id")
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+  listing      Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_documents")
+  @@schema("app")
+}
+
+enum DocumentKind {
+  REGISTRY
+  TRANSFER_LETTER
+  ALLOTMENT_LETTER
+
+  @@schema("app")
+}
+
+// Every status a listing entered, for the timeline on the listing page.
+model ListingStatusEvent {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId String        @map("listing_id") @db.Uuid
+  status    ListingStatus
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  listing   Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, createdAt])
+  @@map("listing_status_events")
   @@schema("app")
 }
 
@@ -829,16 +878,48 @@ model Lead {
   status            LeadStatus    @default(DELIVERED)
   customerStage     CustomerStage @default(NEW) @map("customer_stage")
   followUpAt        DateTime?     @map("follow_up_at") @db.Timestamptz(6)
+  followUpKind      FollowUpKind? @map("follow_up_kind")
   deliveredAt       DateTime      @default(now()) @map("delivered_at") @db.Timestamptz(6)
   contact           Contact       @relation(fields: [contactId], references: [id])
   listing           Listing       @relation(fields: [listingId], references: [id])
   customer          User          @relation(fields: [customerId], references: [id])
   order             Order?        @relation(fields: [orderId], references: [id])
   report            LeadReport?
+  events            LeadEvent[]
 
   @@unique([contactId, listingId]) // DR-10: one buyer + one property, once
   @@index([customerId, deliveredAt])
   @@map("leads")
+  @@schema("app")
+}
+
+enum FollowUpKind {
+  CALL
+  VISIT
+
+  @@schema("app")
+}
+
+// What the customer and the review team did with a lead, for its activity feed. Delivery and
+// WhatsApp messages come from the lead row and app.messages.
+model LeadEvent {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leadId    String        @map("lead_id") @db.Uuid
+  kind      LeadEventKind
+  data      Json          @default("{}") @db.JsonB
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  lead      Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@map("lead_events")
+  @@schema("app")
+}
+
+enum LeadEventKind {
+  STAGE_CHANGED
+  REPORTED
+  REPORT_DECIDED
+
   @@schema("app")
 }
 
@@ -1442,99 +1523,4 @@ model CrawlRunPortal {
   @@id([runId, platform])
   @@map("crawl_run_portals")
   @@schema("master")
-}
-
-// =============================================================================
-// public: legacy tables from before v4. Kept so current routes keep working
-// until F0 auth and SPEC_01 readers replace them; dropped in a later migration.
-// =============================================================================
-
-enum LegacyRole {
-  BUYER
-  SELLER
-  ADMIN
-
-  @@map("Role")
-  @@schema("public")
-}
-
-enum LegacyPurpose {
-  SALE
-  RENT
-
-  @@map("Purpose")
-  @@schema("public")
-}
-
-enum LegacySizeUnit {
-  MARLA
-  KANAL
-  SQFT
-  UNKNOWN
-
-  @@map("SizeUnit")
-  @@schema("public")
-}
-
-enum LegacyListingStatus {
-  PENDING_AI_REVIEW
-  ACTIVE
-  PAUSED
-  DELETED
-
-  @@map("ListingStatus")
-  @@schema("public")
-}
-
-model LegacyUser {
-  id                     String          @id @default(cuid())
-  fullName               String
-  email                  String          @unique
-  phone                  String?         @unique
-  passwordHash           String
-  role                   LegacyRole
-  passwordResetToken     String?
-  passwordResetExpiresAt DateTime?
-  isEmailVerified        Boolean         @default(false)
-  isPhoneVerified        Boolean         @default(false)
-  emailOtpHash           String?
-  emailOtpExpiresAt      DateTime?
-  phoneOtpHash           String?
-  phoneOtpExpiresAt      DateTime?
-  otpAttempts            Int             @default(0)
-  isActive               Boolean         @default(true)
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
-  listings               LegacyListing[]
-
-  @@map("users")
-  @@schema("public")
-}
-
-model LegacyListing {
-  id             String              @id @default(cuid())
-  title          String
-  category       String
-  purpose        LegacyPurpose
-  city           String
-  locality       String
-  size           Float
-  sizeUnit       LegacySizeUnit
-  price          Float
-  bedrooms       Int?
-  bathrooms      Int?
-  description    String
-  images         String[]
-  status         LegacyListingStatus @default(PENDING_AI_REVIEW)
-  originalDesc   String?
-  aiEnhancedDesc String?
-  sellerId       String
-  seller         LegacyUser          @relation(fields: [sellerId], references: [id])
-  viewCount      Int                 @default(0)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-
-  @@index([city, category, purpose])
-  @@map("listings")
-  @@schema("public")
 }

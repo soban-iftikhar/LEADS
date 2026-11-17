@@ -10,11 +10,10 @@ import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { PhoneMock } from "@/components/marketing/PhoneMock";
 import { PromiseSlider } from "@/components/marketing/PromiseSlider";
 import { Reveals } from "@/components/marketing/Reveals";
-import { FAQS, faqJsonLd, orgJsonLd, serviceJsonLd } from "@/components/marketing/content";
-import { activeRegions } from "@/server/modules/config/regions";
-import { getPackagePlans } from "@/lib/api";
+import { faqJsonLd, faqs, orgJsonLd, serviceJsonLd } from "@/components/marketing/content";
 import { groupPk } from "@/lib/format";
-import { getViewer } from "@/lib/viewer";
+import { activePlans, activeRegions } from "@/server/modules/catalog/service";
+import { getViewer } from "@/server/pages";
 import type { PackagePlan } from "@/types/api";
 
 export const metadata: Metadata = {
@@ -81,7 +80,7 @@ async function cities(): Promise<string[]> {
 
 async function plans(): Promise<PackagePlan[]> {
   try {
-    return (await getPackagePlans()).items;
+    return await activePlans();
   } catch (e) {
     unstable_rethrow(e);
     return [];
@@ -94,7 +93,7 @@ export default async function LandingPage() {
   const startHref = signedIn ? "/listings/new" : "/signup";
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(cityList), serviceJsonLd(cityList), faqJsonLd()]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(cityList), serviceJsonLd(cityList), faqJsonLd(cityList)]) }} />
       <Reveals rootId="mkt-page" />
       <div id="mkt-page">
         <MarketingHeader signedIn={signedIn} />
@@ -356,7 +355,7 @@ export default async function LandingPage() {
                 </h2>
               </div>
               <div style={{ flex: "999 1 560px", minWidth: 0 }}>
-                {FAQS.map((f) => (
+                {faqs(cityList).map((f) => (
                   <details key={f.q}>
                     <summary>
                       {f.q}

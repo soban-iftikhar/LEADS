@@ -1,13 +1,17 @@
 import "server-only";
+import { cache } from "react";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
-import { unauthenticated } from "@/server/http/errors";
-import { loadSession, SESSION_COOKIE } from "./sessions";
+import { ACCESS_COOKIE } from "./cookies";
+import { authFromAccessToken, type Auth } from "./session";
 
-/** Session for a route handler, or a 401. */
-export async function requireSession(request: NextRequest) {
-  const s = await loadSession(request.cookies.get(SESSION_COOKIE)?.value);
-  if (!s) throw unauthenticated();
-  return s;
+/** Signed-in session for a route handler, or null. */
+export function authFromRequest(request: NextRequest): Promise<Auth | null> {
+  return authFromAccessToken(request.cookies.get(ACCESS_COOKIE)?.value);
 }
 
-export const ua = (request: NextRequest) => request.headers.get("user-agent");
+/** Signed-in session for server components (memoised for one render), or null. */
+export const currentAuth = cache(async (): Promise<Auth | null> => {
+  const token = (await cookies()).get(ACCESS_COOKIE)?.value;
+  return authFromAccessToken(token);
+});

@@ -21,7 +21,8 @@ type Instructions = { bank: string; accountTitle: string; iban: string; referenc
 export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancelled: boolean; now: string }) {
   const router = useRouter();
   const n = new Date(now);
-  const [method, setMethod] = useState<PaymentMethod>("CARD");
+  const methods = METHODS.filter((m) => order.methods.includes(m.value));
+  const [method, setMethod] = useState<PaymentMethod>(methods[0]?.value ?? "BANK_TRANSFER");
   const [agree, setAgree] = useState(true);
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState("");
@@ -90,7 +91,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
               </>
             ) : (
               <div role="radiogroup" aria-label="Payment method" className="stack10">
-                {METHODS.map((m) => (
+                {methods.map((m) => (
                   <label key={m.value} className={`radio ${method === m.value ? "on" : ""}`}>
                     <input type="radio" name="method" className="sr-only" checked={method === m.value} onChange={() => setMethod(m.value)} />
                     <span className="rd" aria-hidden="true" />
@@ -126,7 +127,6 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
                 <dt>Price</dt>
                 <dd className="mono">{total}</dd>
                 <dt>Tax</dt>
-                {/* TODO(api): the order shape has no tax line yet; prices are shown as final */}
                 <dd className="mono">Included</dd>
               </dl>
               <div className="divider" style={{ margin: "16px 0" }} />

@@ -1,5 +1,5 @@
 import "server-only";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { TokenType } from "@prisma/client";
 import { prisma } from "@/server/db";
 import { env } from "@/server/env";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SignupType } from "@/components/auth/SignupType";
-import { requireGuest } from "@/lib/guards";
+import { requireGuest } from "@/server/pages";
 import { googleEnabled } from "@/server/auth/google";
 
 export const metadata: Metadata = { title: "Create account", robots: { index: false } };
