@@ -3,11 +3,14 @@ export const THEME_STORAGE_KEY = "leads-theme";
 
 export type Theme = "light" | "dark";
 
+/** Collapsed rail is remembered here ("col") and applied before paint like the theme. */
+export const RAIL_STORAGE_KEY = "leads-rail";
+
 /**
  * Runs in <head> before first paint so the page never flashes the wrong theme.
  * Saved choice wins, then the OS preference, then light.
  */
-export const themeScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t!=='dark'&&t!=='light'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})();`;
+export const themeScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t!=='dark'&&t!=='light'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('${RAIL_STORAGE_KEY}')==='col')document.documentElement.setAttribute('data-rail','col')}catch(e){document.documentElement.setAttribute('data-theme','light')}})();`;
 
 export function readTheme(): Theme {
   if (typeof document === "undefined") return "light";

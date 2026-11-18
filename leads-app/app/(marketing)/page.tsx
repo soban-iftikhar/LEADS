@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { Fragment } from "react";
 import { AgencyTabs } from "@/components/marketing/AgencyTabs";
 import { FlowBar } from "@/components/marketing/FlowBar";
@@ -9,10 +10,10 @@ import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { PhoneMock } from "@/components/marketing/PhoneMock";
 import { PromiseSlider } from "@/components/marketing/PromiseSlider";
 import { Reveals } from "@/components/marketing/Reveals";
-import { FAQS, faqJsonLd, orgJsonLd, serviceJsonLd } from "@/components/marketing/content";
-import { getPackagePlans } from "@/lib/api";
+import { faqJsonLd, faqs, orgJsonLd, serviceJsonLd } from "@/components/marketing/content";
 import { groupPk } from "@/lib/format";
-import { getViewer } from "@/lib/viewer";
+import { activePlans, activeRegions } from "@/server/modules/catalog/service";
+import { getViewer } from "@/server/pages";
 import type { PackagePlan } from "@/types/api";
 
 export const metadata: Metadata = {
@@ -54,7 +55,7 @@ const CALLS = [
 
 const STEPS = [
   { n: "01", who: "You", ink: true, d: "", anim: "a-build", ad: 0, title: "Add your property", text: "Price, size, location and a few good photos. We check it before it goes live, so buyers trust it.", icon: "M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5M12 11v6M9 14h6" },
-  { n: "02", who: "LEADS", ink: false, d: "d1", anim: "a-scan", ad: 300, title: "We find likely buyers", text: "People who own similar homes nearby are often ready to move. We find them and pick the best matches.", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 1 0 0-14zM20 20l-4-4" },
+  { n: "02", who: "LEADS", ink: false, d: "d1", anim: "a-scan", ad: 300, title: "We find likely buyers", text: "People who own similar homes nearby often want to move. We pick the best matches.", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 1 0 0-14zM20 20l-4-4" },
   { n: "03", who: "LEADS", ink: false, d: "d2", anim: "a-msg", ad: 600, title: "We message them", text: "A short WhatsApp about your property. We read every reply, so you never have to.", icon: "M4 20l1.3-3.9A8 8 0 1 1 8 19z" },
   { n: "04", who: "You", ink: true, d: "d3", anim: "a-ring", ad: 900, title: "You get the buyer", text: "When someone says yes, you get their name, number and what they said. Then it is your call.", icon: "M5 4h3l1.5 4-2 1.2a11 11 0 0 0 5.3 5.3l1.2-2 4 1.5v3a2 2 0 0 1-2 2A13 13 0 0 1 3 6a2 2 0 0 1 2-2z" },
 ];
@@ -62,26 +63,37 @@ const STEPS = [
 const GET_LIST = ["Their name and phone number", "Their reply, word for word", "Their budget and when they want to buy", "A bad lead? Report it and we give it back"];
 
 const PLAN_COPY: Record<string, { for: string; feats: string[]; pop: boolean }> = {
-  Starter: { for: "One house, first time", feats: ["One property", "60-day delivery", "Money back for missed leads"], pop: false },
+  Starter: { for: "Try it on one property", feats: ["One property", "60-day delivery", "Money back for missed leads"], pop: false },
   Growth: { for: "For a faster sale", feats: ["One property", "Matched first", "60-day delivery", "Money back for missed leads"], pop: true },
-  Agency: { for: "Many listings, one account", feats: ["Spread across your listings", "60-day delivery", "Money back for missed leads"], pop: false },
+  Pro: { for: "Big property, fast sale", feats: ["One property", "Matched first", "60-day delivery", "Money back for missed leads"], pop: false },
 };
+
+/** Active cities for the structured data; the page still renders if the database is down. */
+async function cities(): Promise<string[]> {
+  try {
+    return (await activeRegions()).map((r) => r.name);
+  } catch (e) {
+    unstable_rethrow(e);
+    return [];
+  }
+}
 
 async function plans(): Promise<PackagePlan[]> {
   try {
-    return (await getPackagePlans()).items;
-  } catch {
+    return await activePlans();
+  } catch (e) {
+    unstable_rethrow(e);
     return [];
   }
 }
 
 export default async function LandingPage() {
-  const [viewer, planList] = await Promise.all([getViewer(), plans()]);
+  const [viewer, planList, cityList] = await Promise.all([getViewer(), plans(), cities()]);
   const signedIn = !!viewer;
   const startHref = signedIn ? "/listings/new" : "/signup";
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(), serviceJsonLd(), faqJsonLd()]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd(cityList), serviceJsonLd(cityList), faqJsonLd(cityList)]) }} />
       <Reveals rootId="mkt-page" />
       <div id="mkt-page">
         <MarketingHeader signedIn={signedIn} />
@@ -227,7 +239,8 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <h3 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-.03em" }}>{s.title}</h3>
-                      <p style={{ margin: "8px 0 0", fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-2)" }}>{s.text}</p>
+                      {/* three lines reserved so the headings line up across the row */}
+                      <p style={{ margin: "8px 0 0", fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-2)", minHeight: "4.8em" }}>{s.text}</p>
                     </div>
                   </li>
                 ))}
@@ -342,7 +355,7 @@ export default async function LandingPage() {
                 </h2>
               </div>
               <div style={{ flex: "999 1 560px", minWidth: 0 }}>
-                {FAQS.map((f) => (
+                {faqs(cityList).map((f) => (
                   <details key={f.q}>
                     <summary>
                       {f.q}

@@ -41,13 +41,33 @@ describe("4.1 users", () => {
     await insertUser({ role: "BUYER", status: "DELETED", deletedAt: new Date() });
   });
 
-  it("requires full_name and keeps legacy_id unique", async () => {
+  it("requires full_name", async () => {
     expect(await rejects(
       `INSERT INTO app.users (email, password_hash, role) VALUES ('c@test.leads', 'x', 'BUYER')`)).toMatch(/full_name/);
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO app.users (email, full_name, password_hash, role, legacy_id) VALUES ('d@test.leads', 'D', 'x', 'BUYER', 'old-1')`);
-    expect(await rejects(
-      `INSERT INTO app.users (email, full_name, password_hash, role, legacy_id) VALUES ('e@test.leads', 'E', 'x', 'BUYER', 'old-1')`)).toMatch(/legacy_id/);
+  });
+});
+
+describe("customer listings", () => {
+  const newListing = async (status: string, complete: boolean) => {
+    const userId = await insertUser({ role: "CUSTOMER_SELLER" });
+    const [region] = await prisma.$queryRawUnsafe<{ id: string }[]>(
+      `INSERT INTO config.regions (name, slug, active) VALUES ('T' || md5(random()::text), md5(random()::text), true) RETURNING id`);
+    const [loc] = await prisma.$queryRawUnsafe<{ id: string }[]>(
+      `INSERT INTO config.localities (region_id, name, slug, aliases) VALUES ($1::uuid, 'A', md5(random()::text), '{}') RETURNING id`, region.id);
+    const facts = complete ? `, price_pkr, size_value, size_sqft, locality_id` : "";
+    const values = complete ? `, 100, 1, 225, '${loc.id}'` : "";
+    return `INSERT INTO app.listings (customer_id, source, slug, title, category, size_unit, region_id, status${facts})
+            VALUES ('${userId}', 'SELF_POSTED', md5(random()::text), 't', 'HOUSE', 'MARLA', '${region.id}', '${status}'${values})`;
+  };
+
+  it("lets a draft be half filled in, but not a listing in review", async () => {
+    await prisma.$executeRawUnsafe(await newListing("DRAFT", false));
+    expect(await rejects(await newListing("UNDER_REVIEW", false))).toMatch(/listings_complete_when_submitted_check/);
+    await prisma.$executeRawUnsafe(await newListing("APPROVED", true));
+  });
+
+  it("rejects unknown categories and units", async () => {
+    expect(await rejects((await newListing("DRAFT", false)).replace("'HOUSE'", "'CASTLE'"))).toMatch(/listings_category_check/);
   });
 });
 

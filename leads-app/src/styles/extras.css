@@ -49,9 +49,12 @@
 @media (prefers-reduced-motion:reduce){.app-ui .spin,.toast-i{animation:none}}
 
 /* /dev/ui only */
-.devgrid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.devgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+.devgrid>[data-theme]{min-width:0}
+.devhead{flex-wrap:wrap;row-gap:4px}
+@media (max-width:640px){.devhead .devsub{display:none}.devgrid>[data-theme]{padding:16px!important}}
 .devgrid>[data-theme]{background-color:var(--bg);color:var(--ink)}
-@media (max-width:1100px){.devgrid{grid-template-columns:1fr}}
+@media (max-width:1100px){.devgrid{grid-template-columns:minmax(0,1fr)}}
 
 /* landing */
 .mkt .plan-pop{background:var(--panel);color:var(--on-panel);border-color:var(--panel)}
@@ -91,10 +94,10 @@
 .app-ui .convo{display:flex;flex-direction:column;gap:6px}
 .app-ui .acts-b{padding-top:6px;padding-bottom:6px}
 .app-ui .radio-sm{padding:10px 12px}
-.app-ui .sel.fu{position:relative;cursor:pointer}
-.app-ui .sel.fu input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:0}
-.app-ui .sel.fu:focus-within{outline:2.5px solid var(--m);outline-offset:2px}
-.app-ui .dl dd a{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2)}
+.app-ui .sel.fu-pick{position:relative;cursor:pointer}
+.app-ui .sel.fu-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:0}
+.app-ui .sel.fu-pick:focus-within{outline:2.5px solid var(--m);outline-offset:2px}
+.app-ui .dl dd a{text-decoration:none}.app-ui .dl dd a:hover{text-decoration:underline;text-underline-offset:3px}
 .app-ui ol.steps{list-style:none;margin:0;padding:0}
 .app-ui ol.steps>li{flex:1;display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:var(--ink-3);position:relative}
 .app-ui ol.steps>li::before{content:"";position:absolute;top:13px;left:28px;right:0;height:2px;background:var(--line-2)}
@@ -150,3 +153,79 @@
 .app-ui .pref:last-child{border-bottom:0}
 .app-ui .sec-b.wrap{flex-wrap:wrap}
 .app-ui .sec[id]{scroll-margin-top:92px}
+.auth-ui .gbtn{gap:12px;background:var(--surface);border-color:var(--line-2)}
+.auth-ui .gbtn:hover{border-color:var(--ink)}
+.auth-ui .roles+.btn{margin-top:26px}
+.app-ui .inp.ro{background:var(--surface-2)}
+.app-ui .inp.ro .ro-v{flex:1;padding:0 14px;font-size:15px;color:var(--ink-2)}
+.app-ui .inp.ro .ro-a{padding:0 14px}
+.devgrid .tok-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:8px}
+.devgrid .tok-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.devgrid .tok{min-width:0}
+.devgrid .tok-n,.devgrid .tok-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.devgrid .tok{display:grid;grid-template-columns:28px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+.devgrid .tok-sw{grid-row:span 2;width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--line-2)}
+.devgrid .tok-n{font-size:12px;font-weight:600}
+.devgrid .tok-v{font-size:11px;color:var(--ink-3)}
+.devgrid .tok-type{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline}
+@media (max-width:560px){.devgrid .tok-type{grid-template-columns:1fr;gap:2px}}
+
+/* app shell */
+.app-ui .srch-f{margin-left:auto}
+.app-ui .top2 .srch-f .srch{margin-left:0}
+.app-ui .rb,.app-ui .ri,.app-ui .radd,.app-ui .rme{text-decoration:none}
+.app-ui .ri:focus-visible,.app-ui .radd:focus-visible,.app-ui .rme:focus-visible,.app-ui .rb:focus-visible{outline:2.5px solid var(--m);outline-offset:2px}
+@media (max-width:860px){.app-ui .srch-f{display:none}.app-ui .top2 .ibtn{margin-left:auto}}
+
+/* auth: forgot / reset card (design/screens/auth-forgot.html, auth-reset.html) */
+.auth-ui .app-ui.acard-host{min-height:0;background:none;display:block}
+.app-ui .acard{width:min(470px,100%);margin:clamp(28px,8vh,90px) auto;padding:clamp(24px,4vw,44px);background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.app-ui .acard h1{margin:0;font-size:clamp(30px,3.2vw,42px);font-weight:900;letter-spacing:-.05em;line-height:1}
+.app-ui .acard>p{margin:0;color:var(--ink-2);font-size:16px;line-height:1.55}
+.app-ui .acard .back{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-weight:700;font-size:14px;align-self:flex-start}
+.app-ui .acard .meter4{display:flex;gap:6px}
+.app-ui .acard .meter4 i{flex:1;height:5px;background:var(--line);border-radius:1px}
+@media (max-width:480px){.app-ui .acard{border:0;box-shadow:none;background:none;padding:0 16px}}
+.app-ui .grid1{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+/* payment result (screens/ag-paid.html) */
+.app-ui .paid{max-width:620px;margin:40px auto 0;width:100%}
+.app-ui .paid>.sec-b{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:44px 32px}
+.app-ui .paid h1{margin:6px 0 0;font-size:28px;font-weight:800;letter-spacing:-.035em}
+.app-ui .paid p{margin:0;color:var(--ink-2);font-size:16px;max-width:440px}
+.app-ui .paid .note{text-align:left;width:100%}
+.app-ui .paid-tile{width:72px;height:72px;border-radius:6px;background:var(--m);color:var(--on-m);display:flex;align-items:center;justify-content:center}
+/* leads toolbar: compact like the reference (select sized to "All listings", search 230px) */
+.app-ui .between>.toolbar{flex:1 1 300px;justify-content:flex-end;flex-wrap:nowrap;min-width:0}
+.app-ui .toolbar .sel{gap:6px}
+.app-ui .toolbar .sel select{width:84px;text-overflow:ellipsis}
+.app-ui .toolbar .srch2{flex:0 1 230px;min-width:140px}
+@media (max-width:640px){.app-ui .between>.toolbar{flex-direction:column;align-items:flex-start;flex-basis:100%}.app-ui .toolbar .srch2{flex:none;width:234px}.app-ui .tbl td{white-space:nowrap}}
+
+/* overview: rows are links (lead page / leads filter), call button stays separate */
+.app-ui .callc .cl-a{display:flex;align-items:center;gap:10px;flex:1;min-width:0;color:inherit;text-decoration:none}
+.app-ui .callc .cl-a small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-ui .callc .cl-a:focus-visible,.app-ui .callc .ph-ic:focus-visible{outline:2.5px solid var(--on-m);outline-offset:2px;border-radius:4px}
+.app-ui .bkr,.app-ui .pipe2 .r,.app-ui .fu{color:inherit;text-decoration:none}
+.app-ui .bkr:hover .bkn,.app-ui .fu:hover b{text-decoration:underline;text-underline-offset:3px}
+.app-ui .pipe2 .r:hover span:first-child{text-decoration:underline;text-underline-offset:3px}
+
+/* landing hero: the scene blends into the page instead of sitting in a hard-edged box */
+.mkt .blend{
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 7%,#000 80%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 7%,#000 80%,transparent 100%);
+  mask-composite:intersect
+}
+
+/* rail footer: account + log out side by side; stacked when the rail is collapsed */
+.app-ui .rme-row{display:flex;align-items:center;gap:4px}
+.app-ui .rme-row .rme{flex:1;min-width:0}
+.app-ui .rout{position:relative;flex:none;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--rail-mute);cursor:pointer;transition:background-color 150ms,color 150ms}
+.app-ui .rout:hover{background:var(--rail-hover);color:var(--rail-head)}
+.app-ui .rout:focus-visible{outline:2.5px solid var(--m);outline-offset:2px}
+.app-ui .rout:disabled{opacity:.5;cursor:default}
+.app-ui .rout:hover .tip,.app-ui .rout:focus-visible .tip{opacity:1;transform:translate(0,-50%)}
+html[data-rail="col"] .app-ui .shell .rme-row{flex-direction:column;align-items:stretch}
+html[data-rail="col"] .app-ui .shell .rout{width:100%;height:40px}
+/* landing header on phones: the mark stays, the word goes, so Log in + the CTA fit */
+@media (max-width:480px){.mkt .logo-t{display:none}.mkt header nav{gap:0!important}.mkt header .btn.b-sm{padding-left:14px;padding-right:14px}}

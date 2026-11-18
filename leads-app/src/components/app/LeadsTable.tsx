@@ -35,11 +35,12 @@ export function BuyerCell({ lead }: { lead: LeadListItem }) {
 }
 
 /** Leads table used on Overview (no status column) and on Leads (with status). */
-export function LeadsTable({ rows, displayName, withStatus, now }: { rows: LeadListItem[]; displayName: string; withStatus?: boolean; now: string }) {
+export function LeadsTable({ rows, displayName, withStatus, withListing = true, now }: { rows: LeadListItem[]; displayName: string; withStatus?: boolean; withListing?: boolean; now: string }) {
   const n = new Date(now);
   const cols: Column<LeadListItem>[] = [
     { key: "buyer", header: "Buyer", cell: (l) => <BuyerCell lead={l} /> },
-    { key: "listing", header: "Listing", cell: (l) => <span style={{ fontSize: 13.5 }}>{`${l.listing.title} · ${l.listing.localityName}`}</span> },
+    // owners have one listing, so the column is left out for them (SCREENS.md C0)
+    ...(withListing ? [{ key: "listing", header: "Listing", cell: (l: LeadListItem) => <span style={{ fontSize: 13.5 }}>{`${l.listing.title} · ${l.listing.localityName}`}</span> }] : []),
     { key: "said", header: "What they said", cell: (l) => <span className="said">{l.said ?? "—"}</span> },
     { key: "budget", header: "Budget", cell: (l) => <span className="mono" style={{ whiteSpace: "nowrap" }}>{formatBudget(l.budgetMinPkr, l.budgetMaxPkr)}</span> },
     { key: "recv", header: "Received", cell: (l) => <span className="muted" style={{ whiteSpace: "nowrap" }}>{formatRelative(l.deliveredAt, n)}</span> },

@@ -21,7 +21,8 @@ type Instructions = { bank: string; accountTitle: string; iban: string; referenc
 export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancelled: boolean; now: string }) {
   const router = useRouter();
   const n = new Date(now);
-  const [method, setMethod] = useState<PaymentMethod>("CARD");
+  const methods = METHODS.filter((m) => order.methods.includes(m.value));
+  const [method, setMethod] = useState<PaymentMethod>(methods[0]?.value ?? "BANK_TRANSFER");
   const [agree, setAgree] = useState(true);
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState("");
@@ -66,7 +67,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
           {banner}
         </Note>
       )}
-      <div className="twocol2">
+      <div className="cols c-2s">
         <div>
           <Section title="Pay with" bodyClassName="stack10">
             {bank ? (
@@ -90,7 +91,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
               </>
             ) : (
               <div role="radiogroup" aria-label="Payment method" className="stack10">
-                {METHODS.map((m) => (
+                {methods.map((m) => (
                   <label key={m.value} className={`radio ${method === m.value ? "on" : ""}`}>
                     <input type="radio" name="method" className="sr-only" checked={method === m.value} onChange={() => setMethod(m.value)} />
                     <span className="rd" aria-hidden="true" />
@@ -122,11 +123,10 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
                 <dt>Package</dt>
                 <dd>{`${order.planName} · ${order.leadCount} leads`}</dd>
                 <dt>Window</dt>
-                <dd>{startsLater ? `60 days from ${formatDate(order.startsAt, n)}` : "60 days from payment"}</dd>
+                <dd>60 days</dd>
                 <dt>Price</dt>
                 <dd className="mono">{total}</dd>
                 <dt>Tax</dt>
-                {/* TODO(api): the order shape has no tax line yet; prices are shown as final */}
                 <dd className="mono">Included</dd>
               </dl>
               <div className="divider" style={{ margin: "16px 0" }} />
@@ -147,14 +147,29 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
               <div className="muted" style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", margin: "10px 0 4px" }}>
                 What happens next
               </div>
-              <div className="act">
-                <span className="t">{startsLater ? formatDate(order.startsAt, n) : "Today"}</span>
-                <span>Payment confirmed, package starts</span>
-              </div>
-              <div className="act">
-                <span className="t">Within 48 h</span>
-                <span>First buyers get your listing on WhatsApp</span>
-              </div>
+              {startsLater ? (
+                <>
+                  <div className="act">
+                    <span className="t">Today</span>
+                    <span>Payment confirmed</span>
+                  </div>
+                  <div className="act">
+                    <span className="t">{formatDate(order.startsAt, n)}</span>
+                    <span>Package starts when the current one ends</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="act">
+                    <span className="t">Today</span>
+                    <span>Payment confirmed, package starts</span>
+                  </div>
+                  <div className="act">
+                    <span className="t">Within 48 h</span>
+                    <span>First buyers get your listing on WhatsApp</span>
+                  </div>
+                </>
+              )}
               <div className="act">
                 <span className="t">Day 60</span>
                 <span>Cashback for any lead we missed</span>
@@ -166,7 +181,7 @@ export function Checkout({ order, cancelled, now }: { order: OrderDetail; cancel
                 </Button>
               )}
               <p className="muted" style={{ fontSize: 12.5, margin: "10px 0 0", textAlign: "center" }}>
-                Leads start arriving within 48 hours.
+                You&apos;ll come back here after paying.
               </p>
             </div>
           </aside>

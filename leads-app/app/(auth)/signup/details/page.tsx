@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SignupDetails } from "@/components/auth/SignupDetails";
-import { requireGuest } from "@/lib/guards";
+import { requireGuest } from "@/server/pages";
 
 export const metadata: Metadata = { title: "Your details", robots: { index: false } };
 

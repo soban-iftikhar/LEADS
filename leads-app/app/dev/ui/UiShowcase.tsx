@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LampToggle } from "@/components/app/LampToggle";
 import { Ghar } from "@/components/app/Ghar";
+import { TokenSheet } from "./TokenSheet";
 import {
   Avatar,
   Bar,
@@ -47,6 +48,8 @@ function Panel({ theme }: { theme: "light" | "dark" }) {
   return (
     <div data-theme={theme} className="app-ui" style={{ minHeight: 0, padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{theme === "light" ? "Light" : "Dark"}</h2>
+
+      <TokenSheet />
 
       <Section title="Buttons">
         <div className="row" style={{ flexWrap: "wrap" }}>
@@ -138,8 +141,9 @@ export function UiShowcase() {
     <ToastProvider>
       <div className="app-ui">
         <header className="top">
-          <div className="topin">
-            <b style={{ fontSize: 18 }}>UI primitives</b>
+          <div className="topin devhead">
+            <h1 style={{ fontSize: 18, margin: 0 }}>UI tokens and primitives</h1>
+            <span className="muted devsub" style={{ fontSize: 13 }}>Both themes side by side. The lamp switches the whole page.</span>
             <div className="tright"><LampToggle /></div>
           </div>
         </header>

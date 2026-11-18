@@ -1,21 +1,18 @@
 import { headers } from "next/headers";
-import { AppTopBar, MobileTabBar } from "@/components/app/AppTopBar";
+import { AppShell } from "@/components/app/AppShell";
 import { BadgeProvider } from "@/components/app/badges";
-import { Ghar } from "@/components/app/Ghar";
 import { ToastProvider } from "@/components/ui/Toast";
-import { requireCustomer } from "@/lib/guards";
+import { requireCustomer } from "@/server/pages";
 
+// (app): floating left rail + slim header + page transition + mobile tab bar + Ghar (ROUTES.md §3)
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-  const me = await requireCustomer(h.get("x-leads-path") ?? "/dashboard");
+  const { me } = await requireCustomer(h.get("x-leads-path") ?? "/dashboard");
   return (
     <div className="app-ui">
       <ToastProvider>
         <BadgeProvider newLeads={me.counts.newLeads} unread={me.counts.unreadNotifications}>
-          <AppTopBar me={me} />
-          <main className="content">{children}</main>
-          <MobileTabBar />
-          <Ghar area="app" />
+          <AppShell me={me}>{children}</AppShell>
         </BadgeProvider>
       </ToastProvider>
     </div>

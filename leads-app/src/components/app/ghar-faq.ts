@@ -1,12 +1,13 @@
-// Canned answers for Ghar until POST /api/assistant/chat exists (phase 2).
-// TODO(api): replace answerFor() with a call to /api/assistant/chat { message, page }.
+// Ghar, the help bubble: answers common questions from these rules, on the device. It never
+// claims to forward a chat: there is no inbox behind it. The AI assistant (phase 2) replaces
+// answerFor() with a call to the backend.
 
 export type GharArea = "marketing" | "auth" | "app";
 
 type Rule = [RegExp, string];
 
-const TALK_TO_PERSON =
-  "Sure. Our team is on WhatsApp from 9am to 9pm. I have flagged your chat, someone will message you.";
+const TALK_TO_PERSON = "Our team answers on WhatsApp from 9am to 9pm. Message the LEADS number you got your code or leads from, and a person will reply.";
+const CITY_RULE = /area|city|islamabad|rawalpindi|pindi|dha|bahria|g-1|b-17/;
 
 const RULES: Record<GharArea, Rule[]> = {
   marketing: [
@@ -15,17 +16,17 @@ const RULES: Record<GharArea, Rule[]> = {
     [/price|cost|kitna|fee|pay|package|how much/, "Listing is free. You buy a package of leads: 25, 100 or 250 buyers. Prices are in the Pricing section."],
     [/60|money back|refund|cashback|miss|don.?t come|nahi/, "Every package runs 60 days. Any lead we miss comes back to you as money."],
     [/fake|bad|wrong|report|spam/, "Report it from your inbox. If we agree, that lead goes back into your package."],
-    [/area|city|islamabad|rawalpindi|pindi|dha|bahria|g-1|b-17/, "Islamabad and Rawalpindi for now: G-13, B-17, DHA, Bahria Town and more."],
     [/human|person|call|whatsapp|team|talk|insaan/, TALK_TO_PERSON],
     [/agency|agent|many|multiple/, "Agencies get one account for all listings, and one inbox with every lead tagged by property."],
   ],
   auth: [
     [/salam|^hi|hello|hey|aoa/, "Walaikum salam! Ask me about logging in, codes, or account types."],
     [/forgot|reset|password|bhool/, 'Tap "Forgot password?" and we email you a link to set a new one.'],
-    [/code|otp|didn.?t get|nahi aya|not received/, 'Codes come on WhatsApp within a minute. Check the number, then tap "Send a new code" after 30 seconds.'],
+    [/code|otp|didn.?t get|nahi aya|not received/, 'Email codes arrive within a minute; check spam too. WhatsApp codes come to the number you typed. Tap "Send a new code" after 30 seconds.'],
+    [/google/, "Tap Continue with Google on the login or sign-up page. First time, you pick Owner or Agency and you're in."],
     [/owner|agency|which|type/, "Owner: you sell your own house or plot. Agency: you list many properties for clients. Pick one per account."],
     [/free|cost|price|pay/, "Creating an account and listing are free. You only pay for lead packages."],
-    [/human|person|call|whatsapp|team|talk|insaan/, "Sure. Our team is on WhatsApp 9am to 9pm. I have flagged your chat."],
+    [/human|person|call|whatsapp|team|talk|insaan/, TALK_TO_PERSON],
   ],
   app: [
     [/salam|^hi|hello|hey|aoa/, "Walaikum salam! Ask me about your leads, listings or package."],
@@ -36,16 +37,14 @@ const RULES: Record<GharArea, Rule[]> = {
   ],
 };
 
-const FALLBACK: Record<GharArea, string> = {
-  marketing: "Good question. I'll pass it to the team and they'll reply on WhatsApp. Meanwhile, try one of the buttons below.",
-  auth: "Good question. I'll pass it to the team and they'll reply on WhatsApp.",
-  app: "Good question. I'll pass it to the team and they'll reply on WhatsApp.",
-};
+const FALLBACK = "I don't know that one yet. Try one of the buttons below, or ask our team on WhatsApp (9am to 9pm).";
 
-export function answerFor(area: GharArea, question: string): string {
+/** `cities`: the active cities from config, for "which areas do you cover?" */
+export function answerFor(area: GharArea, question: string, cities: string[] = []): string {
   const t = question.toLowerCase();
+  if (area === "marketing" && CITY_RULE.test(t)) return cities.length ? `We work in ${cities.join(" and ")} for now.` : "Our cities are listed on the home page.";
   for (const [re, a] of RULES[area]) if (re.test(t)) return a;
-  return FALLBACK[area];
+  return FALLBACK;
 }
 
 export const QUICK_CHIPS: Record<GharArea, string[]> = {

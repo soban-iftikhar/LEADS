@@ -1,81 +1,43 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
+import { z } from "zod";
 import { env } from "@/server/env";
 
-// Created lazily (inside the function, not here at module load time) so
-// that whichever env-loading mechanism is in use (Next.js, dotenv in a
-// script, etc.) has already run by the time we actually need the key.
-let ai: GoogleGenAI | null = null;
+let client: GoogleGenAI | undefined;
 
-function getClient(): GoogleGenAI {
-  if (!ai) {
-    const { GEMINI_API_KEY } = env();
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not set: cannot run AI review");
-    ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  }
-  return ai;
+// Created on first use, so importing this module needs no API key (build, tests).
+function gemini(): GoogleGenAI | null {
+  const { GEMINI_API_KEY } = env();
+  if (!GEMINI_API_KEY) return null;
+  client ??= new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  return client;
 }
 
-const VALID_CATEGORIES = [
-  "House",
-  "Apartment",
-  "Plot",
-  "Commercial",
-  "Farmhouse",
-  "Room",
-];
+const reply = z.object({ description: z.string().min(1).max(4000), category: z.enum(["HOUSE", "PLOT", "FLAT", "COMMERCIAL"]) });
+export type DescriptionSuggestion = z.infer<typeof reply>;
 
-export interface AiReviewResult {
-  enhancedDescription: string;
-  suggestedCategory: string;
-  categoryMatches: boolean;
-}
+/**
+ * A clearer rewrite of an owner's description, and the category the text fits best. Never adds
+ * facts. Returns null when AI is not configured or the answer is unusable; callers then keep the
+ * owner's own text.
+ */
+export async function suggestDescription(input: { title: string; category: string; locality: string; description: string }): Promise<DescriptionSuggestion | null> {
+  const ai = gemini();
+  if (!ai) return null;
+  const prompt = `You improve property listings on a Pakistani real estate site.
 
-export async function enhanceListingWithAi(
-  title: string,
-  category: string,
-  description: string
-): Promise<AiReviewResult | null> {
+Listing: ${JSON.stringify(input)}
+
+Rewrite "description" to be clear and appealing to buyers, in plain English, under 120 words.
+Use only facts present in the input; never invent rooms, amenities, prices or places.
+Pick the category that fits best: HOUSE, PLOT, FLAT or COMMERCIAL.
+Answer with JSON only: {"description": string, "category": string}`;
   try {
-    const prompt = `You are reviewing a real estate listing for a property platform in Pakistan.
-
-Title: ${title}
-Seller-selected category: ${category}
-Valid categories: ${VALID_CATEGORIES.join(", ")}
-Original description: ${description}
-
-Tasks:
-1. Rewrite the description to be clearer, more professional, and more appealing to buyers. Do NOT invent facts (like number of rooms, amenities, or location details) that are not already stated or clearly implied in the original description.
-2. Based on the title and description, determine which category from the valid list actually fits best. It may or may not match the seller-selected category.
-
-Respond with ONLY valid JSON, no markdown formatting, no extra text, in this exact shape:
-{
-  "enhancedDescription": "string",
-  "suggestedCategory": "one of the valid categories",
-  "categoryMatches": true or false
-}`;
-
-    const result = await getClient().models.generateContent({
-  model: env().GEMINI_MODEL,
-      contents: prompt,
-    });
-    const rawText = (result.text ?? "").trim();
-
-    const cleaned = rawText.replace(/^```json\s*|\s*```$/g, "");
-
-    const parsed = JSON.parse(cleaned) as AiReviewResult;
-
-    if (
-      typeof parsed.enhancedDescription !== "string" ||
-      typeof parsed.suggestedCategory !== "string" ||
-      typeof parsed.categoryMatches !== "boolean"
-    ) {
-      throw new Error("Gemini response missing expected fields");
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error("Gemini enhancement error:", error);
+    const result = await ai.models.generateContent({ model: env().GEMINI_MODEL, contents: prompt, config: { responseMimeType: "application/json" } });
+    const parsed = reply.safeParse(JSON.parse((result.text ?? "").trim()));
+    return parsed.success ? parsed.data : null;
+  } catch (e) {
+    console.error("[gemini] description suggestion failed:", String(e).slice(0, 300));
     return null;
   }
 }

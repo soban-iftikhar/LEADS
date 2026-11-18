@@ -1,40 +1,35 @@
 import Link from "next/link";
+import { areaPages } from "@/server/modules/catalog/service";
 import { LogoMark } from "./Logo";
 
-const COLS: { title: string; links: { label: string; href: string }[] }[] = [
-  {
-    title: "LEADS",
-    links: [
-      { label: "How it works", href: "/#how" },
-      { label: "Pricing", href: "/#pricing" },
-      { label: "For agencies", href: "/#agencies" },
-      { label: "FAQ", href: "/#faq" },
-      { label: "Log in", href: "/login" },
-    ],
-  },
-  {
-    title: "Sell in Islamabad",
-    links: [
-      { label: "Sell house in G-13", href: "/sell/islamabad/g-13" },
-      { label: "Sell house in B-17", href: "/sell/islamabad/b-17" },
-      { label: "Sell plot in DHA Phase 2", href: "/sell/islamabad/dha-phase-2" },
-      { label: "Sell house in F-11", href: "/sell/islamabad/f-11" },
-      { label: "Sell house in G-14", href: "/sell/islamabad/g-14" },
-    ],
-  },
-  {
-    title: "Sell in Rawalpindi",
-    links: [
-      { label: "Sell house in Bahria Town", href: "/sell/rawalpindi/bahria-town" },
-      { label: "Sell house in Gulraiz", href: "/sell/rawalpindi/gulraiz" },
-      { label: "Sell house in Satellite Town", href: "/sell/rawalpindi/satellite-town" },
-      { label: "Sell plot in Adiala Road", href: "/sell/rawalpindi/adiala-road" },
-      { label: "Sell house in Saddar", href: "/sell/rawalpindi/saddar" },
-    ],
-  },
-];
+type Col = { title: string; links: { label: string; href: string }[] };
 
-export function MarketingFooter() {
+const SITE: Col = {
+  title: "LEADS",
+  links: [
+    { label: "How it works", href: "/#how" },
+    { label: "Pricing", href: "/#pricing" },
+    { label: "For agencies", href: "/#agencies" },
+    { label: "FAQ", href: "/#faq" },
+    { label: "Log in", href: "/login" },
+  ],
+};
+const AREAS_PER_CITY = 5;
+
+/** One column per active city, linking its first areas (config.localities, never hardcoded). */
+async function areaColumns(): Promise<{ cols: Col[]; cities: string[] }> {
+  const areas = await areaPages().catch(() => []);
+  const byCity = new Map<string, Col>();
+  for (const a of areas) {
+    const col = byCity.get(a.city) ?? { title: `Sell in ${a.cityName}`, links: [] };
+    if (col.links.length < AREAS_PER_CITY) col.links.push({ label: `Sell in ${a.name}`, href: `/sell/${a.city}/${a.area}` });
+    byCity.set(a.city, col);
+  }
+  return { cols: [...byCity.values()], cities: [...new Set(areas.map((a) => a.cityName))] };
+}
+
+export async function MarketingFooter() {
+  const { cols, cities } = await areaColumns();
   return (
     <footer style={{ borderTop: "1px solid var(--line)", padding: "clamp(48px,6vw,72px) 0 32px" }}>
       <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -44,11 +39,9 @@ export function MarketingFooter() {
               <LogoMark size={34} />
               <span style={{ fontWeight: 800, fontSize: 21, letterSpacing: "-.05em" }}>leads</span>
             </span>
-            <p style={{ margin: 0, fontSize: 14.5, color: "var(--ink-3)", maxWidth: 260 }}>Buyers for your property in Islamabad and Rawalpindi.</p>
-            {/* buyer catalogue is reserved for the buyer-side handoff */}
-            <span style={{ fontSize: 14.5, color: "var(--m-ink)", fontWeight: 700 }}>Looking to buy? Browse homes →</span>
+            <p style={{ margin: 0, fontSize: 14.5, color: "var(--ink-3)", maxWidth: 260 }}>{cities.length ? `Buyers for your property in ${cities.join(" and ")}.` : "Buyers for your property."}</p>
           </div>
-          {COLS.map((c) => (
+          {[SITE, ...cols].map((c) => (
             <nav key={c.title} aria-label={c.title} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <span style={{ fontWeight: 800, fontSize: 14 }}>{c.title}</span>
               {c.links.map((l) => (

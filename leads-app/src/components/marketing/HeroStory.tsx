@@ -219,6 +219,8 @@ export function HeroStory() {
   return (
     <div ref={wrapRef} className="zoomin" style={{ flex: "1.45 1 560px", minWidth: 0 }}>
       <div className={`stage ${sceneCls}`} style={{ position: "relative", overflow: "hidden" }}>
+        {/* edges fade into the page so the neighbourhood sits in it, not in a box */}
+        <div className="blend">
         <div className="zoomer" style={{ transformOrigin: view.zoom.o, transform: view.zoom.t }}>
           <svg className="scene" viewBox="170 30 860 580" role="group" aria-label="A neighbourhood in Islamabad. Choose a house to see how LEADS finds buyers for it.">
             <g>
@@ -445,6 +447,7 @@ export function HeroStory() {
               </div>
             ))}
           </div>
+        </div>
         </div>
         <div className="ov" aria-hidden="true">
           <div className="status">

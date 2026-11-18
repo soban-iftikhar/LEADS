@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { AuthTabs, Stepper } from "./parts";
+import { googleHref } from "@/lib/api";
+import { AuthTabs, GoogleButton, Stepper } from "./parts";
 
 type Kind = "seller" | "agency";
 
@@ -34,7 +35,7 @@ const AgencyIll = () => (
   </svg>
 );
 
-export function SignupType({ initial }: { initial: Kind }) {
+export function SignupType({ initial, google }: { initial: Kind; google: boolean }) {
   const [kind, setKind] = useState<Kind>(initial);
   const group = useRef<HTMLDivElement>(null);
   const onKey = (e: KeyboardEvent) => {
@@ -76,6 +77,14 @@ export function SignupType({ initial }: { initial: Kind }) {
         <Link href={`/signup/details?type=${kind}`} className="btn b-m full" style={{ marginTop: 26 }}>
           Continue as {kind === "agency" ? "an agency" : "an owner"}
         </Link>
+        {google && (
+          <div className="fields" style={{ marginTop: 18 }}>
+            <div className="or" role="separator">
+              or
+            </div>
+            <GoogleButton href={googleHref({ type: kind })} label={`Sign up with Google as ${kind === "agency" ? "an agency" : "an owner"}`} dividerAfter={false} />
+          </div>
+        )}
         <p className="foot">
           Already have an account?{" "}
           <Link href="/login" className="lnk">

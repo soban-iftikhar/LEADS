@@ -4,20 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { ApiError, login } from "@/lib/api";
+import { ApiError, googleHref, login } from "@/lib/api";
 import { formatTime } from "@/lib/format";
-import { AuthInput, AuthTabs, Banner, FieldError, PasswordInput, QuietNote, shake, Spinner } from "./parts";
+import { AuthInput, AuthTabs, Banner, FieldError, GoogleButton, PasswordInput, QuietNote, shake, Spinner } from "./parts";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function LoginForm({ next, note }: { next: string; note: string | null }) {
+export function LoginForm({ next, note, error, google }: { next: string; note: string | null; error: string | null; google: boolean }) {
   const router = useRouter();
   const card = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [remember, setRemember] = useState(true);
   const [errs, setErrs] = useState<{ email?: string; pw?: string }>({});
-  const [banner, setBanner] = useState("");
+  const [banner, setBanner] = useState(error ?? "");
   const [busy, setBusy] = useState(false);
 
   const fail = (e: typeof errs, b = "") => {
@@ -43,10 +43,11 @@ export function LoginForm({ next, note }: { next: string; note: string | null })
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 403) {
-          router.replace("/signup/verify");
+        if (err.status === 403 && err.errors?.requiresEmailVerification) {
+          router.replace(`/signup/verify?next=${encodeURIComponent(next)}`);
           return;
         }
+        if (err.status === 403) return fail({}, err.message);
         if (err.status === 423) {
           const until = err.errors?.lockedUntil;
           return fail({}, until ? `Too many tries. Try again at ${formatTime(until)}.` : "Too many tries. Try again later.");
@@ -65,6 +66,7 @@ export function LoginForm({ next, note }: { next: string; note: string | null })
         <h1 className="ttl">Welcome back.</h1>
         <p className="sub">Log in to see your leads.</p>
         <div className="fields">
+          {google && <GoogleButton href={googleHref({ next })} />}
           {note && <QuietNote>{note}</QuietNote>}
           {banner && <Banner>{banner}</Banner>}
           <div className="field">

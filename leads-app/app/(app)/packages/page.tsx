@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { PackagesTables } from "@/components/app/PackagesTables";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button, Empty, Icon, Section, StatStrip } from "@/components/ui";
-import { getLeads, getOrders } from "@/lib/api";
+import { listLeads } from "@/server/modules/leads/service";
+import { listOrders } from "@/server/modules/orders/service";
+import { requireCustomer } from "@/server/pages";
 
 export const metadata: Metadata = { title: "Packages", robots: { index: false } };
 
 export default async function PackagesPage() {
-  const [active, past, reported] = await Promise.all([getOrders("active"), getOrders("past"), getLeads({ stage: "reported", pageSize: 1 })]);
+  const { me } = await requireCustomer("/packages");
+  const [active, past, reported] = await Promise.all([listOrders(me.user.id, "active"), listOrders(me.user.id, "past"), listLeads(me.user.id, { stage: "reported", pageSize: 1 })]);
   const t = active.totals;
   return (
     <>

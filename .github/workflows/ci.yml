@@ -20,6 +20,8 @@ jobs:
       # Build-time placeholders only; nothing connects during these steps.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       NEXT_TELEMETRY_DISABLED: "1"
+      # unit tests sign test tokens; a throwaway value for CI only
+      JWT_SECRET: ci-only-secret-ci-only-secret-0123456789
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,6 +71,10 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npx prisma migrate deploy
+          npx prisma generate
+      - name: Web integration tests (constraints)
+        working-directory: leads-app
+        run: npm run test:integration
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

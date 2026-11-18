@@ -90,18 +90,16 @@ export function NotificationsList({ type, initial, now }: { type: string; initia
   return (
     <>
       <PageHeader title="Notifications" sub={`${unread} unread`} actions={<Button size="sm" onClick={markAll} disabled={unread === 0}>Mark all as read</Button>} />
-      <div>
-        <Segmented
+      <Segmented
           label="Filter notifications"
           value={type}
           items={[
             { value: "all", label: "All", href: "/notifications" },
             { value: "lead", label: "Leads", href: "/notifications?type=lead" },
             { value: "listing", label: "Listings", href: "/notifications?type=listing" },
-            { value: "package", label: "Package", href: "/notifications?type=package" },
+            { value: "package", label: "Packages", href: "/notifications?type=package" },
           ]}
         />
-      </div>
       <section className="sec" aria-label="Notifications">
         {items.length === 0 ? (
           <div className="sec-b">

@@ -1,4 +1,5 @@
 import "server-only";
+import crypto from "node:crypto";
 import { env } from "@/server/env";
 
 /**
@@ -22,4 +23,11 @@ export function clientIp(request: Request): string {
     .map((part) => part.trim())
     .filter(Boolean);
   return chain[chain.length - hops] ?? chain[0] ?? "unknown";
+}
+
+/** Keyed hash of an address, for session rows and audit entries (never the address itself). */
+export function hashIp(ip: string | undefined): string | null {
+  const pepper = env().OTP_PEPPER;
+  if (!ip || ip === "unknown" || !pepper) return null;
+  return crypto.createHmac("sha256", Buffer.from(pepper, "base64")).update(ip).digest("hex").slice(0, 32);
 }

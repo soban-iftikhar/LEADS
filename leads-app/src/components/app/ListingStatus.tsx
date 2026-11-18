@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Bar, Button, Chip, Icon, ListingPic, Modal, Note, Section, useToast } from "@/components/ui";
 import type { IconName } from "@/components/ui/icons";
 import { ApiError, listingAction } from "@/lib/api";
@@ -19,7 +19,7 @@ const MEANINGS: [Exclude<ListingStatus, "ARCHIVED">, string][] = [
   ["APPROVED", "Approved. You can buy leads for it."],
   ["REJECTED", "Doesn't meet our rules. Fix it and send it again."],
   ["PAUSED", "You paused it. No new leads until you resume."],
-  ["SOLD", "Marked sold. Any active package stops and the rest is refunded as cashback."],
+  ["SOLD", "Marked sold. Any active package stops and the rest comes back as cashback."],
 ];
 
 type Step = { label: string; at: string | null; state: "ok" | "now" | "" };
@@ -76,7 +76,7 @@ const FIX: Record<string, { icon: IconName; title: string; action: string; ancho
 
 function FixItem({ c, listingId }: { c: QualityCheck; listingId: string }) {
   const f = FIX[c.key] ?? { icon: "alert" as IconName, title: c.label, action: "Edit", anchor: "" };
-  const href = c.key === "whatsapp" ? "/settings#profile" : `/listings/${listingId}/edit${f.anchor}`;
+  const href = c.key === "whatsapp" ? `/verify-phone?next=${encodeURIComponent(`/listings/${listingId}`)}` : `/listings/${listingId}/edit${f.anchor}`;
   return (
     <div className="note warn">
       <Icon name={f.icon} size={20} />
@@ -91,21 +91,14 @@ function FixItem({ c, listingId }: { c: QualityCheck; listingId: string }) {
   );
 }
 
-function MoreMenu({ l }: { l: ListingDetail }) {
+/** Pause / Resume / Mark as sold as ghost buttons beside "Edit listing" (screens/ag-status.html). */
+function StatusActions({ l }: { l: ListingDetail }) {
   const router = useRouter();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const off = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("mousedown", off);
-    return () => document.removeEventListener("mousedown", off);
-  }, [open]);
+  const [busy, setBusy] = useState<string | null>(null);
   const run = async (a: "pause" | "resume" | "mark-sold") => {
-    setBusy(true);
+    setBusy(a);
     try {
       await listingAction(l.id, a);
       toast(a === "pause" ? "Listing paused." : a === "resume" ? "Listing is live again." : "Marked sold.");
@@ -114,29 +107,27 @@ function MoreMenu({ l }: { l: ListingDetail }) {
     } catch (e) {
       toast(e instanceof ApiError ? e.message : "Couldn't do that. Try again.");
     } finally {
-      setBusy(false);
-      setOpen(false);
+      setBusy(null);
     }
   };
-  const items: { label: string; act: () => void }[] = [];
-  if (l.status === "APPROVED") items.push({ label: "Pause listing", act: () => run("pause") });
-  if (l.status === "PAUSED") items.push({ label: "Resume listing", act: () => run("resume") });
-  if (l.status === "APPROVED" || l.status === "PAUSED") items.push({ label: "Mark as sold", act: () => { setOpen(false); setConfirm(true); } });
-  if (!items.length) return null;
+  const live = l.status === "APPROVED";
+  const paused = l.status === "PAUSED";
+  if (!live && !paused) return null;
   return (
-    <div className="acct" ref={ref}>
-      <button type="button" className="mini" aria-label="More actions" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <Icon name="dots" size={16} />
-      </button>
-      {open && (
-        <div className="acct-menu" role="menu">
-          {items.map((i) => (
-            <button key={i.label} type="button" role="menuitem" onClick={i.act} disabled={busy}>
-              {i.label}
-            </button>
-          ))}
-        </div>
+    <>
+      {live && (
+        <Button variant="ghost" loading={busy === "pause"} loadingLabel="Pausing…" onClick={() => run("pause")}>
+          Pause
+        </Button>
       )}
+      {paused && (
+        <Button variant="ghost" loading={busy === "resume"} loadingLabel="Resuming…" onClick={() => run("resume")}>
+          Resume
+        </Button>
+      )}
+      <Button variant="ghost" onClick={() => setConfirm(true)}>
+        Mark as sold
+      </Button>
       {confirm && (
         <Modal
           title="Mark as sold?"
@@ -146,16 +137,16 @@ function MoreMenu({ l }: { l: ListingDetail }) {
               <Button variant="ghost" onClick={() => setConfirm(false)}>
                 Cancel
               </Button>
-              <Button variant="ink" loading={busy} loadingLabel="Saving…" onClick={() => run("mark-sold")}>
+              <Button variant="ink" loading={busy === "mark-sold"} loadingLabel="Saving…" onClick={() => run("mark-sold")}>
                 Mark as sold
               </Button>
             </>
           }
         >
-          <p style={{ margin: 0 }}>{LISTING_STATUS.SOLD && "Marked sold. Any active package stops and the rest is refunded as cashback."}</p>
+          <p style={{ margin: 0 }}>Any active package stops and the rest comes back as cashback.</p>
         </Modal>
       )}
-    </div>
+    </>
   );
 }
 
@@ -183,12 +174,12 @@ export function ListingStatusView({ listing: l, now }: { listing: ListingDetail;
           </div>
         </div>
         <div className="row">
+          <StatusActions l={l} />
           {EDITABLE.includes(l.status) && (
             <Button href={`/listings/${l.id}/edit`} icon="edit">
               {l.status === "DRAFT" ? "Continue editing" : "Edit listing"}
             </Button>
           )}
-          <MoreMenu l={l} />
         </div>
       </section>
       {l.status !== "DRAFT" && <StatusTimeline items={steps(l)} now={n} />}
