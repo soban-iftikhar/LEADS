@@ -15,6 +15,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
     "db:seed:dev": "tsx --conditions=react-server scripts/dev-seed.ts",
+    "db:seed:admin": "tsx --conditions=react-server prisma/seed/admin.ts",
     "admin:create": "tsx --conditions=react-server scripts/admin-create.ts"
   },
   "dependencies": {

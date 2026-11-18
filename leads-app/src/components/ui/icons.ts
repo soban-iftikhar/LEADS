@@ -45,6 +45,24 @@ export const ICONS = {
   trash: "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>",
   mail: "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"3\"/><path d=\"M4 7l8 6 8-6\"/>",
   zap: "<path d=\"M13 3 4 14h7l-1 7 9-11h-7z\"/>",
+  // admin rail and tables (square caps, set by the admin stylesheet)
+  globe: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18\"/>",
+  send: "<path d=\"M3 11 21 3l-8 18-2-8zM11 13l4-4\"/>",
+  users: "<path d=\"M9 3h4v8H9zM5 21v-6h12v6M17 7h3v6M20 21v-4\"/>",
+  people: "<path d=\"M8 4h4v6H8zM4 20v-6h12v6M16 4h4v6M20 20v-4\"/>",
+  cash: "<path d=\"M3 6h18v12H3zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9v1M18 14v1\"/>",
+  sliders: "<path d=\"M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M13 4v4M7 10v4M15 16v4\"/>",
+  plot: "<path d=\"M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15\"/>",
+  house: "<path d=\"M4 21V10l8-6 8 6v11zM10 21v-6h4v6\"/>",
+  tray: "<path d=\"M3 4h18v16H3zM3 13h5l2 3h4l2-3h5\"/>",
+  tiles: "<path d=\"M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z\"/>",
+  archive: "<path d=\"M3 4h18v4H3zM5 8v12h14V8M10 12h4\"/>",
+  pen: "<path d=\"M4 20v-4L15 5l4 4L8 20zM13 7l4 4\"/>",
+  download: "<path d=\"M12 4v11M7 10l5 5 5-5M4 20h16\"/>",
+  menu: "<path d=\"M4 7h16M4 12h16M4 17h16\"/>",
+  arrow: "<path d=\"M5 12h14M13 6l6 6-6 6\"/>",
+  back: "<path d=\"M15 6l-6 6 6 6\"/>",
+  exit: "<path d=\"M14 4h6v16h-6M10 16l-4-4 4-4M6 12h10\"/>",
 } as const;
 
 export type IconName = keyof typeof ICONS;

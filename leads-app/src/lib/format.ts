@@ -148,6 +148,12 @@ export function dayBucket(iso: string, now: Date = new Date()): "Today" | "Yeste
   return diff <= 0 ? "Today" : diff === 1 ? "Yesterday" : "Earlier";
 }
 
+/** "Good morning" / "Good afternoon" / "Good evening" for the hour in Karachi. */
+export function greeting(now: Date = new Date()): string {
+  const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", hour12: false }).format(now)) % 24;
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+
 /** "Bilal Ahmed" -> "Bilal". */
 export function firstName(full: string): string {
   return full.trim().split(/\s+/)[0] ?? "";

@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent, type ReactNode } from "react";
+import { LogoMark } from "@/components/brand/Logo";
+import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
 import type { IconName } from "@/components/ui/icons";
 import { logout } from "@/lib/api";
 import { CUSTOMER_KIND } from "@/lib/labels";
+import { usePageTransition } from "@/lib/hooks/usePageTransition";
+import { useRailCollapsed } from "@/lib/hooks/useRailCollapsed";
 import { RAIL_STORAGE_KEY } from "@/lib/theme";
 import type { Me } from "@/types/api";
 import { useBadges } from "./badges";
-import { Ghar } from "./Ghar";
-import { LampToggle } from "./LampToggle";
+import { Ghar } from "@/components/brand/Ghar";
+import { LampToggle } from "@/components/brand/LampToggle";
 
 // ---------------------------------------------------------------- navigation model (ROUTES.md §3)
 
@@ -74,48 +77,7 @@ export function SetCrumb({ title }: { title: string }) {
   return null;
 }
 
-// ---------------------------------------------------------------- rail state (collapsed lives on <html data-rail>)
-
-const RAIL_EVENT = "leads-rail";
-const readCollapsed = () => document.documentElement.getAttribute("data-rail") === "col";
-const subscribeRail = (cb: () => void) => {
-  window.addEventListener(RAIL_EVENT, cb);
-  return () => window.removeEventListener(RAIL_EVENT, cb);
-};
-
-function setCollapsed(col: boolean) {
-  if (col) document.documentElement.setAttribute("data-rail", "col");
-  else document.documentElement.removeAttribute("data-rail");
-  try {
-    localStorage.setItem(RAIL_STORAGE_KEY, col ? "col" : "open");
-  } catch {
-    // storage blocked: the choice lasts for this page only
-  }
-  window.dispatchEvent(new Event(RAIL_EVENT));
-}
-
-// ---------------------------------------------------------------- count-up (PageTransition step 4)
-
 const COUNT_SELECTOR = ".stat .v, .hero .big b, .callc .big, .hrow .v";
-
-function countUp(root: HTMLElement | null) {
-  if (!root || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-  root.querySelectorAll<HTMLElement>(COUNT_SELECTOR).forEach((el) => {
-    const node = el.firstChild;
-    if (!node || node.nodeType !== 3) return;
-    const m = (node.nodeValue ?? "").match(/^(\+?)(\d+)([\s\S]*)$/);
-    if (!m) return;
-    const end = Number(m[2]);
-    const t0 = performance.now();
-    const step = (t: number) => {
-      const p = Math.min(1, (t - t0) / 800);
-      const e = 1 - Math.pow(1 - p, 3);
-      node.nodeValue = m[1] + Math.round(end * e) + m[3];
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-}
 
 // ---------------------------------------------------------------- the shell
 
@@ -132,63 +94,16 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
     }
   };
   const { newLeads, unread } = useBadges();
-  const collapsed = useSyncExternalStore(subscribeRail, readCollapsed, () => false);
-  // the path we are leaving; the page is faded out only while we are still on it
-  const [leaving, setLeaving] = useState<string | null>(null);
-  const out = leaving === path;
+  const { collapsed, setCollapsed, toggle } = useRailCollapsed(RAIL_STORAGE_KEY);
+  const { out, go, stage, onClickCapture } = usePageTransition({ countSelector: COUNT_SELECTOR });
   const [crumb, setCrumb] = useState<string | null>(null);
-  const stage = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
-  const busy = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const idx = Math.max(0, RAIL.findIndex((r) => isOn(path, r.match)));
   const activeKnown = RAIL.some((r) => isOn(path, r.match));
   const accountName = me.customer.displayName;
   const kind = CUSTOMER_KIND[me.customer.kind];
   const badge = (b?: Item["badge"]) => (b === "leads" ? newLeads : b === "unread" ? unread : 0);
-
-  /** Leave (190 ms blur-fade), then swap the route; the new page's blocks rise in (CSS on .pane). */
-  const go = useCallback(
-    (href: string) => {
-      const target = new URL(href, window.location.href);
-      if (target.pathname === window.location.pathname) {
-        router.push(target.pathname + target.search + target.hash);
-        return;
-      }
-      if (busy.current) return;
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-        router.push(href);
-        return;
-      }
-      busy.current = true;
-      setLeaving(window.location.pathname);
-      timer.current = setTimeout(() => router.push(href), 190);
-    },
-    [router],
-  );
-
-  // the new route has rendered: show it, scroll up, count the numbers up
-  useEffect(() => {
-    busy.current = false;
-    if (timer.current) clearTimeout(timer.current);
-    window.scrollTo({ top: 0 });
-    const r = requestAnimationFrame(() => countUp(stage.current));
-    return () => cancelAnimationFrame(r);
-  }, [path]);
-
-  // every in-app link gets the transition, not just the rail (like the prototype's data-go)
-  const onClickCapture = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    const a = (e.target as HTMLElement).closest?.("a[href]") as HTMLAnchorElement | null;
-    if (!a || a.target || a.hasAttribute("download")) return;
-    const href = a.getAttribute("href") ?? "";
-    if (!href.startsWith("/") || href.startsWith("//") || href.startsWith("/api/")) return;
-    const url = new URL(href, window.location.href);
-    if (url.pathname === window.location.pathname) return; // filters and anchors: let Link handle it
-    e.preventDefault();
-    go(href);
-  };
 
   // keyboard: [ toggles the rail, 1-6 jump to sections, / focuses search (not while typing)
   useEffect(() => {
@@ -198,7 +113,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "[") {
         e.preventDefault();
-        setCollapsed(!readCollapsed());
+        toggle();
         return;
       }
       if (e.key === "/") {
@@ -211,7 +126,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go]);
+  }, [go, toggle]);
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -224,11 +139,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
       <div className="shell" onClickCapture={onClickCapture}>
         <aside className="rail" aria-label="Main menu">
           <Link href="/dashboard" className="rb" aria-label="LEADS home">
-            <svg width="38" height="38" viewBox="0 0 48 48" aria-hidden="true">
-              <rect width="48" height="48" rx="13" style={{ fill: "var(--m)" }} />
-              <path d="M11 19.5 17.5 13 24 19.5V31h13v6H11z" style={{ fill: "var(--on-m)" }} />
-              <circle cx="32" cy="20" r="5" style={{ fill: "var(--m-tint)" }} />
-            </svg>
+            <LogoMark size={38} />
             <span className="lbl2">leads</span>
           </Link>
           <nav className="rnav" aria-label="Sections">

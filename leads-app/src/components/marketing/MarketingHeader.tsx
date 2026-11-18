@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { LampToggle } from "@/components/app/LampToggle";
-import { LogoMark } from "./Logo";
+import { LampToggle } from "@/components/brand/LampToggle";
+import { LogoMark } from "@/components/brand/Logo";
 
 /** Landing header: section links, lamp, Log in (or Dashboard when signed in), primary CTA. */
 export function MarketingHeader({ signedIn, home = true }: { signedIn: boolean; home?: boolean }) {

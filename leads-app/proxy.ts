@@ -27,5 +27,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/leads/:path*", "/listings/:path*", "/packages/:path*", "/checkout/:path*", "/notifications/:path*", "/settings/:path*", "/signup/verify", "/verify-phone"],
+  // /admin/login is outside: it is where a signed-out admin lands
+  matcher: ["/admin", "/admin/((?!login).*)", "/dashboard/:path*", "/leads/:path*", "/listings/:path*", "/packages/:path*", "/checkout/:path*", "/notifications/:path*", "/settings/:path*", "/signup/verify", "/verify-phone"],
 };

@@ -4,6 +4,7 @@
 @import "../src/styles/auth.css";
 @import "../src/styles/app.css";
 @import "../src/styles/extras.css";
+@import "../src/styles/admin.css";
 
 @theme inline {
   --color-bg: var(--bg);
