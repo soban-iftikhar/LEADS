@@ -35,3 +35,20 @@ test.describe("admin shell", () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 });
+
+test.describe("admin feedback", () => {
+  test("log out asks first; Esc keeps you signed in, confirming ends the session", async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.getByRole("button", { name: "Log out" }).click();
+    const dialog = page.getByRole("alertdialog", { name: "Log out?" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await page.getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Log out" }).click();
+    await expect(page).toHaveURL(/\/admin\/login/);
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/admin\/login/);
+  });
+});
