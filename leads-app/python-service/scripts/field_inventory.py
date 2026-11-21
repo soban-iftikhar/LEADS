@@ -154,7 +154,7 @@ def flatten(obj, prefix="", out=None):
             flatten(v, path, out)
     elif isinstance(obj, list):
         for v in obj:
-            if isinstance(v, (dict, list)):
+            if isinstance(v, dict | list):
                 flatten(v, f"{prefix}[]", out)
             else:
                 out.append((f"{prefix}[]", v))
@@ -171,7 +171,7 @@ def inventory(portal):
             s["types"].add(_type(v))
             if _filled(v):
                 s["filled_in"].add(f.stem)
-                if s["example"] is None and not isinstance(v, (dict, list)):
+                if s["example"] is None and not isinstance(v, dict | list):
                     s["example"] = v
     n = len(files)
     rows = []

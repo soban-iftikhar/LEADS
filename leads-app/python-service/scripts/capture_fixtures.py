@@ -311,7 +311,7 @@ def sanitise(obj, path: str = ""):
             sub = f"{path}.{k}" if path else k
             if sub in PERSON_NAME_PATHS and isinstance(v, str) and v:
                 out[k] = "Test Seller"
-            elif k in ACCOUNT_ID_KEYS and isinstance(v, (str, int)) and not isinstance(v, bool) and v:
+            elif k in ACCOUNT_ID_KEYS and isinstance(v, str | int) and not isinstance(v, bool) and v:
                 out[k] = _fake_id(v)
             else:
                 out[k] = sanitise(v, sub)
