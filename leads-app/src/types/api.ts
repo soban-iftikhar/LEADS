@@ -11,7 +11,8 @@ export type CustomerKind = "SELLER" | "AGENCY";
 
 export type Me = {
   user: { id: string; email: string; role: Role; phoneMasked: string | null; emailVerified: boolean; phoneVerified: boolean };
-  customer: { kind: CustomerKind; displayName: string; contactPerson: string | null; initials: string };
+  /** city: the owner's home city (region slug), or null */
+  customer: { kind: CustomerKind; displayName: string; contactPerson: string | null; initials: string; city: string | null };
   counts: { newLeads: number; unreadNotifications: number; listings: number };
 };
 
@@ -24,7 +25,7 @@ export type ListingCard = {
   slug: string;
   title: string;
   category: ListingCategory;
-  locality: { id: string; name: string; regionName: string };
+  locality: { id: string; name: string; regionId: string; regionName: string };
   pricePkr: Pkr;
   sizeValue: string;
   sizeUnit: SizeUnit;
@@ -53,6 +54,8 @@ export type ListingDetail = ListingCard & {
   reviews: { decision: string; note: string | null; createdAt: string }[];
   timeline: { status: ListingStatus; at: string }[];
   ownerName: string | null; // agencies only: the owner they list for (only our team sees it)
+  /** the owner may change it now (also true for a live listing being re-reviewed after an edit) */
+  editable: boolean;
 };
 
 export type ListingPatch = Partial<{
@@ -132,6 +135,8 @@ export type PaymentMethod = "CARD" | "JAZZCASH" | "EASYPAISA" | "BANK_TRANSFER";
 export type OrderDetail = OrderCard & {
   payments: { status: string; provider: string; createdAt: string }[];
   startsAt: string;
+  /** payment methods the current provider accepts */
+  methods: PaymentMethod[];
 };
 
 export type PayResult =
@@ -193,6 +198,7 @@ export type NotificationSettings = {
   packageEnding: boolean;
 };
 
+export type Region = { id: string; name: string; slug: string };
 export type Locality = { id: string; name: string; slug: string; parentName: string | null };
 
 export type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };

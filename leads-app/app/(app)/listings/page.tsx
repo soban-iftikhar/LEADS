@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { ListingsTable } from "@/components/app/ListingsTable";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button, Empty, Section, Segmented } from "@/components/ui";
-import { getMe, getMyListings } from "@/lib/api";
 import type { ListingFilter } from "@/lib/labels";
+import { listMyListings } from "@/server/modules/listings/service";
+import { requireCustomer } from "@/server/pages";
 
 export const metadata: Metadata = { title: "Listings", robots: { index: false } };
 
@@ -12,7 +13,8 @@ const FILTERS: ListingFilter[] = ["live", "review", "info", "rejected", "draft",
 export default async function ListingsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   const sp = await searchParams;
   const status = FILTERS.includes(sp.status as ListingFilter) ? (sp.status as ListingFilter) : undefined;
-  const [me, { items, counts }] = await Promise.all([getMe(), getMyListings({ status, pageSize: 100 })]);
+  const { me, owner: viewer } = await requireCustomer("/listings");
+  const { items, counts } = await listMyListings(viewer, { status, page: 1, pageSize: 100 });
   const owner = me.customer.kind === "SELLER";
   const action = counts.info + counts.rejected;
   const parts = [`${counts.live} live`, `${counts.review} under review`, `${action} need${action === 1 ? "s" : ""} action`];

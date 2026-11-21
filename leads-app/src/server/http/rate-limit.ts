@@ -1,6 +1,8 @@
 import "server-only";
+import crypto from "node:crypto";
 import { Redis } from "ioredis";
 import { env } from "@/server/env";
+import { tooMany } from "./errors";
 
 let client: Redis | undefined;
 
@@ -10,36 +12,39 @@ function redis(): Redis {
   return client;
 }
 
-export interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-}
-
 /**
- * Fixed-window counter: at most `limit` calls per `windowSeconds` for `identifier`.
- * INCR and EXPIRE run in one transaction, so a crash between them cannot leave a
- * counter without an expiry (which would block the caller forever).
+ * Sliding-window limit (never trusts caller-supplied headers; see client-ip.ts): at most `max` calls in any `windowSeconds` span.
+ * One sorted set per bucket holds the call times; old entries are trimmed and the new one is
+ * added in a single MULTI, so concurrent calls cannot slip past the count.
  */
-export async function rateLimit(
-  identifier: string,
-  limit: number,
-  windowSeconds: number
-): Promise<RateLimitResult> {
-  const key = `ratelimit:${identifier}`;
-  const results = await redis()
+export async function rateLimit(identifier: string, max: number, windowSeconds: number): Promise<{ allowed: boolean; remaining: number }> {
+  const key = `rl:${identifier}`;
+  const now = Date.now();
+  const res = await redis()
     .multi()
-    .incr(key)
-    .expire(key, windowSeconds, "NX")
+    .zremrangebyscore(key, 0, now - windowSeconds * 1000)
+    .zadd(key, now, `${now}:${crypto.randomBytes(4).toString("hex")}`)
+    .zcard(key)
+    .pexpire(key, windowSeconds * 1000)
     .exec();
-
-  const current = Number(results?.[0]?.[1] ?? 0);
-  return {
-    allowed: current <= limit,
-    remaining: Math.max(0, limit - current),
-  };
+  const count = Number(res?.[2]?.[1] ?? 0);
+  return { allowed: count <= max, remaining: Math.max(0, max - count) };
 }
 
-/** Current count for a bucket without adding to it (0 when empty). */
-export async function peekRateLimit(identifier: string): Promise<number> {
-  return Number((await redis().get(`ratelimit:${identifier}`)) ?? 0);
+/** Throws 429 (with Retry-After) once the bucket is over its limit. */
+export async function limit(key: string, max: number, windowSeconds: number): Promise<void> {
+  const { allowed } = await rateLimit(key, max, windowSeconds);
+  if (!allowed) throw tooMany(windowSeconds);
+}
+
+/** Calls counted in the current window, without adding one. */
+export async function peekRateLimit(identifier: string, windowSeconds: number): Promise<number> {
+  const key = `rl:${identifier}`;
+  await redis().zremrangebyscore(key, 0, Date.now() - windowSeconds * 1000);
+  return redis().zcard(key);
+}
+
+/** Records one call (for counters that only count failures). */
+export async function hitRateLimit(identifier: string, windowSeconds: number): Promise<void> {
+  await rateLimit(identifier, Number.MAX_SAFE_INTEGER, windowSeconds);
 }

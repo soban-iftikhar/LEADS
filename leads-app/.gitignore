@@ -83,3 +83,7 @@ e2e/.server.log
 .shot.mjs
 .cmp.mjs
 .tmp-*.mjs
+
+# local development uploads (src/server/integrations/media/local.ts)
+/public/uploads/
+/.data/

@@ -1,123 +1,45 @@
 import "server-only";
-import crypto from "crypto";
-import type { Prisma, User } from "@prisma/client";
-import { checkCode, issueCode, issueLinkToken, liveToken, consumeLinkToken } from "@/server/auth/codes";
+import crypto from "node:crypto";
+import type { User } from "@prisma/client";
+import { checkCode, consumeLinkToken, issueCode, issueLinkToken } from "@/server/auth/codes";
+import type { IssuedTokens } from "@/server/auth/cookies";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
-import { createSession, revokeAllSessions, revokeSession } from "@/server/auth/sessions";
-import { decryptPhone, encryptPhone, hashPhone } from "@/server/crypto/phone";
+import { createSession, revokeAllSessions, revokeSession } from "@/server/auth/session";
+import { checkTotp } from "@/server/auth/totp";
 import { prisma } from "@/server/db";
-import { env } from "@/server/env";
+import { deliveryIsLogged, env, isProduction } from "@/server/env";
+import { hashIp } from "@/server/http/client-ip";
 import { AppError, conflict } from "@/server/http/errors";
 import { sendAccountLockedEmail, sendEmailCode, sendPasswordChangedEmail, sendPasswordResetEmail } from "@/server/integrations/email";
-import { sendWhatsAppCode, WhatsAppSendError } from "@/server/modules/messaging/whatsapp/client";
-import type { Me, NotificationSettings } from "@/types/api";
+import { audit } from "@/server/modules/audit/service";
+import { deliverSecret, notify } from "./delivery";
 import type { RegisterInput } from "./schema";
 
 const TERMS_VERSION = "2026-11";
-const LOCK_AFTER = 10; // contract: 423 after 10 failures
+const LOCK_AFTER = 10;
 const LOCK_MS = 15 * 60_000;
 const RESET_TTL_MS = 30 * 60_000;
+const ADMIN_ONLY = "Admins sign in on the admin console.";
+
+export type ClientCtx = { userAgent?: string | null; ip?: string };
+
 // compared against when the email is unknown, so response time doesn't reveal which emails exist
 let dummyHash: Promise<string> | undefined;
 const dummy = () => (dummyHash ??= hashPassword(crypto.randomBytes(16).toString("hex")));
 
-export const DEFAULT_PREFS: NotificationSettings = { newLeadWhatsapp: true, dailySummary: true, listingUpdates: true, emailCopies: false, packageEnding: true };
-
-type Ctx = { userAgent?: string | null; ip?: string };
-type UserWithProfile = User & { customer: { kind: "SELLER" | "AGENCY"; displayName: string; contactPerson: string | null; notificationPrefs: Prisma.JsonValue } | null };
-
-function keys() {
-  const { PHONE_HASH_PEPPER, PHONE_ENC_KEY } = env();
-  if (!PHONE_HASH_PEPPER || !PHONE_ENC_KEY) throw new Error("PHONE_HASH_PEPPER and PHONE_ENC_KEY must be set");
-  return { pepper: PHONE_HASH_PEPPER, key: PHONE_ENC_KEY };
-}
-
-const ipHash = (ip?: string) => (ip ? crypto.createHash("sha256").update(`${env().OTP_PEPPER}:${ip}`).digest("hex").slice(0, 32) : null);
-
 /** A random bcrypt hash nobody knows the input of: the account has no usable password. */
-async function unusableHash() {
-  return hashPassword(crypto.randomBytes(32).toString("base64"));
-}
+export const unusableHash = () => hashPassword(crypto.randomBytes(32).toString("base64"));
 
-/**
- * Sends a code. If the provider fails: in development the code is printed to the server log so
- * the flow can still be tested; in production the person sees a "couldn't send" error.
- */
-async function deliver(what: string, to: string, code: string, fn: () => Promise<unknown>) {
-  if (env().AUTH_DELIVERY === "log" && process.env.NODE_ENV !== "production") {
-    console.info(`[auth] ${what} to ${to} not sent (AUTH_DELIVERY=log). The code is: ${code}`);
-    return;
-  }
-  try {
-    await fn();
-  } catch (e) {
-    const detail = e instanceof WhatsAppSendError ? `${e.message} ${e.detail ?? ""}` : String(e);
-    if (process.env.NODE_ENV !== "production") {
-      console.warn(`[auth] ${what} to ${to} failed (${detail.slice(0, 300)}). Development fallback, the code is: ${code}`);
-      return;
-    }
-    console.error(`[auth] ${what} failed:`, detail);
-    throw new AppError(502, `We couldn't send the code right now. Try again in a minute.`);
-  }
-}
+const firstName = (u: Pick<User, "fullName">) => u.fullName.split(" ")[0] || u.fullName;
 
-/** Notices (password changed, login paused): best effort, never block the request, silent in log mode. */
-function quiet(fn: () => Promise<unknown>): Promise<unknown> {
-  if (env().AUTH_DELIVERY === "log" && process.env.NODE_ENV !== "production") return Promise.resolve();
-  return fn();
-}
-
-function initials(name: string): string {
-  const parts = name.replace(/[^\p{L}\s-]/gu, " ").trim().split(/[\s-]+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "")).toUpperCase() || "?";
-}
-
-export function maskPhone(local: string): string {
-  const d = local.replace(/\D/g, "").replace(/^0/, "");
-  return `+92 ${d.slice(0, 3)} •••${d.slice(-4)}`;
-}
-
-export function displayPhone(local: string): string {
-  const d = local.replace(/\D/g, "").replace(/^0/, "");
-  return `+92 ${d.slice(0, 3)} ${d.slice(3)}`;
-}
-
-function phoneOf(u: User): string | null {
-  if (!u.phoneEnc) return null;
-  try {
-    return decryptPhone(u.phoneEnc, keys().key);
-  } catch {
-    return null;
-  }
-}
-
-export async function userWithProfile(id: string): Promise<UserWithProfile | null> {
-  return prisma.user.findUnique({ where: { id }, include: { customer: true } }) as Promise<UserWithProfile | null>;
-}
-
-/** The contract's Me shape; counts come from the modules that own them. */
-export function toMe(u: UserWithProfile, counts: Me["counts"]): Me {
-  if (!u.customer || (u.role !== "CUSTOMER_SELLER" && u.role !== "CUSTOMER_AGENCY")) throw new AppError(403, "This account can't use the customer app.");
-  const phone = phoneOf(u);
-  return {
-    user: {
-      id: u.id,
-      email: u.email,
-      role: u.role,
-      phoneMasked: phone ? maskPhone(phone) : null,
-      emailVerified: !!u.emailVerifiedAt,
-      phoneVerified: !!u.phoneVerifiedAt,
-    },
-    customer: { kind: u.customer.kind, displayName: u.customer.displayName, contactPerson: u.customer.contactPerson, initials: initials(u.customer.displayName) },
-    counts,
-  };
-}
+const startSession = (user: User, remember: boolean, ctx: ClientCtx) => createSession(user, { remember, userAgent: ctx.userAgent, ipHash: hashIp(ctx.ip) });
 
 // ---------------------------------------------------------------- signup and email
 
-export async function register(input: RegisterInput, ctx: Ctx) {
-  const exists = await prisma.user.findUnique({ where: { email: input.email } });
-  if (exists) throw conflict("This email already has an account.", { email: "This email already has an account. Log in?" });
+export async function register(input: RegisterInput, ctx: ClientCtx): Promise<{ userId: string; tokens: IssuedTokens }> {
+  if (await prisma.user.findUnique({ where: { email: input.email } })) {
+    throw conflict("This email already has an account.", { email: "This email already has an account. Log in?" });
+  }
   const agency = input.kind === "AGENCY";
   const user = await prisma.user.create({
     data: {
@@ -131,13 +53,12 @@ export async function register(input: RegisterInput, ctx: Ctx) {
     },
   });
   await sendVerifyEmail(user, true);
-  const session = await createSession(user.id, { remember: false, userAgent: ctx.userAgent, ipHash: ipHash(ctx.ip) });
-  return { userId: user.id, session };
+  return { userId: user.id, tokens: await startSession(user, false, ctx) };
 }
 
-async function sendVerifyEmail(user: User, force = false) {
+export async function sendVerifyEmail(user: User, force = false): Promise<{ retryAfterSec: number }> {
   const { code, retryAfterSec } = await issueCode(user.id, "EMAIL_VERIFY", { channel: "EMAIL", force });
-  await deliver("Email code", user.email, code, () => sendEmailCode(user.email, user.fullName.split(" ")[0] ?? user.fullName, code, env().OTP_EXPIRY_MINUTES));
+  await deliverSecret("Email code", user.email, code, () => sendEmailCode(user.email, firstName(user), code, env().OTP_EXPIRY_MINUTES));
   return { retryAfterSec };
 }
 
@@ -147,15 +68,20 @@ export async function resendEmailCode(user: User) {
 }
 
 export async function verifyEmail(user: User, code: string) {
-  if (user.emailVerifiedAt) return { emailVerified: true as const };
-  await checkCode(user.id, ["EMAIL_VERIFY"], code);
-  await prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() } });
+  if (!user.emailVerifiedAt) {
+    await checkCode(user.id, ["EMAIL_VERIFY"], code);
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() } });
+  }
   return { emailVerified: true as const };
 }
 
 // ---------------------------------------------------------------- login
 
-export async function login(email: string, password: string, remember: boolean, ctx: Ctx) {
+/**
+ * Email + password check shared by customer and admin sign-in. Constant time for unknown emails,
+ * lockout after repeated failures, and suspended or deleted accounts look like a wrong password.
+ */
+async function authenticate(email: string, password: string): Promise<User> {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     await verifyPassword(password, await dummy());
@@ -164,189 +90,117 @@ export async function login(email: string, password: string, remember: boolean, 
   if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
     throw new AppError(423, "Too many tries.", { lockedUntil: user.lockedUntil.toISOString() });
   }
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok || user.status !== "ACTIVE") {
-    if (user.status === "ACTIVE") {
-      const failed = user.failedLoginCount + 1;
-      const locked = failed >= LOCK_AFTER ? new Date(Date.now() + LOCK_MS) : null;
-      await prisma.user.update({ where: { id: user.id }, data: { failedLoginCount: locked ? 0 : failed, lockedUntil: locked } });
-      if (locked) {
-        const until = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Karachi", hour: "numeric", minute: "2-digit", hour12: true }).format(locked);
-        quiet(() => sendAccountLockedEmail(user.email, user.fullName, until)).catch((e) => console.error("[auth] lock email failed:", String(e)));
-        throw new AppError(423, "Too many tries.", { lockedUntil: locked.toISOString() });
-      }
-    }
+  const passwordOk = await verifyPassword(password, user.passwordHash);
+  if (!passwordOk || user.status !== "ACTIVE") {
+    if (user.status === "ACTIVE") await recordFailedLogin(user);
     throw new AppError(401, "That email and password do not match.");
   }
-  if (user.role === "ADMIN") throw new AppError(403, "Admins sign in on the admin console.");
-  await prisma.user.update({ where: { id: user.id }, data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() } });
-  const session = await createSession(user.id, { remember, userAgent: ctx.userAgent, ipHash: ipHash(ctx.ip) });
-  // email not confirmed yet: still signed in (so the code screen works), and a fresh code goes out
-  if (!user.emailVerifiedAt) {
-    await sendVerifyEmail(user).catch(() => {});
-    return { user, session, requiresEmailVerification: true };
-  }
-  return { user, session, requiresEmailVerification: false };
+  return user;
 }
 
-export async function logout(sessionId: string) {
-  await revokeSession(sessionId, "logout");
+const markLoggedIn = (userId: string) => prisma.user.update({ where: { id: userId }, data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() } });
+
+export async function login(email: string, password: string, remember: boolean, ctx: ClientCtx) {
+  const user = await authenticate(email, password);
+  if (user.role === "ADMIN") throw new AppError(403, ADMIN_ONLY);
+  await markLoggedIn(user.id);
+  const tokens = await startSession(user, remember, ctx);
+  // email not confirmed yet: still signed in (so the code screen works), and a fresh code goes out
+  const requiresEmailVerification = !user.emailVerifiedAt;
+  if (requiresEmailVerification) await sendVerifyEmail(user).catch(() => {});
+  return { tokens, requiresEmailVerification };
+}
+
+async function recordFailedLogin(user: User): Promise<void> {
+  const failed = user.failedLoginCount + 1;
+  const locked = failed >= LOCK_AFTER ? new Date(Date.now() + LOCK_MS) : null;
+  await prisma.user.update({ where: { id: user.id }, data: { failedLoginCount: locked ? 0 : failed, lockedUntil: locked } });
+  if (!locked) return;
+  const until = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Karachi", hour: "numeric", minute: "2-digit", hour12: true }).format(locked);
+  notify("lock email", () => sendAccountLockedEmail(user.email, user.fullName, until));
+  throw new AppError(423, "Too many tries.", { lockedUntil: locked.toISOString() });
+}
+
+export const logout = (sessionId: string) => revokeSession(sessionId, "logout");
+
+// ---------------------------------------------------------------- admin sign-in (DR-38)
+
+/** Step 1: password. The session it creates is unusable until step 2 (TOTP) passes. */
+export async function adminLogin(email: string, password: string, ctx: ClientCtx): Promise<IssuedTokens> {
+  const user = await authenticate(email, password);
+  if (user.role !== "ADMIN" || !user.totpSecretEnc || !user.totpEnabledAt) {
+    await audit(prisma, { actorId: user.id, action: "auth.admin_login_failed", entity: "user", entityId: user.id, ip: ctx.ip });
+    throw new AppError(401, "That email and password do not match.");
+  }
+  // admin sessions are short and never survive the browser
+  return startSession(user, false, ctx);
+}
+
+/** Step 2: the authenticator code. Unlocks the session for admin routes. */
+export async function adminSecondFactor(user: User, sessionId: string, code: string, ctx: ClientCtx): Promise<void> {
+  if (user.role !== "ADMIN" || !user.totpSecretEnc) throw new AppError(403, "You can't do that.");
+  if (!(await checkTotp(user.id, user.totpSecretEnc, code))) {
+    await audit(prisma, { actorId: user.id, action: "auth.admin_login_failed", entity: "user", entityId: user.id, ip: ctx.ip });
+    throw new AppError(422, "That code didn't match.", { code: "That code didn't match." });
+  }
+  await prisma.$transaction([
+    prisma.session.update({ where: { id: sessionId }, data: { twoFactorPassed: true, stepUpAt: new Date() } }),
+    prisma.user.update({ where: { id: user.id }, data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() } }),
+  ]);
+  await audit(prisma, { actorId: user.id, action: "auth.admin_login", entity: "user", entityId: user.id, ip: ctx.ip });
 }
 
 // ---------------------------------------------------------------- passwords
 
-export async function forgotPassword(email: string) {
+export async function forgotPassword(email: string): Promise<void> {
   const user = await prisma.user.findUnique({ where: { email } });
   // same answer whether or not the email exists
   if (!user || user.status !== "ACTIVE" || user.role === "ADMIN") return;
   const raw = await issueLinkToken(user.id, "PASSWORD_RESET", RESET_TTL_MS);
   const url = `${env().NEXT_PUBLIC_APP_URL}/reset-password?token=${raw}`;
-  if (env().AUTH_DELIVERY === "log" && process.env.NODE_ENV !== "production") {
+  if (deliveryIsLogged()) {
     console.info(`[auth] Reset email to ${user.email} not sent (AUTH_DELIVERY=log). The link is: ${url}`);
     return;
   }
-  await sendPasswordResetEmail(user.email, user.fullName.split(" ")[0] ?? user.fullName, url, RESET_TTL_MS / 60_000).catch((e) => {
-    if (process.env.NODE_ENV !== "production") console.warn(`[auth] Reset email failed (${String(e).slice(0, 200)}). Development fallback, the link is: ${url}`);
-    else console.error("[auth] reset email failed:", String(e));
+  await sendPasswordResetEmail(user.email, firstName(user), url, RESET_TTL_MS / 60_000).catch((e) => {
+    if (!isProduction()) console.warn(`[auth] Reset email failed (${String(e).slice(0, 200)}). Development fallback, the link is: ${url}`);
+    else console.error("[auth] reset email failed:", String(e).slice(0, 300));
   });
 }
 
-export async function resetPassword(raw: string, password: string) {
+export async function resetPassword(raw: string, password: string): Promise<void> {
   const t = await consumeLinkToken(raw, "PASSWORD_RESET");
+  const now = new Date();
+  const current = await prisma.user.findUniqueOrThrow({ where: { id: t.userId } });
   const user = await prisma.user.update({
     where: { id: t.userId },
     // following the emailed link also proves the inbox
-    data: { passwordHash: await hashPassword(password), passwordChangedAt: new Date(), failedLoginCount: 0, lockedUntil: null, emailVerifiedAt: undefined },
+    data: { passwordHash: await hashPassword(password), passwordChangedAt: now, failedLoginCount: 0, lockedUntil: null, emailVerifiedAt: current.emailVerifiedAt ?? now },
   });
-  if (!user.emailVerifiedAt) await prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() } });
   await revokeAllSessions(user.id, "password_reset");
-  quiet(() => sendPasswordChangedEmail(user.email, user.fullName)).catch(() => {});
+  notify("password changed email", () => sendPasswordChangedEmail(user.email, user.fullName));
 }
 
-export async function changePassword(user: User, sessionId: string, current: string, next: string) {
+export async function changePassword(user: User, sessionId: string, current: string, next: string): Promise<void> {
   if (!(await verifyPassword(current, user.passwordHash))) {
     throw new AppError(422, "Your current password is wrong.", { currentPassword: "That isn't your current password. Signed up with Google? Use “Forgot password?” to set one." });
   }
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next), passwordChangedAt: new Date(Date.now() - 1000) } });
-  // keep this device signed in: its session row predates passwordChangedAt, so re-stamp it
-  await prisma.session.update({ where: { id: sessionId }, data: { createdAt: new Date() } });
-  await revokeAllSessions(user.id, "password_changed", sessionId);
-  quiet(() => sendPasswordChangedEmail(user.email, user.fullName)).catch(() => {});
-}
-
-// ---------------------------------------------------------------- WhatsApp number
-
-export async function startPhone(user: User, localPhone: string) {
-  const { pepper, key } = keys();
-  const hash = hashPhone(localPhone, pepper);
-  if (user.phoneHash === hash && user.phoneVerifiedAt) throw conflict("This number is already verified on your account.", { phone: "This number is already verified on your account." });
-  const owner = await prisma.user.findUnique({ where: { phoneHash: hash } });
-  if (owner && owner.id !== user.id) throw conflict("This number is already on another account.", { phone: "This number is already on another LEADS account. One number, one account." });
-  const type = user.phoneVerifiedAt ? "PHONE_CHANGE" : "PHONE_OTP";
-  const { code, retryAfterSec } = await issueCode(user.id, type, { channel: "WHATSAPP", pendingEnc: encryptPhone(localPhone, key), force: true });
-  await deliver("WhatsApp code", maskPhone(localPhone), code, () => sendWhatsAppCode(localPhone, code));
-  return { phoneMasked: maskPhone(localPhone), retryAfterSec };
-}
-
-export async function resendPhoneCode(user: User) {
-  const t = (await liveToken(user.id, "PHONE_CHANGE")) ?? (await liveToken(user.id, "PHONE_OTP"));
-  if (!t?.pendingEnc) throw new AppError(410, "Enter your number again.");
-  const local = decryptPhone(t.pendingEnc, keys().key);
-  const { code, retryAfterSec } = await issueCode(user.id, t.type, { channel: "WHATSAPP" });
-  await deliver("WhatsApp code", maskPhone(local), code, () => sendWhatsAppCode(local, code));
-  return { retryAfterSec };
-}
-
-/** The number waiting for its code, shown on the code screen. */
-export async function pendingPhone(user: User): Promise<string | null> {
-  const t = (await liveToken(user.id, "PHONE_CHANGE")) ?? (await liveToken(user.id, "PHONE_OTP"));
-  if (!t?.pendingEnc || t.expiresAt.getTime() <= Date.now()) return null;
-  return displayPhone(decryptPhone(t.pendingEnc, keys().key));
-}
-
-export async function verifyPhone(user: User, otp: string) {
-  const t = await checkCode(user.id, ["PHONE_OTP", "PHONE_CHANGE"], otp);
-  if (!t.pendingEnc) throw new AppError(410, "Enter your number again.");
-  const { pepper, key } = keys();
-  const local = decryptPhone(t.pendingEnc, key);
-  const hash = hashPhone(local, pepper);
-  try {
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: user.id }, data: { phoneHash: hash, phoneEnc: encryptPhone(local, key), phoneVerifiedAt: new Date() } });
-      // if we already know this number (e.g. from a portal ad), it now belongs to a customer: never auto-purge it
-      await tx.contact.updateMany({ where: { phoneHash: hash }, data: { purgeAt: null } });
-    });
-  } catch (e) {
-    if ((e as { code?: string }).code === "P2002") throw conflict("This number is already on another account.", { otp: "This number was just verified on another account." });
-    throw e;
-  }
-  return { phoneVerified: true as const };
-}
-
-// ---------------------------------------------------------------- profile
-
-export async function updateProfile(user: UserWithProfile, patch: { displayName?: string; contactPerson?: string; email?: string }) {
-  const agency = user.customer?.kind === "AGENCY";
-  if (patch.email && patch.email !== user.email) {
-    const taken = await prisma.user.findUnique({ where: { email: patch.email } });
-    if (taken) throw conflict("This email already has an account.", { email: "This email already has an account." });
-  }
-  const emailChanged = !!patch.email && patch.email !== user.email;
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      ...(emailChanged ? { email: patch.email, emailVerifiedAt: null } : {}),
-      ...(agency && patch.contactPerson ? { fullName: patch.contactPerson } : {}),
-      ...(!agency && patch.displayName ? { fullName: patch.displayName } : {}),
-      customer: { update: { ...(patch.displayName ? { displayName: patch.displayName } : {}), ...(agency && patch.contactPerson ? { contactPerson: patch.contactPerson } : {}) } },
-    },
-  });
-  if (emailChanged) await sendVerifyEmail(updated, true);
-  return { emailChanged };
-}
-
-export function prefsOf(u: UserWithProfile): NotificationSettings {
-  const stored = (u.customer?.notificationPrefs ?? {}) as Partial<NotificationSettings>;
-  return { ...DEFAULT_PREFS, ...stored };
-}
-
-export async function setPrefs(u: UserWithProfile, patch: Partial<NotificationSettings>) {
-  const next = { ...prefsOf(u), ...patch };
-  await prisma.customerProfile.update({ where: { userId: u.id }, data: { notificationPrefs: next } });
-  return next;
-}
-
-/** SPEC_02 5.10: anonymise, revoke every session, archive listings. Orders and leads stay. */
-export async function deleteAccount(user: User, password: string, hasActivePackage: boolean) {
-  if (!(await verifyPassword(password, user.passwordHash))) throw new AppError(422, "That password is wrong.", { password: "That password is wrong." });
-  if (hasActivePackage) throw conflict("You have an active package.");
+  const changedAt = new Date();
   await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: {
-        status: "DELETED",
-        deletedAt: new Date(),
-        email: `deleted+${user.id}@invalid.leads`,
-        fullName: "Deleted user",
-        phoneHash: null,
-        phoneEnc: null,
-        phoneVerifiedAt: null,
-        passwordHash: await unusableHash(),
-        totpSecretEnc: null,
-      },
-    }),
-    prisma.oAuthAccount.deleteMany({ where: { userId: user.id } }),
-    prisma.listing.updateMany({ where: { customerId: user.id }, data: { status: "ARCHIVED" } }),
+    prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next), passwordChangedAt: changedAt } }),
+    // keep this device signed in: sessions created before passwordChangedAt are dead, so re-stamp it
+    prisma.session.update({ where: { id: sessionId }, data: { createdAt: new Date(changedAt.getTime() + 1) } }),
   ]);
-  await revokeAllSessions(user.id, "deleted");
+  await revokeAllSessions(user.id, "password_changed", sessionId);
+  notify("password changed email", () => sendPasswordChangedEmail(user.email, user.fullName));
 }
 
 // ---------------------------------------------------------------- Google (DR-43)
 
 export type GoogleProfile = { sub: string; email: string; name: string };
 
-/** Existing link, or an existing account with the same (Google-verified) email. */
-export async function findGoogleUser(p: GoogleProfile) {
+/** Existing link, or an existing account with the same (Google-verified) email, which gets linked. */
+export async function findGoogleUser(p: GoogleProfile): Promise<User | null> {
   const link = await prisma.oAuthAccount.findUnique({ where: { provider_providerUserId: { provider: "google", providerUserId: p.sub } }, include: { user: true } });
   if (link) {
     await prisma.oAuthAccount.update({ where: { id: link.id }, data: { lastUsedAt: new Date(), email: p.email } });
@@ -354,20 +208,22 @@ export async function findGoogleUser(p: GoogleProfile) {
   }
   const byEmail = await prisma.user.findUnique({ where: { email: p.email } });
   if (!byEmail) return null;
-  if (byEmail.role === "ADMIN") throw new AppError(403, "Admins sign in on the admin console.");
-  await prisma.oAuthAccount.create({ data: { userId: byEmail.id, provider: "google", providerUserId: p.sub, email: p.email } });
-  if (!byEmail.emailVerifiedAt) await prisma.user.update({ where: { id: byEmail.id }, data: { emailVerifiedAt: new Date() } });
+  if (byEmail.role === "ADMIN") throw new AppError(403, ADMIN_ONLY);
+  await prisma.$transaction([
+    prisma.oAuthAccount.create({ data: { userId: byEmail.id, provider: "google", providerUserId: p.sub, email: p.email } }),
+    prisma.user.update({ where: { id: byEmail.id }, data: { emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date() } }),
+  ]);
   return byEmail;
 }
 
-export async function googleSignIn(user: User, ctx: Ctx) {
+export async function googleSignIn(user: User, ctx: ClientCtx): Promise<IssuedTokens> {
   if (user.status !== "ACTIVE") throw new AppError(401, "This account can't sign in.");
-  if (user.role === "ADMIN") throw new AppError(403, "Admins sign in on the admin console.");
-  await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date(), failedLoginCount: 0, lockedUntil: null } });
-  return createSession(user.id, { remember: true, userAgent: ctx.userAgent, ipHash: ipHash(ctx.ip) });
+  if (user.role === "ADMIN") throw new AppError(403, ADMIN_ONLY);
+  await markLoggedIn(user.id);
+  return startSession(user, true, ctx);
 }
 
-export async function createGoogleUser(p: GoogleProfile, kind: "SELLER" | "AGENCY", agencyName: string | undefined, ctx: Ctx) {
+export async function createGoogleUser(p: GoogleProfile, kind: "SELLER" | "AGENCY", agencyName: string | undefined, ctx: ClientCtx): Promise<IssuedTokens> {
   if (await prisma.user.findUnique({ where: { email: p.email } })) throw conflict("This email already has an account. Log in instead.");
   const agency = kind === "AGENCY";
   const user = await prisma.user.create({
@@ -383,7 +239,5 @@ export async function createGoogleUser(p: GoogleProfile, kind: "SELLER" | "AGENC
       oauthAccounts: { create: { provider: "google", providerUserId: p.sub, email: p.email } },
     },
   });
-  const session = await createSession(user.id, { remember: true, userAgent: ctx.userAgent, ipHash: ipHash(ctx.ip) });
-  return { user, session };
+  return startSession(user, true, ctx);
 }
-

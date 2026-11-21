@@ -1,10 +1,17 @@
 import type { MetadataRoute } from "next";
-import { allAreaSlugs } from "@/lib/areas";
+import { areaPages } from "@/server/modules/catalog/service";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
+// built per request from config.localities, so new areas appear without a deploy
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const areas = await areaPages().catch((e) => {
+    console.error("[sitemap] could not read areas:", String(e).slice(0, 200));
+    return [];
+  });
   return [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
-    ...allAreaSlugs().map((a) => ({ url: `${base}/sell/${a.city}/${a.area}`, changeFrequency: "monthly" as const, priority: 0.6 })),
+    ...areas.map((a) => ({ url: `${base}/sell/${a.city}/${a.area}`, changeFrequency: "monthly" as const, priority: 0.6 })),
   ];
 }

@@ -1,5 +1,7 @@
 import "server-only";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { env } from "@/server/env";
+import { open, seal } from "./aead";
 
 /**
  * Phone normalisation, hashing and encryption (SPEC_00 4.3).
@@ -10,8 +12,6 @@ import crypto from "crypto";
  *   phone_enc  = base64(iv | tag | ciphertext), AES-256-GCM, 12-byte random iv
  */
 
-const IV_LEN = 12;
-const TAG_LEN = 16;
 const MOBILE = /^03\d{9}$/;
 
 /** A Pakistani mobile number as 03XXXXXXXXX, or null if the input is not one. */
@@ -28,17 +28,32 @@ export function hashPhone(normalised: string, pepperB64: string): string {
   return crypto.createHmac("sha256", Buffer.from(pepperB64, "base64")).update(normalised).digest("hex");
 }
 
-export function encryptPhone(normalised: string, keyB64: string, iv: Buffer = crypto.randomBytes(IV_LEN)): string {
-  const cipher = crypto.createCipheriv("aes-256-gcm", Buffer.from(keyB64, "base64"), iv);
-  const ciphertext = Buffer.concat([cipher.update(normalised, "utf8"), cipher.final()]);
-  return Buffer.concat([iv, cipher.getAuthTag(), ciphertext]).toString("base64");
+export const encryptPhone = (normalised: string, keyB64: string, iv?: Buffer): string => seal(normalised, keyB64, iv);
+export const decryptPhone = (token: string, keyB64: string): string => open(token, keyB64);
+
+// ---------------------------------------------------------------- with the configured keys
+
+function keys(): { pepper: string; key: string } {
+  const { PHONE_HASH_PEPPER, PHONE_ENC_KEY } = env();
+  if (!PHONE_HASH_PEPPER || !PHONE_ENC_KEY) throw new Error("PHONE_HASH_PEPPER and PHONE_ENC_KEY must be set");
+  return { pepper: PHONE_HASH_PEPPER, key: PHONE_ENC_KEY };
 }
 
-export function decryptPhone(token: string, keyB64: string): string {
-  const blob = Buffer.from(token, "base64");
-  const iv = blob.subarray(0, IV_LEN);
-  const tag = blob.subarray(IV_LEN, IV_LEN + TAG_LEN);
-  const decipher = crypto.createDecipheriv("aes-256-gcm", Buffer.from(keyB64, "base64"), iv);
-  decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(blob.subarray(IV_LEN + TAG_LEN)), decipher.final()]).toString("utf8");
+/** Hash and ciphertext of a normalised number (03XXXXXXXXX), ready to store. */
+export function protectPhone(normalised: string): { phoneHash: string; phoneEnc: string } {
+  const { pepper, key } = keys();
+  return { phoneHash: hashPhone(normalised, pepper), phoneEnc: encryptPhone(normalised, key) };
+}
+
+export const phoneHashOf = (normalised: string) => hashPhone(normalised, keys().pepper);
+export const sealPhone = (normalised: string) => encryptPhone(normalised, keys().key);
+
+/** The stored number, or null when there is none or it can't be decrypted (key rotated, purged). */
+export function revealPhone(enc: string | null | undefined): string | null {
+  if (!enc) return null;
+  try {
+    return decryptPhone(enc, keys().key);
+  } catch {
+    return null;
+  }
 }

@@ -65,6 +65,13 @@ export function formatPhone(e164: string): string {
   return `+92 ${local.slice(0, 3)} ${local.slice(3)}`;
 }
 
+/** "03001234567" / "+923001234567" -> "+92 300 •••4567". */
+export function maskPhone(n: string): string {
+  const d = n.replace(/\D/g, "");
+  const local = d.startsWith("92") ? d.slice(2) : d.startsWith("0") ? d.slice(1) : d;
+  return `+92 ${local.slice(0, 3)} •••${local.slice(-4)}`;
+}
+
 /** "03001234567" / "3001234567" -> "+923001234567". */
 export function toE164(local: string): string {
   const d = local.replace(/\D/g, "");

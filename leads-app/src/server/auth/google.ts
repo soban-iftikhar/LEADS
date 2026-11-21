@@ -1,5 +1,5 @@
 import "server-only";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { env } from "@/server/env";
 
 /**
@@ -12,6 +12,7 @@ const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 export const STATE_COOKIE = "leads_oauth";
 export const PENDING_COOKIE = "leads_oauth_pending";
+export const OAUTH_COOKIE_OPTIONS = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" };
 
 export function googleEnabled(): boolean {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = env();

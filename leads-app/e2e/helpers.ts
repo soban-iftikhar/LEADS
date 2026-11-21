@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { expect, type Page } from "@playwright/test";
+import sharp from "sharp";
 
 const LOG = process.env.E2E_SERVER_LOG ?? "e2e/.server.log";
 
-// Demo account created by scripts/demo-user.mjs (global setup).
+// Demo accounts created by scripts/dev-seed.ts (global setup).
 export async function loginAsDemo(page: Page, next?: string, email = "demo@leads.pk") {
   await page.goto(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
   await page.fill("#l-email", email);
@@ -12,6 +13,9 @@ export async function loginAsDemo(page: Page, next?: string, email = "demo@leads
   await expect(page).toHaveURL(next ? new RegExp(next.replace(/[?]/g, "\\?")) : /\/dashboard/, { timeout: 30_000 });
   await page.waitForLoadState("networkidle"); // interactive before the test clicks anything
 }
+
+/** The demo agency's verified WhatsApp number as typed in the form (scripts/dev-seed.ts: fakePhone(1)). */
+export const DEMO_PHONE = "399 0000001";
 
 /** The owner demo account (one listing, one package). */
 export const loginAsOwner = (page: Page, next?: string) => loginAsDemo(page, next, "owner@leads.pk");
@@ -32,5 +36,5 @@ export async function typeCode(page: Page, code: string) {
   await page.keyboard.type(code);
 }
 
-// 8x8 PNG, enough for the photo uploader.
-export const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWM4scABK2IYWhIAjS9qAbecnf4AAAAASUVORK5CYII=", "base64");
+// A plain 800×600 photo: above the uploader's 400×400 minimum.
+export const photo = (): Promise<Buffer> => sharp({ create: { width: 800, height: 600, channels: 3, background: "#8aa39b" } }).png().toBuffer();
