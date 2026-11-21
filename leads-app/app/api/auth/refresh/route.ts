@@ -23,7 +23,8 @@ export const POST = route({
   },
 });
 
-// GET /api/auth/refresh?next=/path -> back to `next` with fresh cookies, or to /login.
+// GET /api/auth/refresh?next=/path -> back to `next` with fresh cookies, or to /login (/admin/login
+// for admin pages).
 // proxy.ts sends page navigations here when the access token is missing or about to expire.
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +41,9 @@ export async function GET(request: NextRequest) {
     setAuthCookies(res, r.tokens);
     return res;
   }
-  const res = NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, base));
+  // admins have their own sign-in page (password, then the authenticator code)
+  const login = next === "/admin" || next.startsWith("/admin/") || next.startsWith("/admin?") ? "/admin/login" : "/login";
+  const res = NextResponse.redirect(new URL(`${login}?next=${encodeURIComponent(next)}`, base));
   clearAuthCookies(res);
   return res;
 }

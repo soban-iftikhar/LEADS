@@ -211,3 +211,26 @@
 [data-theme="dark"] {
   --rail-bg: #1F1D19;
 }
+
+/* admin console (design/source/admin): status tones, the neutral bar, focus ring, lift shadow
+   and the eight trend-line colours. Warn is the same burnt amber as --err. */
+:root,
+[data-theme="light"] {
+  --warn: var(--err);
+  --warn-soft: var(--err-soft);
+  --info: #365670;
+  --info-soft: #E2EAF1;
+  --grey: #B5B0A4;
+  --focus: #17150F;
+  --lift: 0 18px 40px -18px rgba(23, 21, 15, .35);
+  --c1: #E3AE17; --c2: #1D1B16; --c3: #365670; --c4: #3F6B2E;
+  --c5: #C27A2C; --c6: #6B5BA8; --c7: #2E8C83; --c8: #A39E92;
+}
+[data-theme="dark"] {
+  --info: #9DB6CC;
+  --info-soft: #232D36;
+  --grey: #5E5A52;
+  --focus: #F5CF5A;
+  --lift: 0 18px 40px -18px rgba(0, 0, 0, .7);
+  --c2: #E8E5DD; --c3: #9DB6CC; --c4: #9DBB83; --c6: #B3A6E0; --c8: #7E796E;
+}

@@ -1,0 +1,6 @@
+{
+  "password": "password1",
+  "people": [
+    { "email": "admin@leads.pk", "name": "Soban Iftikhar", "totpSecret": "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" }
+  ]
+}

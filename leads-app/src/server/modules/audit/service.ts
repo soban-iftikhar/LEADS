@@ -14,14 +14,26 @@ export type AuditAction =
   | "payment.confirmed"
   | "user.suspended"
   | "user.unsuspended"
-  | "admin.created";
+  | "admin.created"
+  | "record.archived"
+  | "record.restored";
 
 export async function audit(
   db: Prisma.TransactionClient,
-  entry: { actorId: string | null; action: AuditAction; entity: string; entityId?: string | null; before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue; ip?: string },
+  entry: {
+    actorId: string | null;
+    action: AuditAction;
+    entity: string;
+    entityId?: string | null;
+    before?: Prisma.InputJsonValue;
+    after?: Prisma.InputJsonValue;
+    /** One readable line for the activity log. */
+    summary?: string;
+    ip?: string;
+  },
 ): Promise<void> {
   await db.auditLog.create({
-    data: { actorUserId: entry.actorId, action: entry.action, entity: entry.entity, entityId: entry.entityId ?? null, before: entry.before, after: entry.after, ipHash: hashIp(entry.ip) },
+    data: { actorUserId: entry.actorId, action: entry.action, entity: entry.entity, entityId: entry.entityId ?? null, before: entry.before, after: entry.after, summary: entry.summary ?? null, ipHash: hashIp(entry.ip) },
   });
 }
 

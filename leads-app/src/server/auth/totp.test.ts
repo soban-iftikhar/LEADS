@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { codeAt } from "./totp";
+import { codeAt } from "./otp-math";
 
 // RFC 6238 appendix B, SHA-1 secret "12345678901234567890" (base32 below), last 6 of the 8 digits.
 const SECRET = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";

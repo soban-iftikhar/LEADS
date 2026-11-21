@@ -47,6 +47,7 @@ model Locality {
   children       Locality[]      @relation("LocalityTree")
   masterListings MasterListing[]
   listings       Listing[]
+  archivedAt     DateTime?       @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@unique([regionId, slug])
   @@map("localities")
@@ -61,6 +62,7 @@ model Portal {
   requestsPerMinute Int               @default(20) @map("requests_per_minute")
   regionMaps        PortalRegionMap[]
   segments          CrawlSegment[]
+  archivedAt        DateTime?         @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@map("portals")
   @@schema("config")
@@ -109,14 +111,15 @@ model LeadCriteria {
 }
 
 model PackagePlan {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
-  leadCount    Int     @map("lead_count")
-  pricePkr     BigInt  @map("price_pkr")
-  deliveryDays Int     @default(60) @map("delivery_days")
-  active       Boolean @default(true)
-  sortOrder    Int     @default(0) @map("sort_order")
+  leadCount    Int       @map("lead_count")
+  pricePkr     BigInt    @map("price_pkr")
+  deliveryDays Int       @default(60) @map("delivery_days")
+  active       Boolean   @default(true)
+  sortOrder    Int       @default(0) @map("sort_order")
   orders       Order[]
+  archivedAt   DateTime? @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@map("package_plans")
   @@schema("config")
@@ -130,6 +133,7 @@ model MessageTemplate {
   body           String // {{placeholders}}
   waTemplateName String?          @map("wa_template_name") // approved Cloud API template name
   active         Boolean          @default(true)
+  archivedAt     DateTime?        @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@map("message_templates")
   @@schema("config")
@@ -186,6 +190,7 @@ model User {
   suspendedAt       DateTime?           @map("suspended_at") @db.Timestamptz(6)
   suspendedReason   String?             @map("suspended_reason") // admins only
   deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(6) // PII anonymised on delete
+  deactivatedAt     DateTime?           @map("deactivated_at") @db.Timestamptz(6) // admin team member switched off (never deleted)
   totpSecretEnc     String?             @map("totp_secret_enc") // AES-256-GCM with TOTP_ENC_KEY
   totpEnabledAt     DateTime?           @map("totp_enabled_at") @db.Timestamptz(6)
   createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -393,6 +398,7 @@ model Listing {
   orders          Order[]
   campaigns       Campaign[]
   leads           Lead[]
+  archivedAt      DateTime?            @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@index([status, regionId, localityId, category, purpose])
   @@index([customerId])
@@ -529,6 +535,7 @@ model Order {
   cashback        Cashback?
   campaign        Campaign?
   leads           Lead[]
+  archivedAt      DateTime?   @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@index([customerId])
   @@index([status, windowEndsAt])
@@ -556,6 +563,7 @@ model Payment {
   raw         Json?         @db.JsonB
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   order       Order         @relation(fields: [orderId], references: [id])
+  archivedAt  DateTime?     @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@index([orderId])
   @@map("payments")
@@ -624,6 +632,7 @@ model Contact {
   olxListings      OlxListing[]
   graanaListings   GraanaListing[]
   ilaanListings    IlaanListing[]
+  archivedAt       DateTime?           @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@index([purgeAt])
   @@map("contacts")
@@ -706,6 +715,7 @@ model Campaign {
   order       Order            @relation(fields: [orderId], references: [id])
   listing     Listing          @relation(fields: [listingId], references: [id])
   targets     CampaignTarget[]
+  archivedAt  DateTime?        @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@map("campaigns")
   @@schema("app")
@@ -886,6 +896,7 @@ model Lead {
   order             Order?        @relation(fields: [orderId], references: [id])
   report            LeadReport?
   events            LeadEvent[]
+  archivedAt        DateTime?     @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@unique([contactId, listingId]) // DR-10: one buyer + one property, once
   @@index([customerId, deliveredAt])
@@ -960,6 +971,7 @@ model LeadReport {
   decidedAt    DateTime?    @map("decided_at") @db.Timestamptz(6)
   decisionNote String?      @map("decision_note")
   lead         Lead         @relation(fields: [leadId], references: [id])
+  archivedAt   DateTime?    @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@map("lead_reports")
   @@schema("app")
@@ -1113,9 +1125,11 @@ model AuditLog {
   before      Json?    @db.JsonB
   after       Json?    @db.JsonB
   ipHash      String?  @map("ip_hash")
+  summary     String? // one readable line for the activity log, e.g. "Reply threshold 70% → 75%"
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([entity, entityId])
+  @@index([createdAt])
   @@index([actorUserId, createdAt])
   @@map("audit_log")
   @@schema("ops")
@@ -1455,6 +1469,7 @@ model MasterListing {
   campaignTargets        CampaignTarget[]
   score                  ListingScore?
   sellerLinks            SellerContactLink[]
+  archivedAt             DateTime?           @map("archived_at") @db.Timestamptz(6) // soft delete: hidden from admin lists, restorable
 
   @@unique([platform, externalId])
   @@index([city, locality, category, purpose])

@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { expect, type Page } from "@playwright/test";
+import { Redis } from "ioredis";
 import sharp from "sharp";
+import { codeAt } from "../src/server/auth/otp-math";
 
 const LOG = process.env.E2E_SERVER_LOG ?? "e2e/.server.log";
 
@@ -38,3 +40,23 @@ export async function typeCode(page: Page, code: string) {
 
 // A plain 800×600 photo: above the uploader's 400×400 minimum.
 export const photo = (): Promise<Buffer> => sharp({ create: { width: 800, height: 600, channels: 3, background: "#8aa39b" } }).png().toBuffer();
+
+// The dev admin from prisma/seed/admin/team.json (npm run db:seed:admin).
+const ADMIN = { email: "admin@leads.pk", password: "password1", totpSecret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" };
+
+/** Signs in on /admin/login with the password and a fresh authenticator code. */
+export async function loginAsAdmin(page: Page, next = "/admin") {
+  // a code is accepted once per 30 s step; forget the last one so back-to-back tests can sign in
+  const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", { maxRetriesPerRequest: 2 });
+  const keys = await redis.keys("totp:last:*");
+  if (keys.length) await redis.del(...keys);
+  await redis.quit();
+  await page.goto(`/admin/login?next=${encodeURIComponent(next)}`);
+  await page.fill("#a-email", ADMIN.email);
+  await page.fill("#a-pw", ADMIN.password);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.fill("#a-code", codeAt(ADMIN.totpSecret, Math.floor(Date.now() / 30_000)));
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(new RegExp(next.replace(/[?]/g, "\\?") + "$"), { timeout: 30_000 });
+  await page.waitForLoadState("networkidle");
+}

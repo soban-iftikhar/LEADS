@@ -1,4 +1,4 @@
-import { Ghar } from "@/components/app/Ghar";
+import { Ghar } from "@/components/brand/Ghar";
 import { activeRegions } from "@/server/modules/catalog/service";
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {

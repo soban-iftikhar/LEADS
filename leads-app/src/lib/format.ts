@@ -40,6 +40,38 @@ export function formatPkr(n: string | number | bigint): string {
   return `PKR ${groupPk(v)}`;
 }
 
+/** Counts with Pakistani grouping: 48212 -> "48,212", 120000 -> "1,20,000". */
+export function formatNumber(n: number): string {
+  return groupPk(Math.round(n));
+}
+
+/** Percent with one decimal and an optional sign: 0.059 -> "5.9%", signed -> "+5.9%". */
+export function formatPercent(ratio: number, opts: { signed?: boolean; decimals?: number } = {}): string {
+  const d = opts.decimals ?? 1;
+  const v = Number((ratio * 100).toFixed(d));
+  const sign = opts.signed && v > 0 ? "+" : "";
+  return `${sign}${v.toFixed(d).replace(/\.0+$/, "")}%`;
+}
+
+/** Rupees in lakh with one decimal: 3080000 -> "30.8". The unit is printed by the caller. */
+export function formatLac(pkr: number): string {
+  return (pkr / 100_000).toFixed(1);
+}
+
+/** Number typed by a person: "1,20,000", "2.5 Cr", "85 lac", "-5.9%" -> 120000, 25000000, 8500000, -5.9. NaN when unreadable. */
+export function parseSortableNumber(text: string): number {
+  const t = text.trim().toLowerCase().replace(/^pkr\s*/, "").replace(/,/g, "");
+  const m = t.match(/^([+-]?\d+(?:\.\d+)?)\s*(cr|crore|lac|lakh|k|m|%)?$/);
+  if (!m) return Number.NaN;
+  const n = Number(m[1]);
+  const unit = m[2];
+  if (unit === "cr" || unit === "crore") return Math.round(n * 10_000_000);
+  if (unit === "lac" || unit === "lakh") return Math.round(n * 100_000);
+  if (unit === "k") return Math.round(n * 1000);
+  if (unit === "m") return Math.round(n * 1_000_000);
+  return n;
+}
+
 /** Full form for inputs and totals: "PKR 2,40,00,000". */
 export function formatPkrFull(n: string | number | bigint): string {
   return `PKR ${groupPk(n)}`;
@@ -146,6 +178,12 @@ export function formatWindow(start: string | null, end: string | null, now: Date
 export function dayBucket(iso: string, now: Date = new Date()): "Today" | "Yesterday" | "Earlier" {
   const diff = dayNumber(now) - dayNumber(new Date(iso));
   return diff <= 0 ? "Today" : diff === 1 ? "Yesterday" : "Earlier";
+}
+
+/** "Good morning" / "Good afternoon" / "Good evening" for the hour in Karachi. */
+export function greeting(now: Date = new Date()): string {
+  const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", hour12: false }).format(now)) % 24;
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
 /** "Bilal Ahmed" -> "Bilal". */

@@ -6,6 +6,8 @@ import { Redis } from "ioredis";
 export default async function globalSetup() {
   // the demo accounts (demo@leads.pk, owner@leads.pk / password1) and their data
   execFileSync("npm", ["run", "--silent", "db:seed:dev"], { stdio: "inherit" });
+  // the dev admin (admin@leads.pk) and the admin console's fixtures
+  execFileSync("npm", ["run", "--silent", "db:seed:admin"], { stdio: "inherit" });
 
   // repeated runs from one machine would otherwise trip the signup/login limits
   const url = process.env.REDIS_URL;
