@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cx } from "@/components/ui/cx";
 import { logout } from "@/lib/api";
+import { useOnline } from "@/lib/hooks/useOnline";
 import { usePageTransition } from "@/lib/hooks/usePageTransition";
 import { useRailCollapsed } from "@/lib/hooks/useRailCollapsed";
 import { ADMIN_RAIL_STORAGE_KEY } from "@/lib/theme";
@@ -24,6 +25,7 @@ export function AdminShell({ admin, badges, children }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [askLogout, setAskLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const online = useOnline();
   const waiting = badges.review + badges.replies + badges.reports;
 
   // the mobile drawer closes on every navigation and on Esc
@@ -55,6 +57,11 @@ export function AdminShell({ admin, badges, children }: Props) {
       <div className="main">
         <AdminHeader path={path} waiting={waiting} onMenu={() => setMenuOpen(true)} go={go} />
         <main className="wrap">
+          {!online && (
+            <div className="offline" role="status">
+              You&apos;re offline. This is the last data we had; changes are paused until you&apos;re back.
+            </div>
+          )}
           <div ref={stage} className={cx("stage", out && "out")}>
             <div className="pane" key={path}>
               {children}
