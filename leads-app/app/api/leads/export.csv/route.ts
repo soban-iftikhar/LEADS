@@ -1,23 +1,17 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { mockUserId } from "@/mocks/session";
-import { exportLeadsCsv } from "@/mocks/store";
-import type { LeadStageFilter } from "@/types/api";
+import { NextResponse } from "next/server";
+import { route } from "@/server/http/route";
+import { leadsQuerySchema } from "@/server/modules/leads/schema";
+import { exportLeadsCsv } from "@/server/modules/leads/service";
 
-// TODO(api): replace with the real export once GET /api/leads/export.csv exists in the backend module.
-// Mirrors the contract: same filters as GET /api/leads, text/csv, scoped to the signed-in customer.
-const STAGES = new Set(["new", "contacted", "viewing", "won", "lost", "reported"]);
+const exportQuery = leadsQuerySchema.pick({ stage: true, listing: true, q: true });
 
-export async function GET(request: NextRequest) {
-  const uid = await mockUserId();
-  if (!uid) return NextResponse.json({ success: false, message: "Please log in.", errors: null }, { status: 401 });
-  const sp = request.nextUrl.searchParams;
-  const stage = sp.get("stage");
-  const csv = exportLeadsCsv(uid, {
-    stage: stage && STAGES.has(stage) ? (stage as LeadStageFilter) : undefined,
-    listing: sp.get("listing") ?? undefined,
-    q: sp.get("q") ?? undefined,
-  });
-  return new NextResponse(csv, {
-    headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="leads.csv"', "Cache-Control": "no-store" },
-  });
-}
+// GET /api/leads/export.csv?stage&listing&q -> text/csv, the same filters as GET /api/leads
+export const GET = route({
+  auth: "lead:read:own",
+  query: exportQuery,
+  limits: [{ key: "leads-export", limit: 20, windowSeconds: 3600 }],
+  handler: async ({ auth, query }) =>
+    new NextResponse(await exportLeadsCsv(auth.user.id, query), {
+      headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="leads.csv"' },
+    }),
+});

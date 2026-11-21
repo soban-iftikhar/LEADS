@@ -1,29 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
-import { Icon } from "@/components/ui/Icon";
+import { useState, type FormEvent } from "react";
+import { Button, Field, Note, TextInput } from "@/components/ui";
 import { ApiError, resetPassword } from "@/lib/api";
-import { Banner, FieldError, PasswordInput, passwordStrength, shake, Spinner, StrengthMeter, strengthLabel } from "./parts";
+import { passwordStrength, strengthLabel } from "./parts";
 
-function Expired() {
-  return (
-    <div className="fields" style={{ marginTop: 22 }}>
-      <div className="banner" role="alert">
-        <Icon name="alert" size={18} />
-        <span>This link has expired.</span>
-      </div>
-      <Link href="/forgot-password" className="btn b-m full">
-        Send a new link
-      </Link>
-    </div>
-  );
-}
+const COLOURS = ["var(--line)", "var(--err)", "var(--m-mid)", "var(--m)", "var(--ink)"];
 
+/** B5 Reset (design/screens/auth-reset.html). Callback from the reset email: ?token=<raw>. */
 export function ResetForm({ token }: { token: string }) {
   const router = useRouter();
-  const card = useRef<HTMLDivElement>(null);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [errs, setErrs] = useState<{ pw?: string; pw2?: string }>({});
@@ -38,11 +25,7 @@ export function ResetForm({ token }: { token: string }) {
     const fe: typeof errs = {};
     if (pw.length < 8 || !/\d/.test(pw)) fe.pw = "Use 8 or more characters with a number.";
     if (pw2 !== pw) fe.pw2 = "The two passwords don't match.";
-    if (fe.pw || fe.pw2) {
-      setErrs(fe);
-      shake(card.current);
-      return;
-    }
+    if (fe.pw || fe.pw2) return setErrs(fe);
     setBusy(true);
     try {
       await resetPassword(token, pw);
@@ -50,43 +33,46 @@ export function ResetForm({ token }: { token: string }) {
     } catch (err) {
       setBusy(false);
       if (err instanceof ApiError && err.status === 410) return setExpired(true);
-      if (err instanceof ApiError && err.status === 422 && err.errors?.password) return setErrs({ pw: err.errors.password });
+      if (err instanceof ApiError && err.errors?.password) return setErrs({ pw: err.errors.password });
       setBanner("Something went wrong. Please try again.");
     }
   };
 
   return (
-    <div className="fcard" ref={card}>
-      <form className="view" noValidate onSubmit={submit}>
-        <h1 className="ttl">Set a new password.</h1>
+    <div className="app-ui acard-host">
+      <form className="acard" noValidate onSubmit={submit}>
+        <h1>Set a new password.</h1>
         {expired ? (
-          <Expired />
+          <>
+            <Note tone="warn" icon="alert" role="alert">
+              This link has expired.
+            </Note>
+            <Button href="/forgot-password" variant="primary" size="lg" full>
+              Send a new link
+            </Button>
+          </>
         ) : (
           <>
-            <p className="sub">Use 8 or more characters with a number.</p>
-            <div className="fields">
-              {banner && <Banner>{banner}</Banner>}
-              <div className="field">
-                <div className="lb">
-                  <label htmlFor="r-pw">New password</label>
-                  <span className="mlab" aria-live="polite">
-                    {strengthLabel(level)}
-                  </span>
-                </div>
-                <PasswordInput id="r-pw" autoComplete="new-password" placeholder="At least 8 characters" value={pw} onChange={(e) => { setPw(e.target.value); setErrs({}); }} error={errs.pw} errorId="r-pw-e" />
-                <StrengthMeter level={level} />
-                {errs.pw && <FieldError id="r-pw-e">{errs.pw}</FieldError>}
-              </div>
-              <div className="field">
-                <label htmlFor="r-pw2">Repeat new password</label>
-                <PasswordInput id="r-pw2" autoComplete="new-password" value={pw2} onChange={(e) => { setPw2(e.target.value); setErrs({}); }} error={errs.pw2} errorId="r-pw2-e" />
-                {errs.pw2 && <FieldError id="r-pw2-e">{errs.pw2}</FieldError>}
-              </div>
-              <button type="submit" className="btn b-m full" aria-disabled={busy || undefined} aria-busy={busy || undefined}>
-                {busy && <Spinner />}
-                {busy ? "Saving…" : "Save new password"}
-              </button>
+            <p>At least 8 characters with a number.</p>
+            {banner && (
+              <Note tone="warn" icon="alert" role="alert">
+                {banner}
+              </Note>
+            )}
+            <Field label="New password" error={errs.pw} aside={<span className="mlab muted" aria-live="polite" style={{ fontSize: 13 }}>{strengthLabel(level)}</span>}>
+              <TextInput type="password" autoComplete="new-password" value={pw} onChange={(e) => { setPw(e.target.value); setErrs({}); }} />
+            </Field>
+            <div className="meter4" aria-hidden="true">
+              {[1, 2, 3, 4].map((n) => (
+                <i key={n} style={{ background: n <= level ? COLOURS[level] : undefined }} />
+              ))}
             </div>
+            <Field label="Repeat new password" error={errs.pw2}>
+              <TextInput type="password" autoComplete="new-password" value={pw2} onChange={(e) => { setPw2(e.target.value); setErrs({}); }} />
+            </Field>
+            <Button type="submit" variant="primary" size="lg" full loading={busy} loadingLabel="Saving…">
+              Save new password
+            </Button>
           </>
         )}
       </form>

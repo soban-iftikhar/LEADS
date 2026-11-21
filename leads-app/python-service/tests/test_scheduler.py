@@ -382,6 +382,7 @@ def test_portal_with_errors_and_nothing_saved_is_failed():
 
 def test_olx_listing_is_kept_when_the_phone_lookup_fails():
     from types import SimpleNamespace
+
     from leads_scraper.spiders.olx import OLXSpider
     spider = OLXSpider()
     ctx = {"category": "house", "purpose": "sale", "city": "Islamabad", "url": "https://www.olx.com.pk/item/x-iid-1"}

@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { VerifyPhone } from "@/components/auth/VerifyPhone";
-import { getOtpPhone } from "@/lib/api";
-import { getViewer } from "@/lib/viewer";
+import { VerifyEmailCode } from "@/components/auth/VerifyEmailCode";
+import { safeNext } from "@/lib/redirects";
+import { getViewer } from "@/server/pages";
 
-export const metadata: Metadata = { title: "Check WhatsApp", robots: { index: false } };
+export const metadata: Metadata = { title: "Check your email", robots: { index: false } };
 
-export default async function VerifyPage() {
-  const me = await getViewer();
-  if (!me) redirect(`/login?next=${encodeURIComponent("/signup/verify")}`);
-  if (me.user.phoneVerified) redirect("/dashboard");
-  const phone = await getOtpPhone().catch(() => me.user.phoneMasked ?? "");
-  return <VerifyPhone phone={phone} kind={me.customer.kind === "AGENCY" ? "agency" : "seller"} />;
+/** Signup step 3 (DR-42): confirm the email with a 6-digit code. */
+export default async function VerifyPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const [viewer, sp] = await Promise.all([getViewer(), searchParams]);
+  if (!viewer) redirect(`/login?next=${encodeURIComponent("/signup/verify")}`);
+  const { me } = viewer;
+  const next = safeNext(sp.next);
+  if (me.user.emailVerified) redirect(next);
+  return <VerifyEmailCode email={me.user.email} next={next} />;
 }

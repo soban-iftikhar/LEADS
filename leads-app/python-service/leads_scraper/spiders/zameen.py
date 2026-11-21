@@ -92,6 +92,7 @@ class ZameenSpider(BaseSpider):
                 },
                 headers=self.HEADERS,
                 errback=self.handle_error,
+                meta={"zameen_city": {"id": city_id, "name": city_name}},
             )
 
     # Level 1: Search results page
@@ -138,6 +139,7 @@ class ZameenSpider(BaseSpider):
                 },
                 headers={**self.HEADERS, "Referer": response.url},
                 errback=self.handle_error,
+                meta={"zameen_city": response.meta.get("zameen_city")},
             )
 
         if self.keep_paging(fresh, page):
@@ -154,6 +156,7 @@ class ZameenSpider(BaseSpider):
                     },
                     headers=self.HEADERS,
                     errback=self.handle_error,
+                    meta={"zameen_city": response.meta.get("zameen_city")},
                 )
 
     def _get_next_page(self, response, current_page):

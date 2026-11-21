@@ -12,7 +12,8 @@ type Props = {
   stage: string;
   listing: string;
   q: string;
-  listings: { id: string; label: string }[];
+  /** null for owners: one listing, no filter */
+  listings: { id: string; label: string }[] | null;
 };
 
 /** Stage tabs, listing filter and search. Everything lives in the URL. */
@@ -49,6 +50,7 @@ export function LeadsToolbar({ counts, stage, listing, q, listings }: Props) {
         items={STAGE_FILTERS.map((s) => ({ value: s.value, label: s.label, count: counts[s.value], href: href({ stage: s.value === "all" ? "" : s.value }) }))}
       />
       <div className="toolbar">
+        {listings && (
         <label className="sel">
           <Icon name="home" size={16} />
           <span className="sr-only">Listing</span>
@@ -62,6 +64,7 @@ export function LeadsToolbar({ counts, stage, listing, q, listings }: Props) {
           </select>
           <Icon name="chevd" size={16} />
         </label>
+        )}
         <label className="srch2">
           <Icon name="search" size={16} />
           <input type="search" placeholder="Name or phone" aria-label="Search leads" value={text} onChange={(e) => setText(e.target.value)} />

@@ -9,7 +9,7 @@ import { formatDate, groupPk } from "@/lib/format";
 import type { ListingCard, PackagePlan } from "@/types/api";
 import { hotId } from "./ListingCells";
 
-export function BuyLeads({ listings, plans, initialListing, initialPlan, now }: { listings: ListingCard[]; plans: PackagePlan[]; initialListing?: string; initialPlan?: string; now: string }) {
+export function BuyLeads({ listings, plans, initialListing, initialPlan, now, owner }: { listings: ListingCard[]; plans: PackagePlan[]; initialListing?: string; initialPlan?: string; now: string; owner: boolean }) {
   const router = useRouter();
   const n = new Date(now);
   const live = listings.filter((l) => l.status === "APPROVED");
@@ -56,9 +56,9 @@ export function BuyLeads({ listings, plans, initialListing, initialPlan, now }: 
           <span>{banner}</span>
         </div>
       )}
-      <Section title="1. Which listing?" action={<span className="muted" style={{ fontSize: 13 }}>Only live listings · a new package starts after the current one ends</span>}>
+      <Section title="1. Which listing?" action={<span className="muted" style={{ fontSize: 13 }}>Only live listings · starts after the current package ends</span>}>
         {live.length ? (
-          <div className="grid3" role="radiogroup" aria-label="Listing">
+          <div className={owner ? "grid1" : "grid3"} role="radiogroup" aria-label="Listing">
             {live.map((l) => (
               <label key={l.id} className={`lsel ${l.id === listingId ? "on" : ""}`}>
                 <input type="radio" name="listing" className="sr-only" checked={l.id === listingId} onChange={() => setListingId(l.id)} />
@@ -73,7 +73,7 @@ export function BuyLeads({ listings, plans, initialListing, initialPlan, now }: 
                   </div>
                 </div>
                 <span className="muted" style={{ fontSize: 12.5 }}>
-                  {l.activeOrder ? `Active ends ${formatDate(l.activeOrder.windowEndsAt, n)}` : "No package"}
+                  {l.activeOrder ? `Active till ${formatDate(l.activeOrder.windowEndsAt, n)}` : "No package"}
                 </span>
               </label>
             ))}

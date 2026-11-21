@@ -17,13 +17,8 @@ import {
   uploadListingImage,
 } from "@/lib/api";
 import { formatPkr, formatRelative, groupPk } from "@/lib/format";
-import type { DocumentKind, ListingCategory, ListingDetail, ListingPatch, Locality, QualityCheck, SizeUnit } from "@/types/api";
+import type { DocumentKind, ListingCategory, ListingDetail, ListingPatch, Locality, QualityCheck, Region, SizeUnit } from "@/types/api";
 import { QualityStrip } from "./QualityStrip";
-
-const REGIONS = [
-  { id: "reg_isb", slug: "islamabad" as const, name: "Islamabad" },
-  { id: "reg_rwp", slug: "rawalpindi" as const, name: "Rawalpindi" },
-];
 
 // shown before the draft exists (keys and labels match the API's checks)
 const EMPTY_CHECKS: QualityCheck[] = [
@@ -58,9 +53,10 @@ type Form = {
   localityId: string;
   localityName: string;
   description: string;
+  ownerName: string;
 };
 
-function fromListing(l: ListingDetail | null): Form {
+function fromListing(l: ListingDetail | null, defaultRegionId: string): Form {
   return {
     category: l?.category ?? "HOUSE",
     sizeValue: l?.sizeValue ?? "",
@@ -68,32 +64,15 @@ function fromListing(l: ListingDetail | null): Form {
     bedrooms: l?.bedrooms != null ? String(l.bedrooms) : "",
     bathrooms: l?.bathrooms != null ? String(l.bathrooms) : "",
     price: l && Number(l.pricePkr) > 0 ? l.pricePkr : "",
-    regionId: REGIONS.find((r) => r.name === l?.locality.regionName)?.id ?? "reg_isb",
+    regionId: l?.locality.regionId ?? defaultRegionId,
     localityId: l?.locality.id ?? "",
     localityName: l?.locality.name ?? "",
     description: l?.description ?? "",
+    ownerName: l?.ownerName ?? "",
   };
 }
 
-/** Downscale a picked photo to a small JPEG data URL for the mock store. TODO(api): send the file as multipart. */
-async function previewOf(file: File): Promise<string> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    const scale = Math.min(1, 480 / Math.max(img.width, img.height));
-    const c = document.createElement("canvas");
-    c.width = Math.round(img.width * scale);
-    c.height = Math.round(img.height * scale);
-    c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL("image/jpeg", 0.8);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-function AreaCombobox({ region, value, onPick, hint }: { region: "islamabad" | "rawalpindi"; value: string; onPick: (l: Locality | null, text: string) => void; hint: string | null }) {
+function AreaCombobox({ region, value, onPick, hint }: { region: string; value: string; onPick: (l: Locality | null, text: string) => void; hint: string | null }) {
   const id = useId();
   const [text, setText] = useState(value);
   const [items, setItems] = useState<Locality[]>([]);
@@ -189,13 +168,15 @@ function AreaCombobox({ region, value, onPick, hint }: { region: "islamabad" | "
   );
 }
 
-export function ListingForm({ listing, now }: { listing: ListingDetail | null; now: string }) {
+type Props = { listing: ListingDetail | null; regions: Region[]; defaultRegionId?: string; now: string; agency: boolean };
+
+export function ListingForm({ listing, regions, defaultRegionId, now, agency }: Props) {
   const router = useRouter();
   const toast = useToast();
   const fid = useId();
   const [id, setId] = useState<string | null>(listing?.id ?? null);
   const [status, setStatus] = useState(listing?.status ?? "DRAFT");
-  const [f, setF] = useState<Form>(() => fromListing(listing));
+  const [f, setF] = useState<Form>(() => fromListing(listing, defaultRegionId ?? regions[0]?.id ?? ""));
   const [checks, setChecks] = useState<QualityCheck[]>(listing?.quality.checks ?? EMPTY_CHECKS);
   const [benchmark, setBenchmark] = useState(listing?.benchmark ?? null);
   const [images, setImages] = useState(listing?.images ?? []);
@@ -279,7 +260,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
 
   const isPlot = f.category === "PLOT";
   const passedAll = checks.every((c) => c.passed);
-  const region = REGIONS.find((r) => r.id === f.regionId) ?? REGIONS[0];
+  const region = regions.find((r) => r.id === f.regionId) ?? regions[0];
   const unitLabel = UNITS.find((u) => u.value === f.sizeUnit)?.label ?? "Marla";
   const benchHint =
     benchmark && f.localityName && f.sizeValue
@@ -300,7 +281,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
       }
       setUploading((u) => u + 1);
       try {
-        const { image } = await uploadListingImage(lid, await previewOf(file));
+        const { image } = await uploadListingImage(lid, file);
         setImages((im) => [...im, image]);
       } catch (e) {
         toast(e instanceof ApiError ? e.message : `Couldn't upload ${file.name}.`);
@@ -355,14 +336,14 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
     setDragFrom(null);
   };
 
-  // TODO(api): the kind should come from the person or the reviewer; registry is the common case
+  // registry is by far the common case; the review team corrects the kind when it differs
   const addDoc = async (file: File | undefined, kind: DocumentKind = doc?.kind ?? "REGISTRY") => {
     if (!file) return;
     if (!/^(application\/pdf|image\/(jpeg|png))$/.test(file.type)) return toast("Use a PDF, JPG or PNG.");
     if (file.size > 10 * 1024 * 1024) return toast("That file is over 10 MB.");
     const lid = await ensureId();
     try {
-      const { document } = await uploadListingDocument(lid, kind, file.name);
+      const { document } = await uploadListingDocument(lid, kind, file);
       setDoc(document);
       await refreshChecks(lid);
     } catch (e) {
@@ -538,7 +519,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
                     queue({ regionId: e.target.value, localityId: "" });
                   }}
                 >
-                  {REGIONS.map((r) => (
+                  {regions.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name}
                     </option>
@@ -550,7 +531,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
               </div>
             </div>
             <AreaCombobox
-              region={region.slug}
+              region={region?.slug ?? ""}
               value={f.localityName}
               hint={benchHint}
               onPick={(l, text) => {
@@ -559,6 +540,19 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
               }}
             />
           </div>
+          {agency && (
+            <div>
+              <label className="lbl" htmlFor={`${fid}-owner`}>
+                Owner&apos;s name
+              </label>
+              <div className="inp">
+                <input id={`${fid}-owner`} autoComplete="off" aria-describedby={`${fid}-owner-h`} value={f.ownerName} onChange={(e) => set("ownerName", e.target.value, { ownerName: e.target.value })} />
+              </div>
+              <div className="hint" id={`${fid}-owner-h`}>
+                Only our team sees this. Agencies list on behalf of an owner.
+              </div>
+            </div>
+          )}
           <div>
             <label className="lbl" htmlFor={`${fid}-desc`}>
               Description
@@ -568,7 +562,7 @@ export function ListingForm({ listing, now }: { listing: ListingDetail | null; n
         </div>
       </section>
 
-      <div className="twocol" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr)" }}>
+      <div className="cols" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr)" }}>
         <div>
           <section className="sec" id="photos">
             <div className="sec-h">

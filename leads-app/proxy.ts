@@ -1,35 +1,31 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/server/auth/session";
+import { NextResponse, type NextRequest } from "next/server";
+import { ACCESS_COOKIE } from "@/server/auth/cookies";
+import { verifyAccessToken } from "@/server/auth/tokens";
 
-// TODO(api): drop the mock cookie once the UI talks to the real auth routes.
-const MOCK_COOKIE = "leads_mock_session";
+/**
+ * Page gate for the signed-in app (Next.js proxy, Node runtime). It verifies the access JWT's
+ * signature and expiry only; the (app) layout and every API route still load the session row,
+ * so a revoked session is refused there.
+ *
+ * - valid token with time to spare: continue, passing the path on for the layout's `?next=`
+ * - missing, invalid or about to expire: through /api/auth/refresh, which rotates the refresh
+ *   token and comes back here, or sends the visitor to /login
+ */
+const REFRESH_AHEAD_SEC = 60;
 
-// Sends signed-out visitors to the login page before a protected page renders, keeping where
-// they were going in `next`. This is a convenience for pages only: every API route handler checks
-// the session itself, and the (app) layout re-checks role and phone verification.
 export function proxy(request: NextRequest) {
-  const signedIn = !!getCurrentUser(request) || !!request.cookies.get(MOCK_COOKIE)?.value;
-  if (!signedIn) {
-    const url = new URL("/login", request.url);
-    url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
+  const path = request.nextUrl.pathname + request.nextUrl.search;
+  const claims = verifyAccessToken(request.cookies.get(ACCESS_COOKIE)?.value);
+  if (!claims || claims.exp - Date.now() / 1000 < REFRESH_AHEAD_SEC) {
+    const url = new URL("/api/auth/refresh", request.url);
+    url.searchParams.set("next", path);
     return NextResponse.redirect(url);
   }
-  // the (app) layout reads this to build its own ?next= when it has to send someone away
   const headers = new Headers(request.headers);
-  headers.set("x-leads-path", request.nextUrl.pathname + request.nextUrl.search);
+  headers.set("x-leads-path", path);
   return NextResponse.next({ request: { headers } });
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/leads/:path*",
-    "/listings/:path*",
-    "/packages/:path*",
-    "/checkout/:path*",
-    "/notifications/:path*",
-    "/settings/:path*",
-    "/signup/verify",
-  ],
+  matcher: ["/dashboard/:path*", "/leads/:path*", "/listings/:path*", "/packages/:path*", "/checkout/:path*", "/notifications/:path*", "/settings/:path*", "/signup/verify", "/verify-phone"],
 };

@@ -13,7 +13,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:seed:dev": "tsx --conditions=react-server scripts/dev-seed.ts",
+    "admin:create": "tsx --conditions=react-server scripts/admin-create.ts"
   },
   "dependencies": {
     "@google/genai": "^2.11.0",
@@ -48,6 +50,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.4"
   },

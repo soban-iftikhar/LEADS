@@ -11,7 +11,8 @@ export type CustomerKind = "SELLER" | "AGENCY";
 
 export type Me = {
   user: { id: string; email: string; role: Role; phoneMasked: string | null; emailVerified: boolean; phoneVerified: boolean };
-  customer: { kind: CustomerKind; displayName: string; contactPerson: string | null; initials: string };
+  /** city: the owner's home city (region slug), or null */
+  customer: { kind: CustomerKind; displayName: string; contactPerson: string | null; initials: string; city: string | null };
   counts: { newLeads: number; unreadNotifications: number; listings: number };
 };
 
@@ -24,7 +25,7 @@ export type ListingCard = {
   slug: string;
   title: string;
   category: ListingCategory;
-  locality: { id: string; name: string; regionName: string };
+  locality: { id: string; name: string; regionId: string; regionName: string };
   pricePkr: Pkr;
   sizeValue: string;
   sizeUnit: SizeUnit;
@@ -52,6 +53,9 @@ export type ListingDetail = ListingCard & {
   benchmark: { minPkr: Pkr; maxPkr: Pkr; sampleSize: number } | null;
   reviews: { decision: string; note: string | null; createdAt: string }[];
   timeline: { status: ListingStatus; at: string }[];
+  ownerName: string | null; // agencies only: the owner they list for (only our team sees it)
+  /** the owner may change it now (also true for a live listing being re-reviewed after an edit) */
+  editable: boolean;
 };
 
 export type ListingPatch = Partial<{
@@ -67,6 +71,7 @@ export type ListingPatch = Partial<{
   addressText: string;
   description: string;
   amenities: string[];
+  ownerName: string; // agencies only
 }>;
 
 export type ListingCounts = { all: number; live: number; review: number; info: number; rejected: number; draft: number; paused: number; sold: number };
@@ -99,6 +104,7 @@ export type LeadCounts = { all: number; new: number; contacted: number; viewing:
 export type LeadDetail = LeadListItem & {
   note: string | null;
   followUpAt: string | null;
+  followUpKind: FollowUpKind | null;
   order: { id: string; planName: string; deliveredCount: number; leadCount: number } | null;
   conversation: { direction: "OUT" | "IN"; body: string; at: string }[];
   activity: { at: string; text: string }[];
@@ -129,6 +135,8 @@ export type PaymentMethod = "CARD" | "JAZZCASH" | "EASYPAISA" | "BANK_TRANSFER";
 export type OrderDetail = OrderCard & {
   payments: { status: string; provider: string; createdAt: string }[];
   startsAt: string;
+  /** payment methods the current provider accepts */
+  methods: PaymentMethod[];
 };
 
 export type PayResult =
@@ -137,13 +145,35 @@ export type PayResult =
 
 export type PackagePlan = { id: string; name: string; leadCount: number; pricePkr: Pkr; pricePerLeadPkr: Pkr; deliveryDays: number };
 
+export type FollowUpKind = "CALL" | "VISIT";
+
+export type DashboardActiveOrder = {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  localityName: string;
+  planName: string;
+  leadCount: number;
+  deliveredCount: number;
+  windowStartsAt: string;
+  windowEndsAt: string;
+  daysLeft: number;
+  dayOfWindow: number;
+  /** round(leadCount × dayOfWindow / deliveryDays) */
+  expectedByToday: number;
+};
+
 export type DashboardSummary = {
-  activeOrders: number;
-  delivered: number;
-  bought: number;
-  nextEnding: { orderId: string; windowEndsAt: string; daysLeft: number; listingTitle: string } | null;
-  leadsToCall: number;
-  oldestNewLeadAt: string | null;
+  activeOrders: DashboardActiveOrder[];
+  totals: { delivered: number; bought: number; expectedByToday: number; projectedEndDate: string | null };
+  /** leads delivered today (Asia/Karachi) */
+  today: number;
+  thisWeek: { days: { date: string; label: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"; count: number }[]; total: number };
+  pipeline: { new: number; contacted: number; viewing: number; won: number; lost: number };
+  reportsUnderCheck: number;
+  /** stage NEW, max 3, oldest first */
+  waiting: { count: number; oldestAt: string | null; items: LeadListItem[] };
+  followUpsToday: { leadId: string; buyerName: string; listingTitle: string; at: string; kind: FollowUpKind }[];
 };
 
 export type NotificationType =
@@ -168,6 +198,7 @@ export type NotificationSettings = {
   packageEnding: boolean;
 };
 
+export type Region = { id: string; name: string; slug: string };
 export type Locality = { id: string; name: string; slug: string; parentName: string | null };
 
 export type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };

@@ -7,10 +7,13 @@ import { formatDate } from "@/lib/format";
 import type { OrderDetail } from "@/types/api";
 import { useBadges } from "./badges";
 
-type State = { kind: "wait" } | { kind: "ok"; order: OrderDetail; start: string } | { kind: "failed" } | { kind: "slow" };
+type State = { kind: "wait" } | { kind: "ok"; order: OrderDetail; startsLater: boolean } | { kind: "failed" } | { kind: "slow" };
 
-/** Polls GET /api/orders/[id] every 2 s for up to 30 s. */
-export function PaymentReturn({ orderId }: { orderId: string }) {
+/** Order reference shown to the customer: "OR-" + the last 5 characters of the order id. */
+const orderCode = (id: string) => `OR-${id.replace(/[^a-zA-Z0-9]/g, "").slice(-5).toUpperCase()}`;
+
+/** C12 (screens/ag-paid.html). Polls GET /api/orders/[id] every 2 s for up to 30 s; never trusts the query. */
+export function PaymentReturn({ orderId, email }: { orderId: string; email: string }) {
   const [state, setState] = useState<State>({ kind: "wait" });
   const badges = useBadges();
   useEffect(() => {
@@ -21,8 +24,8 @@ export function PaymentReturn({ orderId }: { orderId: string }) {
       try {
         const o = await getOrder(orderId);
         if (o.status === "ACTIVE") {
-          const start = o.windowStartsAt && new Date(o.windowStartsAt).getTime() > Date.now() + 60_000 ? formatDate(o.windowStartsAt) : "today";
-          setState({ kind: "ok", order: o, start });
+          const startsLater = !!o.windowStartsAt && new Date(o.windowStartsAt).getTime() > Date.now() + 60_000;
+          setState({ kind: "ok", order: o, startsLater });
           badges.bump({ unread: 1 });
           return;
         }
@@ -44,33 +47,41 @@ export function PaymentReturn({ orderId }: { orderId: string }) {
   }, [orderId]);
 
   return (
-    <div className="result">
-      <section className="sec sec-b result-card" aria-live="polite">
+    <section className="sec paid" aria-live="polite">
+      <div className="sec-b">
         {state.kind === "wait" && (
-          <div className="row" style={{ justifyContent: "center", gap: 12 }}>
+          <>
             <span className="spin" aria-hidden="true" />
-            <h1 className="rt">Confirming your payment…</h1>
-          </div>
+            <h1>Confirming your payment…</h1>
+            <p>This takes a few seconds.</p>
+          </>
         )}
         {state.kind === "ok" && (
           <>
-            <span className="done-tile" aria-hidden="true">
-              <Icon name="check" size={34} strokeWidth={3} />
+            <span className="paid-tile" aria-hidden="true">
+              <Icon name="check" size={36} strokeWidth={2.6} />
             </span>
-            <h1 className="rt">Payment received</h1>
-            <p className="muted" style={{ margin: 0 }}>
-              {`${state.order.planName} · ${state.order.leadCount} leads for ${state.order.listing.title} starts ${state.start}.`}
+            <h1>Payment received</h1>
+            <p>
+              {`${state.order.planName} · ${state.order.leadCount} leads for your ${state.order.listing.title} in ${state.order.listing.localityName}. `}
+              {state.startsLater && state.order.windowStartsAt ? `It starts on ${formatDate(state.order.windowStartsAt)}, right after the current package ends.` : "It starts today."}
             </p>
-            <Button href="/packages" variant="primary">
-              Go to packages
-            </Button>
+            <Note icon="info">
+              Receipt sent to {email}. Order <span className="mono">{orderCode(state.order.id)}</span>.
+            </Note>
+            <div className="row" style={{ marginTop: 6 }}>
+              <Button href="/dashboard">Back to overview</Button>
+              <Button href="/packages" variant="primary">
+                See packages
+              </Button>
+            </div>
           </>
         )}
         {state.kind === "failed" && (
           <>
-            <h1 className="rt">Payment didn&apos;t go through</h1>
+            <h1>Payment didn&apos;t go through</h1>
             <Note tone="warn" icon="alert">
-              Nothing was charged. You can try again with the same or another method.
+              Payment didn&apos;t go through. Nothing was charged.
             </Note>
             <Button href={`/checkout/${orderId}`} variant="primary">
               Try again
@@ -79,12 +90,12 @@ export function PaymentReturn({ orderId }: { orderId: string }) {
         )}
         {state.kind === "slow" && (
           <>
-            <h1 className="rt">Still confirming</h1>
+            <h1>Still confirming</h1>
             <Note icon="clock">This is taking longer than usual. We&apos;ll send you a notification as soon as it&apos;s confirmed.</Note>
-            <Button href="/packages">Go to packages</Button>
+            <Button href="/packages">See packages</Button>
           </>
         )}
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

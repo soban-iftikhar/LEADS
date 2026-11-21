@@ -23,4 +23,4 @@ Rules:
 | `app` | users, sessions, contacts, customer listings, orders, payments, campaigns, messages, forms, leads |
 | `intel` | benchmarks, scores, clusters, seller-contact links |
 | `ops` | job requests, heartbeats, notifications, audit log |
-| `public` | legacy tables from before v4 (`Legacy*` models), to be dropped |
+| `public` | only Prisma's own migration table (the pre-v4 tables were dropped in `20261122000000`) |

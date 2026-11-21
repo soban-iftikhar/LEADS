@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginAsDemo } from "./helpers";
+import { loginAsDemo, loginAsOwner } from "./helpers";
 
 test("open a lead, change its stage, then report it", async ({ page }) => {
   await loginAsDemo(page);
@@ -16,4 +16,16 @@ test("open a lead, change its stage, then report it", async ({ page }) => {
   await send.click();
   await expect(page.getByText("Under check. We'll reply within 48 hours.")).toBeVisible();
   await expect(page).not.toHaveURL(/report=1/);
+});
+
+test("agency leads filter by listing; owner leads have no listing column", async ({ page, browser }) => {
+  await loginAsDemo(page, "/leads");
+  await expect(page.getByRole("columnheader", { name: "Listing" })).toBeVisible();
+  await expect(page.locator(".toolbar select")).toBeVisible();
+  const owner = await browser.newPage();
+  await loginAsOwner(owner, "/leads");
+  await expect(owner.getByRole("columnheader", { name: "Buyer" })).toBeVisible();
+  await expect(owner.getByRole("columnheader", { name: "Listing" })).toHaveCount(0);
+  await expect(owner.locator(".toolbar select")).toHaveCount(0);
+  await owner.close();
 });

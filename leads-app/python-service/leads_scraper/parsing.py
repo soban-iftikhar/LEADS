@@ -54,7 +54,7 @@ def parse_price(value) -> int | None:
     """'1.85 Crore' -> 18500000, '85 Lakh' -> 8500000, 24450000 -> 24450000. None if absent or <= 0."""
     if value is None or isinstance(value, bool):
         return None
-    if isinstance(value, (int, float, Decimal)):
+    if isinstance(value, int | float | Decimal):
         n = int(value)
         return n if n > 0 else None
     text = str(value).strip()
@@ -84,7 +84,7 @@ def parse_size(value, unit: str | None = None) -> tuple[Decimal | None, str | No
     """'5 Marla' -> (5, 'marla'); (7, 'sqfeet') -> (7, 'sqft'). Unit None if unknown."""
     if value is None or value == "":
         return None, None
-    if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
+    if isinstance(value, int | float | Decimal) and not isinstance(value, bool):
         num = Decimal(str(value))
         u = normalize_unit(unit)
     else:
@@ -125,7 +125,7 @@ def parse_listed_at(raw, scraped_at: datetime) -> tuple[datetime, str, bool]:
     if raw is None or raw == "" or isinstance(raw, bool):
         return scraped_at, ESTIMATED, False
 
-    if isinstance(raw, (int, float)):
+    if isinstance(raw, int | float):
         ts = float(raw)
         if ts > 1e12:  # milliseconds
             ts /= 1000
@@ -171,7 +171,7 @@ def _parse_iso(text: str) -> datetime | None:
 def parse_int(value, zero_is_null: bool = False) -> int | None:
     if value is None or isinstance(value, bool):
         return None
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         n = int(value)
     else:
         m = re.search(r"\d+", str(value))

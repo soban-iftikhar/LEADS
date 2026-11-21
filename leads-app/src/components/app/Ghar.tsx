@@ -62,9 +62,9 @@ function GharSvg({ lookRef, className }: { lookRef?: Ref<SVGGElement>; className
   );
 }
 
-type Props = { area: GharArea };
+type Props = { area: GharArea; cities?: string[] };
 
-export function Ghar({ area }: Props) {
+export function Ghar({ area, cities }: Props) {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([{ from: "bot", text: GREETINGS[area].hello }]);
   const [typing, setTyping] = useState(false);
@@ -214,7 +214,7 @@ export function Ghar({ area }: Props) {
     if (!q || typing) return;
     setMsgs((m) => [...m, { from: "me", text: q }]);
     setTyping(true);
-    const a = answerFor(area, q);
+    const a = answerFor(area, q, cities);
     later(() => {
       setMsgs((m) => [...m, { from: "bot", text: a }]);
       setTyping(false);

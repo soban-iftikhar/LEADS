@@ -1,26 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LeadsTable } from "@/components/app/LeadsTable";
+import { unstable_rethrow } from "next/navigation";
+import { CallCard, FollowUps, PackageHero, PipelineBars, PropertyCard, WeekBars } from "@/components/app/Dashboard";
+import { LoadError } from "@/components/app/LoadError";
 import { OverviewListings } from "@/components/app/OverviewListings";
 import { PageHeader } from "@/components/app/PageHeader";
-import { LoadError } from "@/components/app/LoadError";
-import { Button, Empty, Section, StatStrip } from "@/components/ui";
-import { getDashboardSummary, getLeads, getMe, getMyListings } from "@/lib/api";
-import { firstName, formatDate, formatLongDay, formatRelative } from "@/lib/format";
+import { PhoneNudge } from "@/components/app/PhoneNudge";
+import { Button, Empty, Section } from "@/components/ui";
+import { firstName, formatLongDay } from "@/lib/format";
+import { dashboardSummary } from "@/server/modules/dashboard/service";
+import { getMyListing, listMyListings } from "@/server/modules/listings/service";
+import { requireCustomer } from "@/server/pages";
 import type { ListingCard, Me } from "@/types/api";
 
 export const metadata: Metadata = { title: "Overview", robots: { index: false } };
 
-function relHours(iso: string, now: Date): string {
-  const r = formatRelative(iso, now);
-  if (r.endsWith(" h")) return `${r.replace(" h", "")} hours ago`;
-  if (r.endsWith(" min")) return `${r} ago`;
-  return r === "Yesterday" ? "yesterday" : `on ${r}`;
+/** "Good morning|afternoon|evening" by the hour in Asia/Karachi. */
+function greeting(now: Date): string {
+  const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Karachi", hour: "numeric", hour12: false }).format(now)) % 24;
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
 function Step({ n, title, text, state, action }: { n: number; title: string; text: string; state: "done" | "now" | "wait"; action?: React.ReactNode }) {
   return (
-    <div className="lrow" style={{ padding: "18px 20px" }}>
+    <div className="lrow" style={{ padding: "18px 20px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid var(--line)" }}>
       <span className={`av ${state === "now" ? "y" : state === "done" ? "k" : ""}`} style={{ width: 36, height: 36 }} aria-hidden="true">
         {state === "done" ? "✓" : n}
       </span>
@@ -46,20 +49,25 @@ function Welcome({ me, listings }: { me: Me; listings: ListingCard[] }) {
   return (
     <>
       <PageHeader title={`Welcome, ${name}`} sub="Three steps to your first lead." />
+      {!me.user.phoneVerified && <PhoneNudge />}
       <section className="sec" aria-label="Getting started">
-        <Step n={1} title="Add your property" text="About 10 minutes. Photos, price and the ownership document." state={s1} action={<Button href="/listings/new" variant="primary" size="sm">Add listing</Button>} />
+        <Step n={1} title={listings.length ? "Add your property" : "Add your first property"} text="About 10 minutes. Photos, price and the ownership document." state={s1} action={<Button href="/listings/new" variant="primary" size="sm">Add listing</Button>} />
         <Step n={2} title="We check it" text="Our team reviews it within 24 hours." state={s2} action={<span className="muted" style={{ fontSize: 13 }}>Within 24 h</span>} />
         <Step n={3} title="Buy a lead package" text="Pick how many buyers you want. Cashback for any we miss." state={s3} action={<Button href="/packages/buy" variant="primary" size="sm">Buy leads</Button>} />
       </section>
-      <div className="twocol">
+      <div className="cols c-11">
         <div>
           <Section title="New leads">
             <Empty>No leads yet. They show up here once your package starts.</Empty>
           </Section>
         </div>
         <div>
-          <Section title="Listings">
-            <Empty action={<Button href="/listings/new" size="sm" icon="plus">Add listing</Button>}>You haven&apos;t added a property yet.</Empty>
+          <Section title="Your listings" flush={listings.length > 0} action={listings.length ? <Link href="/listings" className="lnk">Manage</Link> : undefined}>
+            {listings.length ? (
+              <OverviewListings items={listings} />
+            ) : (
+              <Empty action={<Button href="/listings/new" size="sm" icon="plus">Add listing</Button>}>No listings yet.</Empty>
+            )}
           </Section>
         </div>
       </div>
@@ -68,49 +76,61 @@ function Welcome({ me, listings }: { me: Me; listings: ListingCard[] }) {
 }
 
 export default async function DashboardPage() {
-  const me = await getMe();
+  const { me, owner: viewer } = await requireCustomer("/dashboard");
   const now = new Date();
-  if (me.counts.listings === 0) {
-    return <Welcome me={me} listings={[]} />;
-  }
+  if (me.counts.listings === 0) return <Welcome me={me} listings={[]} />;
+  const owner = me.customer.kind === "SELLER";
+  const title = `${greeting(now)}, ${firstName(me.customer.contactPerson ?? me.customer.displayName)}`;
   let data;
   try {
-    const [summary, leads, listings] = await Promise.all([getDashboardSummary(), getLeads({ stage: "new", pageSize: 5 }), getMyListings({ pageSize: 50 })]);
-    data = { summary, leads, listings };
-  } catch {
+    const [summary, listings] = await Promise.all([dashboardSummary(me.user.id), listMyListings(viewer, { page: 1, pageSize: 50 })]);
+    const mine = listings.items;
+    // owner: one property card needs beds, so load the full listing
+    const property = owner && mine[0] ? await getMyListing(viewer, mine[0].id) : null;
+    data = { summary, listings: mine, property };
+  } catch (e) {
+    unstable_rethrow(e);
     return (
       <>
-        <PageHeader title="Overview" sub={formatLongDay(now)} />
+        <PageHeader title={title} sub={formatLongDay(now)} />
         <LoadError />
       </>
     );
   }
-  const { summary, leads, listings } = data;
+  const { summary, listings, property } = data;
+  const leadsEver = Object.values(summary.pipeline).reduce((a, b) => a + b, 0) + summary.reportsUnderCheck;
+  // until the first package is bought, the three steps are more useful than empty charts
+  if (!summary.activeOrders.length && leadsEver === 0) return <Welcome me={me} listings={listings} />;
   return (
     <>
-      <PageHeader title="Overview" sub={formatLongDay(now)} actions={<Button href="/packages/buy" variant="primary">Buy leads</Button>} />
-      <StatStrip
-        items={[
-          { label: "Active packages", value: summary.activeOrders, sub: <Link href="/packages" className="lnk" style={{ fontSize: 13 }}>See packages</Link> },
-          { label: "Leads delivered", value: summary.delivered, unit: `/ ${summary.bought}`, bar: { value: summary.delivered, max: Math.max(1, summary.bought) } },
-          summary.nextEnding
-            ? { label: "Next package ends", value: formatDate(summary.nextEnding.windowEndsAt, now), sub: `in ${summary.nextEnding.daysLeft} days · ${summary.nextEnding.listingTitle}` }
-            : { label: "Next package ends", value: "—", sub: "No active package" },
-          { label: "Leads to call", value: summary.leadsToCall, sub: summary.oldestNewLeadAt ? `Oldest ${relHours(summary.oldestNewLeadAt, now)}` : "All caught up" },
-        ]}
-      />
-      <Section title="New leads" action={<Link href="/leads?stage=new" className="lnk">All leads</Link>} flush>
-        {leads.items.length ? (
-          <LeadsTable rows={leads.items} displayName={me.customer.displayName} now={now.toISOString()} />
-        ) : (
-          <div className="sec-b">
-            <Empty>No new leads. You&apos;re all caught up.</Empty>
-          </div>
-        )}
-      </Section>
-      <Section title="Listings" action={<Link href="/listings" className="lnk">Manage</Link>} flush>
-        <OverviewListings items={listings.items} />
-      </Section>
+      <PageHeader title={title} sub={formatLongDay(now)} actions={<Button href="/packages/buy" variant="primary" icon="zap">Buy leads</Button>} />
+      {!me.user.phoneVerified && <PhoneNudge />}
+      <div className="cols c-21">
+        <div>
+          <PackageHero s={summary} owner={owner} now={now} />
+        </div>
+        <div>
+          <CallCard s={summary} now={now} />
+        </div>
+      </div>
+      <div className="cols c-111">
+        <div>
+          <WeekBars s={summary} now={now} />
+        </div>
+        <div>
+          <PipelineBars s={summary} />
+        </div>
+        <div>
+          <FollowUps s={summary} />
+        </div>
+      </div>
+      {owner && property ? (
+        <PropertyCard l={property} />
+      ) : (
+        <Section title="Your listings" action={<Link href="/listings" className="lnk">Manage</Link>} flush>
+          <OverviewListings items={listings} />
+        </Section>
+      )}
     </>
   );
 }

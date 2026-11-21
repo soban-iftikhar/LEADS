@@ -25,6 +25,9 @@
   --color-err-soft: var(--err-soft);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
+  --color-rail: var(--rail-bg);
+  --color-rail-ink: var(--rail-ink);
+  --color-rail-mute: var(--rail-mute);
   --radius-xs: var(--r-xs);
   --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);
