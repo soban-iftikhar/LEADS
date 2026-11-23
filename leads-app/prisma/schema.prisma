@@ -38,6 +38,7 @@ model Locality {
   name           String
   slug           String
   aliases        String[]
+  kind           String          @default("AREA") // SECTOR | SOCIETY | AREA (admin areas screen)
   parentId       String?         @map("parent_id") @db.Uuid
   lat            Decimal?        @db.Decimal(9, 6)
   lng            Decimal?        @db.Decimal(9, 6)
