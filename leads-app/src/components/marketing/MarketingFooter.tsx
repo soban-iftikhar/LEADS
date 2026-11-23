@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { areaPages } from "@/server/modules/catalog/service";
-import { LogoMark } from "./Logo";
+import { LogoMark } from "@/components/brand/Logo";
 
 type Col = { title: string; links: { label: string; href: string }[] };
 

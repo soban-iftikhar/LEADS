@@ -55,7 +55,8 @@ async function request<T>(path: string, init: RequestInit = {}, retried = false)
   });
   if (res.status === 401 && !retried && !path.startsWith("/api/auth/")) {
     if (await refreshOnce()) return request<T>(path, init, true);
-    window.location.assign(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    const login = window.location.pathname.startsWith("/admin") ? "/admin/login" : "/login";
+    window.location.assign(`${login}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
   }
   if (res.status === 204) return undefined as T;
   const body = (await res.json().catch(() => null)) as Envelope<T> | null;
@@ -88,6 +89,8 @@ export const startPhone = (phone: string) => post<{ phoneMasked: string; retryAf
 export const verifyPhone = (otp: string) => post<{ phoneVerified: true }>("/api/auth/verify-phone", { otp });
 export const resendOtp = () => post<{ retryAfterSec: number }>("/api/auth/resend-otp");
 export const logout = () => post<void>("/api/auth/logout");
+export const adminLogin = (email: string, password: string) => post<{ twoFactorRequired: true }>("/api/admin/auth/login", { email, password });
+export const adminSecondStep = (code: string) => post<{ ok: true }>("/api/admin/auth/2fa", { code });
 export const forgotPassword = (email: string) => post<{ ok: true }>("/api/auth/forgot-password", { email });
 export const resetPassword = (token: string, password: string) => post<{ ok: true }>("/api/auth/reset-password", { token, password });
 export const completeGoogleSignup = (b: { kind: CustomerKind; agencyName?: string; acceptTerms: true }) => post<{ ok: true }>("/api/auth/google/complete", b);

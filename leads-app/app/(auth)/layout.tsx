@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Ghar } from "@/components/app/Ghar";
-import { LampToggle } from "@/components/app/LampToggle";
-import { LogoMark } from "@/components/marketing/Logo";
+import { Ghar } from "@/components/brand/Ghar";
+import { LampToggle } from "@/components/brand/LampToggle";
+import { LogoMark } from "@/components/brand/Logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

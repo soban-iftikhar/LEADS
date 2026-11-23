@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { LampToggle } from "@/components/app/LampToggle";
-import { Ghar } from "@/components/app/Ghar";
+import { LampToggle } from "@/components/brand/LampToggle";
+import { Ghar } from "@/components/brand/Ghar";
 import { TokenSheet } from "./TokenSheet";
 import {
   Avatar,

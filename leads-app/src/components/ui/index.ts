@@ -6,6 +6,7 @@ export { Chip, type ChipTone } from "./Chip";
 export { cx } from "./cx";
 export { DataTable, type Column } from "./DataTable";
 export { Empty } from "./Empty";
+export { ErrorState } from "./ErrorState";
 export { Field, Select, TextInput, Textarea } from "./Field";
 export { Icon } from "./Icon";
 export { ListingPic } from "./ListingPic";

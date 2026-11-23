@@ -49,6 +49,28 @@ export async function requireSignedIn(path: string): Promise<Viewer> {
   return v;
 }
 
+export type AdminViewer = { auth: Auth; admin: { id: string; name: string; firstName: string; initials: string } };
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+/**
+ * Admin pages: signed out (or second step not done) -> /admin/login?next=<path>; any other role
+ * -> /dashboard. Every server action re-checks this on its own (features/admin/guard).
+ */
+export async function requireAdmin(path = "/admin"): Promise<AdminViewer> {
+  const auth = await currentAuth();
+  if (!auth || (auth.user.role === "ADMIN" && !auth.session.twoFactorPassed)) redirect(`/admin/login?next=${encodeURIComponent(path)}`);
+  if (auth.user.role !== "ADMIN") redirect("/dashboard");
+  const name = auth.user.fullName.trim() || auth.user.email;
+  return { auth, admin: { id: auth.user.id, name, firstName: name.split(/\s+/)[0] ?? name, initials: initialsOf(name) } };
+}
+
 /** An id from the URL: anything that can't be a database id is simply not found. */
 export function pageId(raw: string): string {
   if (!isUuid(raw)) notFound();
