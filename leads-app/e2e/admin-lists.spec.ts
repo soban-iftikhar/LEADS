@@ -36,4 +36,19 @@ test.describe("admin lists: properties", () => {
     await expect(page.getByRole("status").getByText(/Invite sent|don't have the seller/)).toBeVisible();
     await archiveAndUndo(page);
   });
+
+  test("areas: add with a missing field, save, then archive with undo", async ({ page }) => {
+    await loginAsAdmin(page, "/admin/properties/areas");
+    await page.getByRole("button", { name: "Add area" }).click();
+    const drawer = page.getByRole("dialog", { name: "Add area" });
+    await drawer.getByRole("button", { name: "Add area" }).click();
+    await expect(drawer.getByText("Area name is needed")).toBeVisible();
+    const name = `Test Area ${Date.now()}`;
+    await drawer.getByLabel("Area name").fill(name);
+    await drawer.getByRole("button", { name: "Add area" }).click();
+    await expect(page.getByRole("status").getByText("Area added")).toBeVisible();
+    await page.getByRole("searchbox", { name: "Search Areas" }).fill(name);
+    await expect(page.locator("tbody tr")).toHaveCount(1);
+    await archiveAndUndo(page);
+  });
 });
