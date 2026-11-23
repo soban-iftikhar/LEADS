@@ -18,6 +18,8 @@ const SETTINGS = {
     fallback: null as { bank: string; accountTitle: string; iban: string } | null,
   },
   "leads.report_window_days": { schema: z.number().int().min(1).max(60), fallback: 7 },
+  // admin overview: leads the team aims to deliver per day, across both cities
+  "admin.daily_lead_target": { schema: z.number().int().min(1).max(100_000), fallback: 20 },
 } as const;
 
 type Key = keyof typeof SETTINGS;

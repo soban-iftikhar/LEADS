@@ -1,0 +1,36 @@
+/* overview: collapsible bars, needs-you tiles, more numbers grid, summary row */
+.adm .pane-sub{display:flex;flex-direction:column;gap:20px}
+.adm .mbar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:0 20px;border:0;border-radius:6px;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background-color .15s}
+.adm .mbar:hover{background:var(--surface-2)}
+.adm .mbar b{font-size:14.5px;font-weight:600;margin-right:10px}
+.adm .mbar small{font-size:13px;color:var(--ink-3)}
+.adm .mbar .tg2{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--m-ink);white-space:nowrap}
+.adm .mbar .tg2 svg{transition:transform .35s cubic-bezier(.32,.72,0,1)}
+.adm .mbar .tg2.open svg{transform:rotate(180deg)}
+.adm .ncount{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 7px;margin-right:10px;border-radius:3px;background:var(--m);color:#17150F;font:700 12px var(--font-mono);vertical-align:1px}
+.adm .mg-w{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.32,.72,0,1)}
+.adm .mg-w.open{grid-template-rows:1fr}
+.adm .mg-w>div{overflow:hidden}
+.adm .mg-w:not(.open)>div{visibility:hidden;transition:visibility 0s .45s}
+.adm .nyt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;padding:4px 20px 20px}
+.adm .ny{position:relative;display:flex;flex-direction:column;gap:2px;padding:18px 20px;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.adm .ny:hover{transform:translateY(-3px);box-shadow:var(--lift)}
+.adm .ny b{font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1.15}
+.adm .ny .t{font-size:14px;font-weight:600}
+.adm .ny small{font-size:12.5px;color:var(--ink-3)}
+.adm .ny.hot{background:var(--m);border-color:var(--m);color:#17150F}
+.adm .ny.hot small{color:rgba(23,21,15,.7)}
+.adm .ny .arw{position:absolute;top:20px;right:18px;transition:transform .2s}
+.adm .ny:hover .arw{transform:translateX(3px)}
+.adm .mgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.adm .ms{display:flex;flex-direction:column;gap:2px;padding:16px 20px;background:var(--surface);transition:background-color .15s}
+.adm .ms:hover{background:var(--surface-2)}
+.adm .ms .l{font-size:12.5px;color:var(--ink-3)}
+.adm .ms b{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+.adm .ms small{font-size:12px;color:var(--ink-3)}
+.adm .sumrow{display:flex;gap:24px;flex-wrap:wrap}
+.adm .sumrow div{display:flex;flex-direction:column}
+.adm .sumrow small{font-size:12px;color:var(--ink-3)}
+.adm .sumrow b{font-size:18px;font-weight:800;letter-spacing:-.02em}
+@media (max-width:1180px){.adm .nyt,.adm .mgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){.adm .nyt,.adm .mgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
