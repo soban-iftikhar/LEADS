@@ -8,7 +8,7 @@ export function Cell({ col, v }: { col: Column; v: CellValue }) {
   if (typeof v === "string") return <>{v}</>;
   if ("a" in v)
     return (
-      <div className="tt">
+      <div className="tt" title={v.b ? `${v.a} · ${v.b}` : v.a}>
         <b>{v.a}</b>
         {v.b && <small>{v.b}</small>}
       </div>

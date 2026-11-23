@@ -1,0 +1,38 @@
+{
+  "note": "Customer accounts and their listings for the admin lists. Listing status is reset to this on every run.",
+  "customers": [
+    {
+      "email": "capital@example.test",
+      "name": "Faisal Mahmood",
+      "kind": "AGENCY",
+      "displayName": "Capital Realtors",
+      "region": "islamabad",
+      "listings": [
+        { "key": "cap-g13-10", "category": "HOUSE", "marla": 10, "price": 31500000, "area": "g-13-1", "status": "UNDER_REVIEW", "daysAgo": 1 },
+        { "key": "cap-b17-8", "category": "HOUSE", "marla": 8, "price": 22500000, "area": "b-17", "status": "UNDER_REVIEW", "daysAgo": 2 },
+        { "key": "cap-g14-plot", "category": "PLOT", "marla": 10, "price": 12800000, "area": "g-14-4", "status": "APPROVED", "daysAgo": 20 },
+        { "key": "cap-e11-1k", "category": "HOUSE", "marla": 20, "price": 98000000, "area": "e-11", "status": "PAUSED", "daysAgo": 40 }
+      ]
+    },
+    {
+      "email": "twincity@example.test",
+      "name": "Sadia Rauf",
+      "kind": "AGENCY",
+      "displayName": "Twin City Estates",
+      "region": "rawalpindi",
+      "listings": [
+        { "key": "twin-bt8-7", "category": "HOUSE", "marla": 7, "price": 17800000, "area": "bahria-town-phase-8", "status": "UNDER_REVIEW", "daysAgo": 0 },
+        { "key": "twin-gulraiz-5", "category": "HOUSE", "marla": 5, "price": 11500000, "area": "gulraiz", "status": "APPROVED", "daysAgo": 15 },
+        { "key": "twin-adiala-plot", "category": "PLOT", "marla": 20, "price": 9000000, "area": "adiala-road", "status": "NEEDS_INFO", "daysAgo": 6 }
+      ]
+    },
+    {
+      "email": "naveed.owner@example.test",
+      "name": "Naveed Butt",
+      "kind": "SELLER",
+      "displayName": "Naveed Butt",
+      "region": "islamabad",
+      "listings": [{ "key": "naveed-i8-10", "category": "HOUSE", "marla": 10, "price": 46500000, "area": "i-8", "status": "UNDER_REVIEW", "daysAgo": 3 }]
+    }
+  ]
+}

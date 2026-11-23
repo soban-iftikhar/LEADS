@@ -1,0 +1,5 @@
+{
+  "note": "Seeded portal listings (market.json) get a ranking score; this share also gets a seller number so they can be invited.",
+  "withNumber": 0.7,
+  "modelVersion": "seed-1"
+}

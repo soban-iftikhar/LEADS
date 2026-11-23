@@ -38,6 +38,7 @@ model Locality {
   name           String
   slug           String
   aliases        String[]
+  kind           String          @default("AREA") // SECTOR | SOCIETY | AREA (admin areas screen)
   parentId       String?         @map("parent_id") @db.Uuid
   lat            Decimal?        @db.Decimal(9, 6)
   lng            Decimal?        @db.Decimal(9, 6)
@@ -1002,6 +1003,23 @@ model AreaBenchmark {
 
   @@id([localityId, category, purpose, sizeBand])
   @@map("area_benchmarks")
+  @@schema("intel")
+}
+
+// Daily median asking price per marla of active portal listings, per area, type and size band.
+// Filled by the crawler pipeline; the market dashboard buckets it by day/week/month/year.
+model AreaPriceSnapshot {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  localityId     String   @map("locality_id") @db.Uuid
+  category       String // HOUSE | PLOT
+  sizeBand       String   @map("size_band") // 5 | 10 | 20 (marla)
+  day            DateTime @db.Date
+  medianPerMarla Decimal  @map("median_per_marla") @db.Decimal(14, 2)
+  listings       Int
+
+  @@unique([localityId, category, sizeBand, day])
+  @@index([category, sizeBand, day])
+  @@map("area_price_snapshots")
   @@schema("intel")
 }
 

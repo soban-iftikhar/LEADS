@@ -1,4 +1,5 @@
 import "server-only";
+import { slugify } from "@/lib/slug";
 import crypto from "node:crypto";
 import { Prisma, type ListingStatus, type ReviewDecision } from "@prisma/client";
 import { prisma } from "@/server/db";
@@ -230,7 +231,7 @@ export async function submitListing(owner: Owner, id: string): Promise<{ status:
         status: "UNDER_REVIEW",
         criteriaResult: { passed: true, checks: checks.map((c) => ({ key: c.key, passed: c.passed })) },
         // a readable, stable address once the facts are in (only before the first publish)
-        ...(l.publishedAt ? {} : { slug: `${slugify(`${l.title} ${l.locality?.name ?? ""}`)}-${crypto.randomBytes(3).toString("hex")}` }),
+        ...(l.publishedAt ? {} : { slug: `${slugify(`${l.title} ${l.locality?.name ?? ""}`, "listing")}-${crypto.randomBytes(3).toString("hex")}` }),
       },
     });
     await tx.listingStatusEvent.create({ data: { listingId: l.id, status: "UNDER_REVIEW" } });
@@ -325,10 +326,6 @@ export async function setDocument(owner: Owner, id: string, kind: DocumentKind, 
   });
   for (const d of old) await (await mediaStore()).remove(d.cloudinaryId, "document").catch(() => {});
   return { document: { ...doc, uploadedAt: doc.uploadedAt.toISOString() } };
-}
-
-function slugify(s: string): string {
-  return s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "listing";
 }
 
 // ---------------------------------------------------------------- AI help (SPEC_02 5.12)

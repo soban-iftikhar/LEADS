@@ -16,7 +16,10 @@ export type AuditAction =
   | "user.unsuspended"
   | "admin.created"
   | "record.archived"
-  | "record.restored";
+  | "record.restored"
+  | "prospect.invited"
+  | "area.created"
+  | "area.updated";
 
 export async function audit(
   db: Prisma.TransactionClient,

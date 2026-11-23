@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/components/ui/cx";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/admin/constants";
@@ -47,17 +47,14 @@ export function Toolbar({ config, params, counts, set }: Props) {
 
 function SearchBox({ initial, label, onSearch }: { initial: string; label: string; onSearch: (q: string) => void }) {
   const [value, setValue] = useState(initial);
-  const first = useRef(true);
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    // only real edits: the URL already holds `initial`
+    if (value.trim() === initial) return;
     const t = setTimeout(() => onSearch(value.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
     // onSearch changes with every render of the parent; the debounce follows the text only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, initial]);
   return (
     <label className="fsearch">
       <Icon name="search" size={15} />
