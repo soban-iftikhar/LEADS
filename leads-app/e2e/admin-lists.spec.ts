@@ -65,3 +65,21 @@ test.describe("admin lists: listings", () => {
     await expect(rows).toHaveCount(before - 1);
   });
 });
+
+test.describe("admin lists: all listings", () => {
+  test("tabs, type filter, search, export link and archive with undo", async ({ page }) => {
+    await loginAsAdmin(page, "/admin/listings");
+    await page.getByRole("tab", { name: /^Live/ }).click();
+    await expect(page).toHaveURL(/tab=live/);
+    await page.getByLabel("Filter by Type").selectOption("house");
+    await expect(page).toHaveURL(/filter=house/);
+    const exportLink = page.getByRole("link", { name: "Export" });
+    await expect(exportLink).toHaveAttribute("href", /\/api\/admin\/export\/listings\?tab=live&filter=house/);
+    const csv = await page.request.get((await exportLink.getAttribute("href")) ?? "");
+    expect(csv.headers()["content-type"]).toContain("text/csv");
+    expect((await csv.text()).split("\r\n")[0]).toBe("Sr.,Property,Customer,Price,Status");
+    await page.getByRole("tab", { name: /^All/ }).click();
+    await sortCycles(page, "Customer", "customer");
+    await archiveAndUndo(page);
+  });
+});

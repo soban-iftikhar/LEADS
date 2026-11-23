@@ -6,6 +6,7 @@ import { notFound } from "@/server/http/errors";
 const ARCHIVABLE: Record<string, { model: ArchivableModel; noun: string }> = {
   selection: { model: "masterListing", noun: "property" },
   areas: { model: "locality", noun: "area" },
+  listings: { model: "listing", noun: "listing" },
 };
 
 export function archivableResource(resource: string): { model: ArchivableModel; noun: string } {
