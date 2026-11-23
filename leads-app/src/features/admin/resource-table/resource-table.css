@@ -27,8 +27,9 @@
 .adm .sort.asc,.adm .sort.desc{color:var(--ink)}
 .adm .sort.asc .up,.adm .sort.desc .dn{stroke:var(--ink)}
 .adm .t th.r .sort{flex-direction:row-reverse}
-.adm .tt b{display:block;font-size:14px;font-weight:600}
-.adm .tt small{display:block;font-size:12.5px;color:var(--ink-3)}
+.adm .tt{max-width:420px}
+.adm .tt b{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.adm .tt small{display:block;font-size:12.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis}
 .adm .cbx{width:17px;height:17px;accent-color:var(--m-mid);cursor:pointer;vertical-align:middle}
 .adm .acts{display:flex;align-items:center;justify-content:flex-end;gap:4px}
 .adm .pb{display:flex;align-items:center;gap:10px}
