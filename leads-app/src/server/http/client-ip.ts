@@ -13,7 +13,7 @@ import { env } from "@/server/env";
  * Run the app behind a reverse proxy and set TRUSTED_PROXY_HOPS to match.
  * With no usable header every caller shares one bucket, which is strict but safe.
  */
-export function clientIp(request: Request): string {
+export function clientIp(request: Pick<Request, "headers">): string {
   const hops = env().TRUSTED_PROXY_HOPS;
   const header = request.headers.get("x-forwarded-for");
   if (!header || hops < 1) return "unknown";

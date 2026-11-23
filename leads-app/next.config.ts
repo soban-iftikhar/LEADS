@@ -16,7 +16,12 @@ const nextConfig: NextConfig = {
   // the Python service lives in this folder but is never part of the web bundle
   outputFileTracingExcludes: { "*": ["python-service/**", "e2e/**", "test/**", "scripts/**", ".data/**"] },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // the admin console is never indexed, whatever a page's metadata says
+      { source: "/admin", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+      { source: "/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ];
   },
 };
 
