@@ -52,3 +52,16 @@ test.describe("admin lists: properties", () => {
     await archiveAndUndo(page);
   });
 });
+
+test.describe("admin lists: listings", () => {
+  test("review queue sorts and approves a waiting listing", async ({ page }) => {
+    await loginAsAdmin(page, "/admin/listings/review");
+    await expect(page.getByRole("tablist", { name: "Status" })).toHaveCount(0);
+    await sortCycles(page, "Price", "price");
+    const rows = page.locator("tbody tr");
+    const before = await rows.count();
+    await rows.first().getByRole("button", { name: "Approve" }).click();
+    await expect(page.getByRole("status").getByText("Listing approved")).toBeVisible();
+    await expect(rows).toHaveCount(before - 1);
+  });
+});
