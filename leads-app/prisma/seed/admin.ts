@@ -6,6 +6,7 @@
 // App code never imports this folder. It refuses to run in production.
 import "dotenv/config";
 import { createContext } from "./admin/context";
+import { seedMarket } from "./admin/market";
 import { seedSettings } from "./admin/settings";
 import { seedTeam } from "./admin/team";
 
@@ -17,6 +18,7 @@ if (process.env.NODE_ENV === "production") {
 const steps = [
   ["team", seedTeam],
   ["settings", seedSettings],
+  ["market", seedMarket],
 ] as const;
 
 async function main() {

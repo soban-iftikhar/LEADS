@@ -1,0 +1,49 @@
+/* market intelligence: hot-area cards, demand meter, area picker */
+.adm .hot3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.adm .hz{display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:6px;border:1px solid var(--line);background:var(--surface);text-align:left;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;animation:adm-in .6s cubic-bezier(.22,.8,.24,1) both}
+.adm .hz:nth-child(2){animation-delay:.07s}
+.adm .hz:nth-child(3){animation-delay:.14s}
+.adm .hz:hover{transform:translateY(-3px);box-shadow:var(--lift)}
+.adm .hz.first{background:var(--m);border-color:var(--m);color:#17150F}
+.adm .hz-top{display:flex;align-items:center;justify-content:space-between}
+.adm .hz .rk{font:800 13px var(--font-mono);opacity:.6}
+.adm .hz .nm{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.adm .hz .big{font-size:13.5px;display:flex;align-items:baseline;gap:8px}
+.adm .hz .big b{font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.adm .lv{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:3px;font-size:12px;font-weight:700}
+.adm .lv.hot{background:#17150F;color:#F2C230}
+.adm .lv.warm{background:var(--m-soft);color:var(--m-ink)}
+.adm .lv.cool{background:var(--surface-2);color:var(--ink-2)}
+.adm .meter{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.adm .meter i{display:block;height:10px;border-radius:2px;background:var(--surface-2)}
+.adm .meter i.on{background:var(--m)}
+.adm .hz.first .meter i{background:rgba(23,21,15,.14)}
+.adm .hz.first .meter i.on{background:#17150F}
+.adm .f4{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;padding-top:14px;border-top:1px solid var(--line)}
+.adm .hz.first .f4{border-color:rgba(23,21,15,.18)}
+.adm .f4 small{display:block;font-size:12px;opacity:.7}
+.adm .f4 b{font-size:15px;font-weight:700}
+.adm .hrest{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.adm .hm{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:6px;border:1px solid var(--line);background:var(--surface);transition:background-color .15s,border-color .15s}
+.adm .hm:hover{border-color:var(--line-2);background:var(--surface-2)}
+.adm .hm .r1{display:flex;justify-content:space-between;align-items:center;font:700 12px var(--font-mono);color:var(--ink-3)}
+.adm .hm b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm .hm small{font-size:12.5px;color:var(--ink-3)}
+.adm .hm .meter i{height:6px}
+.adm .trbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.adm .pickw{position:relative}
+.adm .pickb{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface);font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer}
+.adm .pickb:hover{background:var(--surface-2)}
+.adm .pickb .n{font:600 11.5px var(--font-mono);padding:1px 6px;border-radius:3px;background:var(--m-soft);color:var(--m-ink)}
+.adm .popscrim{position:fixed;inset:0;z-index:39}
+.adm .pop{position:absolute;left:0;top:calc(100% + 8px);z-index:40;width:310px;background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--lift);display:flex;flex-direction:column;animation:adm-pop .2s cubic-bezier(.3,1.4,.5,1)}
+.adm .pop .inp{margin:12px 12px 6px;height:38px}
+.adm .pop .hint{padding:0 14px 6px;font-size:12px;color:var(--ink-3)}
+.adm .plist{max-height:270px;overflow:auto;padding:4px 6px}
+.adm .pit{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;align-items:center;padding:8px;border-radius:4px;cursor:pointer;font-size:13.5px;font-weight:600}
+.adm .pit:hover{background:var(--surface-2)}
+.adm .pit.dis{opacity:.45;cursor:not-allowed}
+.adm .pit small{display:block;font-size:12px;color:var(--ink-3);font-weight:500}
+.adm .pfoot{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+@media (max-width:1180px){.adm .hot3{grid-template-columns:1fr}.adm .hrest{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){.adm .hrest{grid-template-columns:repeat(2,minmax(0,1fr))}.adm .pop{width:min(310px,calc(100vw - 32px))}}
