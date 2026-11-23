@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cx } from "@/components/ui/cx";
 import { logout } from "@/lib/api";
 import { usePageTransition } from "@/lib/hooks/usePageTransition";
@@ -21,6 +22,7 @@ export function AdminShell({ admin, badges, children }: Props) {
   const { collapsed, toggle } = useRailCollapsed(ADMIN_RAIL_STORAGE_KEY);
   const { path, out, go, stage, onClickCapture } = usePageTransition({ countSelector: COUNT_SELECTOR, countMs: 900, leaveMs: 170 });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [askLogout, setAskLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const waiting = badges.review + badges.replies + badges.reports;
 
@@ -48,7 +50,7 @@ export function AdminShell({ admin, badges, children }: Props) {
 
   return (
     <div className={cx("shell", menuOpen && "mopen")} onClickCapture={onClickCapture}>
-      <AdminRail path={path} badges={badges} admin={admin} collapsed={collapsed} onToggle={toggle} onLogout={onLogout} loggingOut={loggingOut} />
+      <AdminRail path={path} badges={badges} admin={admin} collapsed={collapsed} onToggle={toggle} onLogout={() => setAskLogout(true)} loggingOut={loggingOut} />
       <div className="rscrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />
       <div className="main">
         <AdminHeader path={path} waiting={waiting} onMenu={() => setMenuOpen(true)} go={go} />
@@ -60,6 +62,16 @@ export function AdminShell({ admin, badges, children }: Props) {
           </div>
         </main>
       </div>
+      {askLogout && (
+        <ConfirmDialog
+          title="Log out?"
+          text="You'll need your password and authenticator code to come back."
+          confirmLabel="Log out"
+          busy={loggingOut}
+          onConfirm={onLogout}
+          onCancel={() => setAskLogout(false)}
+        />
+      )}
     </div>
   );
 }

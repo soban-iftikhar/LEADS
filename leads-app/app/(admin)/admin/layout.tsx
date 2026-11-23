@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const badges = await getAdminBadges();
   return (
     <div className="adm">
-      <ToastProvider>
+      <ToastProvider duration={4500}>
         <AdminShell admin={{ name: admin.name, initials: admin.initials, role: "Admin" }} badges={badges}>
           {children}
         </AdminShell>

@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-
-const noop = () => () => {};
-const portalHost = () => document.querySelector<HTMLElement>(".app-ui") ?? document.body;
+import { useDialog } from "./useDialog";
 
 type Props = {
   title: string;
@@ -17,50 +15,7 @@ type Props = {
 export function Modal({ title, onClose, children, footer }: Props) {
   const panel = useRef<HTMLDivElement>(null);
   const titleId = useId();
-  const closeRef = useRef(onClose);
-  // portal out of the page pane: its transition (filter/transform) would trap position:fixed
-  const host = useSyncExternalStore(noop, portalHost, () => null);
-  useEffect(() => {
-    closeRef.current = onClose;
-  });
-
-  useEffect(() => {
-    if (!host) return;
-    const prev = document.activeElement as HTMLElement | null;
-    const el = panel.current;
-    const focusables = () =>
-      Array.from(
-        el?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])') ?? [],
-      ).filter((n) => !n.hasAttribute("aria-hidden"));
-    (focusables()[0] ?? el)?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeRef.current();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const f = focusables();
-      if (!f.length) return;
-      const first = f[0];
-      const last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-      prev?.focus?.();
-    };
-  }, [host]);
+  const host = useDialog(panel, onClose);
 
   if (!host) return null;
   return createPortal(
