@@ -5,6 +5,8 @@ import { EXPORT_BATCH } from "@/lib/admin/constants";
 import { parseListParams, type ListFn, type ResourceConfig } from "@/lib/admin/resource";
 import { areasConfig } from "@/features/admin/areas/config";
 import { getAreas } from "@/features/admin/areas/queries";
+import { listingsConfig } from "@/features/admin/listings/config";
+import { getListings } from "@/features/admin/listings/queries";
 import { reviewConfig } from "@/features/admin/review-queue/config";
 import { getReviewQueue } from "@/features/admin/review-queue/queries";
 import { selectionConfig } from "@/features/admin/selection/config";
@@ -15,6 +17,7 @@ const EXPORTS: Record<string, { config: ResourceConfig; list: ListFn }> = {
   selection: { config: selectionConfig, list: getSelection },
   areas: { config: areasConfig, list: getAreas },
   review: { config: reviewConfig, list: getReviewQueue },
+  listings: { config: listingsConfig, list: getListings },
 };
 
 // GET /api/admin/export/<resource>?<same params as the screen> -> CSV, streamed page by page

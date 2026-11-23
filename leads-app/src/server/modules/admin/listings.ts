@@ -85,3 +85,34 @@ export async function approveListings(actor: AdminActor, ids: string[]): Promise
   }
   return n;
 }
+
+/** The status tabs of All listings, by URL value. */
+const TABS: Record<string, ListingStatus[]> = {
+  live: ["APPROVED"],
+  waiting: ["UNDER_REVIEW"],
+  info: ["NEEDS_INFO"],
+  paused: ["PAUSED"],
+  closed: ["SOLD", "REJECTED"],
+};
+
+const allWhere = (p: ListParams, tab = p.tab): Prisma.ListingWhereInput => ({
+  ...archiveScope(tab),
+  status: TABS[tab] ? { in: TABS[tab] } : { not: "DRAFT" },
+  ...(p.filter !== "all" ? { category: p.filter.toUpperCase() } : {}),
+  ...search(p.q),
+});
+
+export async function listAllListings(p: ListParams, take?: number): Promise<ListResult> {
+  const where = allWhere(p);
+  const tabs = ["all", ...Object.keys(TABS), "archived"];
+  const [rows, total, ...counts] = await Promise.all([
+    prisma.listing.findMany({ where, orderBy: orderFor(p.sort, SORTS, { updatedAt: "desc" }, { id: "asc" }), ...pageWindow(p.page, take), select }),
+    prisma.listing.count({ where }),
+    ...tabs.map((t) => prisma.listing.count({ where: allWhere(p, t) })),
+  ]);
+  return {
+    total,
+    counts: Object.fromEntries(tabs.map((t, i) => [t, counts[i]])),
+    rows: rows.map((r): Row => ({ id: r.id, archived: !!r.archivedAt, cells: { ...cells(r), status: LISTING_PILL[r.status] } })),
+  };
+}
