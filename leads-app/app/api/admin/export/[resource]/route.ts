@@ -3,9 +3,13 @@ import { route } from "@/server/http/route";
 import { cellText, csvLine } from "@/lib/admin/csv";
 import { EXPORT_BATCH } from "@/lib/admin/constants";
 import { parseListParams, type ListFn, type ResourceConfig } from "@/lib/admin/resource";
+import { selectionConfig } from "@/features/admin/selection/config";
+import { getSelection } from "@/features/admin/selection/queries";
 
 // Lists that can be downloaded: the same config and query the screen uses.
-const EXPORTS: Record<string, { config: ResourceConfig; list: ListFn }> = {};
+const EXPORTS: Record<string, { config: ResourceConfig; list: ListFn }> = {
+  selection: { config: selectionConfig, list: getSelection },
+};
 
 // GET /api/admin/export/<resource>?<same params as the screen> -> CSV, streamed page by page
 export const GET = route<"admin:access", undefined, undefined, { resource: string }>({

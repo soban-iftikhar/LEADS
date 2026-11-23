@@ -7,6 +7,7 @@
 import "dotenv/config";
 import { createContext } from "./admin/context";
 import { seedMarket } from "./admin/market";
+import { seedSelection } from "./admin/selection";
 import { seedSettings } from "./admin/settings";
 import { seedTeam } from "./admin/team";
 
@@ -19,6 +20,7 @@ const steps = [
   ["team", seedTeam],
   ["settings", seedSettings],
   ["market", seedMarket],
+  ["selection", seedSelection],
 ] as const;
 
 async function main() {
