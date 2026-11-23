@@ -1005,6 +1005,23 @@ model AreaBenchmark {
   @@schema("intel")
 }
 
+// Daily median asking price per marla of active portal listings, per area, type and size band.
+// Filled by the crawler pipeline; the market dashboard buckets it by day/week/month/year.
+model AreaPriceSnapshot {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  localityId     String   @map("locality_id") @db.Uuid
+  category       String // HOUSE | PLOT
+  sizeBand       String   @map("size_band") // 5 | 10 | 20 (marla)
+  day            DateTime @db.Date
+  medianPerMarla Decimal  @map("median_per_marla") @db.Decimal(14, 2)
+  listings       Int
+
+  @@unique([localityId, category, sizeBand, day])
+  @@index([category, sizeBand, day])
+  @@map("area_price_snapshots")
+  @@schema("intel")
+}
+
 model ListingScore {
   masterListingId   String        @id @map("master_listing_id") @db.Uuid
   qualityScore      Decimal       @map("quality_score") @db.Decimal(8, 4)
