@@ -11,6 +11,7 @@ export { Empty } from "./Empty";
 export { ErrorState } from "./ErrorState";
 export { Field, Select, TextInput, Textarea } from "./Field";
 export { Icon } from "./Icon";
+export { Kpi, KpiRow, type KpiProps } from "./Kpi";
 export { ListingPic } from "./ListingPic";
 export { Modal } from "./Modal";
 export { Note } from "./Note";

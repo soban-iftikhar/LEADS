@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayBucket, formatBudget, formatDate, formatPhone, formatPkr, formatRelative, groupPk, toE164 } from "./format";
+import { dayBucket, formatBudget, formatDate, formatLac, formatNumber, formatPercent, formatPhone, formatPkr, formatRelative, groupPk, parseSortableNumber, toE164 } from "./format";
 
 describe("formatPkr", () => {
   it("uses crore with one decimal and drops .0", () => {
@@ -69,5 +69,34 @@ describe("local input round trip", async () => {
   });
   it("stamps in 24 h", () => {
     expect(formatStamp("2026-11-13T05:42:00Z", new Date("2026-11-13T12:00:00Z"))).toBe("13 Nov, 10:42");
+  });
+});
+
+describe("admin number formats", () => {
+  it("groups counts the Pakistani way", () => {
+    expect(formatNumber(48212)).toBe("48,212");
+    expect(formatNumber(120000)).toBe("1,20,000");
+    expect(formatNumber(7.6)).toBe("8");
+  });
+
+  it("prints percents with a sign when asked", () => {
+    expect(formatPercent(0.059)).toBe("5.9%");
+    expect(formatPercent(0.059, { signed: true })).toBe("+5.9%");
+    expect(formatPercent(-0.024, { signed: true })).toBe("-2.4%");
+    expect(formatPercent(0.1, { decimals: 0 })).toBe("10%");
+    expect(formatPercent(0)).toBe("0%");
+  });
+
+  it("prints lakh with one decimal", () => {
+    expect(formatLac(3_080_000)).toBe("30.8");
+  });
+
+  it("reads numbers the way people type them", () => {
+    expect(parseSortableNumber("1,20,000")).toBe(120000);
+    expect(parseSortableNumber("2.55 Cr")).toBe(25_500_000);
+    expect(parseSortableNumber("85 lac")).toBe(8_500_000);
+    expect(parseSortableNumber("PKR 45,000")).toBe(45000);
+    expect(parseSortableNumber("-5.9%")).toBe(-5.9);
+    expect(parseSortableNumber("abc")).toBeNaN();
   });
 });

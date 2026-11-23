@@ -19,7 +19,7 @@ const CUSTOMER = [
   "notification:read:own",
 ] as const;
 const BUYER = ["listing:save", "inquiry:create"] as const;
-const ADMIN = ["listing:read:any", "listing:review", "user:read:any", "user:update:any", "user:suspend", "session:revoke:any", "payment:confirm", "audit:read"] as const;
+const ADMIN = ["admin:access", "listing:read:any", "listing:review", "user:read:any", "user:update:any", "user:suspend", "session:revoke:any", "payment:confirm", "audit:read"] as const;
 
 export type Permission = (typeof OWN_ACCOUNT)[number] | (typeof CUSTOMER)[number] | (typeof BUYER)[number] | (typeof ADMIN)[number];
 
